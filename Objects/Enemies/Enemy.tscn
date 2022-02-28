@@ -6,7 +6,8 @@
 [sub_resource type="CapsuleShape2D" id=1]
 radius = 22.0
 
-[node name="Enemy2" type="PathFollow2D"]
+[node name="Enemy" type="PathFollow2D"]
+loop = false
 script = ExtResource( 2 )
 
 [node name="Sprite" type="Sprite" parent="."]

@@ -10,6 +10,12 @@ radius = 252.958
 [node name="Cannon" type="Node2D" groups=["Canons"]]
 script = ExtResource( 3 )
 
+[node name="Vision" type="Area2D" parent="."]
+collision_layer = 7
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Vision"]
+shape = SubResource( 1 )
+
 [node name="BaseSprite" type="Sprite" parent="."]
 scale = Vector2( 0.1, 0.1 )
 texture = ExtResource( 1 )
@@ -20,11 +26,11 @@ rotation = 1.57079
 scale = Vector2( 0.1, 0.1 )
 texture = ExtResource( 2 )
 
-[node name="Vision" type="Area2D" parent="."]
-collision_layer = 7
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Vision"]
-shape = SubResource( 1 )
+[node name="Position2D" type="Position2D" parent="DuloSprite"]
+position = Vector2( 0.00292969, -460 )
+__meta__ = {
+"_gizmo_extents_": 547.7
+}
 
 [connection signal="area_entered" from="Vision" to="." method="_on_Vision_area_entered"]
 [connection signal="area_exited" from="Vision" to="." method="_on_Vision_area_exited"]
