@@ -10,7 +10,7 @@ func _ready():
 
 func _physics_process(delta: float) -> void:
 	if enemies != []:
-		print("enemies not null")
+		#print("enemies not null")
 		cur_enemy = enemies[0]
 		look_at(cur_enemy.global_position)
 	pass

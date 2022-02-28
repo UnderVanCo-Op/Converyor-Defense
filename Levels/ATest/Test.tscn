@@ -1,12 +1,22 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=4 format=2]
 
 [ext_resource path="res://Objects/Cannons/Cannon.tscn" type="PackedScene" id=1]
-[ext_resource path="res://Objects/Enemies/Enemy.tscn" type="PackedScene" id=2]
+[ext_resource path="res://Objects/Enemies/Enemy.tscn" type="PackedScene" id=3]
+
+[sub_resource type="Curve2D" id=1]
+_data = {
+"points": PoolVector2Array( 0, 0, 0, 0, -159, 33, 0, 0, 0, 0, 195, 137, 0, 0, 0, 0, 480, 139, 0, 0, 0, 0, 618, 229, 0, 0, 0, 0, 1311, 190, 0, 0, 0, 0, 1368, 299, 0, 0, 0, 0, 1458, 291, 0, 0, 0, 0, 1975, 296 )
+}
 
 [node name="Test" type="Node2D"]
 
 [node name="Cannon" parent="." instance=ExtResource( 1 )]
 position = Vector2( 892, 410 )
 
-[node name="Enemy" parent="." instance=ExtResource( 2 )]
-position = Vector2( 499, 252 )
+[node name="Path2D" type="Path2D" parent="."]
+position = Vector2( 0, 37 )
+curve = SubResource( 1 )
+
+[node name="Enemy" parent="Path2D" instance=ExtResource( 3 )]
+position = Vector2( -159, 33 )
+rotation = 0.285746
