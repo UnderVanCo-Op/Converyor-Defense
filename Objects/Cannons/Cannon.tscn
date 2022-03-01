@@ -32,5 +32,10 @@ __meta__ = {
 "_gizmo_extents_": 547.7
 }
 
+[node name="ReloadTimer" type="Timer" parent="."]
+wait_time = 0.2
+autostart = true
+
 [connection signal="area_entered" from="Vision" to="." method="_on_Vision_area_entered"]
 [connection signal="area_exited" from="Vision" to="." method="_on_Vision_area_exited"]
+[connection signal="timeout" from="ReloadTimer" to="." method="_on_ReloadTimer_timeout"]

@@ -1,5 +1,6 @@
 extends Node2D
 
+var bullet = preload("res://Objects/Bullets/Bullet.tscn")
 
 var enemies = []
 var cur_enemy
@@ -9,7 +10,7 @@ func _ready():
 	pass # Replace with function body.
 
 func _physics_process(delta: float) -> void:
-	if enemies != []:
+	if enemies:
 		#print("enemies not null")
 		cur_enemy = enemies[0]
 		look_at(cur_enemy.global_position)
@@ -19,10 +20,21 @@ func _on_Vision_area_entered(area: Area2D) -> void:
 	print("body entered")
 	if(area.is_in_group("Enemies")):
 		enemies.append(area)
-		print("appended")
+		print(str(area) + " appended")
 
 
 func _on_Vision_area_exited(area: Area2D) -> void:
 	print("exited")
 	if(area.is_in_group("Enemies")):
 		enemies.erase(area)
+
+
+func _on_ReloadTimer_timeout() -> void: 
+	if cur_enemy and enemies:
+		print("reloaded")
+		var b = bullet.instance()
+		b.global_position = global_position
+		b.target = cur_enemy
+		get_parent().add_child(b)
+		
+		
