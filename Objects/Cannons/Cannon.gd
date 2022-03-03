@@ -13,7 +13,8 @@ func _physics_process(delta: float) -> void:
 	if enemies:
 		#print("enemies not null")
 		cur_enemy = enemies[0]
-		look_at(cur_enemy.global_position)
+		#$DuloSprite.look_at(cur_enemy.global_position)
+		$DuloSprite.rotation = (global_position - cur_enemy.global_position).angle() - 90
 	pass
 
 func _on_Vision_area_entered(area: Area2D) -> void:
@@ -32,7 +33,7 @@ func _on_ReloadTimer_timeout() -> void:
 	if cur_enemy and enemies:
 		print("reloaded")
 		var b = bullet.instance()
-		b.global_position = global_position
+		b.global_position = $DuloSprite/Position2D.global_position
 		b.target = cur_enemy
 		get_parent().add_child(b)
 		
