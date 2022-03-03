@@ -17,16 +17,15 @@ func _physics_process(delta: float) -> void:
 	pass
 
 func _on_Vision_area_entered(area: Area2D) -> void:
-	print("body entered")
 	if(area.is_in_group("Enemies")):
 		enemies.append(area)
 		print(str(area) + " appended")
 
 
 func _on_Vision_area_exited(area: Area2D) -> void:
-	print("exited")
 	if(area.is_in_group("Enemies")):
 		enemies.erase(area)
+		print("enemy exited")
 
 
 func _on_ReloadTimer_timeout() -> void: 
