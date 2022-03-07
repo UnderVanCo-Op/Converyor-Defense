@@ -14,7 +14,8 @@ func _physics_process(delta: float) -> void:
 		#print("enemies not null")
 		cur_enemy = enemies[0]
 		#$DuloSprite.look_at(cur_enemy.global_position)
-		$DuloSprite.rotation = (global_position - cur_enemy.global_position).angle() - 90
+		#rotate(1.5708)
+		$DuloSprite.rotation = (global_position - cur_enemy.global_position).angle() - 1.5708
 	pass
 
 func _on_Vision_area_entered(area: Area2D) -> void:
@@ -36,5 +37,6 @@ func _on_ReloadTimer_timeout() -> void:
 		b.global_position = $DuloSprite/Position2D.global_position
 		b.target = cur_enemy
 		get_parent().add_child(b)
+		b.rotation = 1.5708
 		
-		
+	

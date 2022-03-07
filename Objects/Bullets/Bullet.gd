@@ -1,6 +1,5 @@
 extends Area2D
 
-var moveV = Vector2.ZERO
 var speed = 3
 var lookV = Vector2.ZERO
 var target
@@ -11,8 +10,8 @@ func _ready() -> void:
 		lookV = target.global_position - global_position
 		
 func _physics_process(delta: float) -> void:
-	moveV = Vector2.ZERO
-	
-	moveV = moveV.move_toward(lookV, speed)
-	#moveV = moveV.normalized() * speed
-	global_position += moveV
+	global_position += Vector2.ZERO.move_toward(lookV, speed)
+
+
+func _on_VisibilityNotifier2D_screen_exited() -> void:
+	queue_free() # АККУРАТНО, если карта будет большой надо будет переделать

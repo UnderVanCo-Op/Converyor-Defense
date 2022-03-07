@@ -22,7 +22,6 @@ texture = ExtResource( 1 )
 
 [node name="DuloSprite" type="Sprite" parent="."]
 position = Vector2( -4.91738e-07, 9.41157e-05 )
-rotation = 1.57079
 scale = Vector2( 0.1, 0.1 )
 texture = ExtResource( 2 )
 offset = Vector2( 9.53674e-07, -150 )
