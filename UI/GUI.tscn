@@ -14,4 +14,12 @@ margin_left = -204.0
 margin_top = -48.0
 text = "BUILD"
 
+[node name="Label" type="Label" parent="."]
+anchor_left = 0.5
+anchor_right = 0.5
+margin_left = -20.0
+margin_right = 20.0
+margin_bottom = 14.0
+text = "Money : "
+
 [connection signal="pressed" from="Button" to="." method="_on_Button_pressed"]

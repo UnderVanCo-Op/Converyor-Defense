@@ -2,12 +2,23 @@ extends Node2D
 #This is GameManager.gd
 
 var cannon = preload("res://Objects/Cannons/Cannon.tscn")
+var building = false
+var instance
+var money = 250
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	pass # Replace with function body.
+	$"../GUI".connect("press_build", self, "_press_build")	# 1 method
+	$"../GUI".call("updateMoney", money)	# 2 method
+	
+func _press_build() -> void:
+	#print("WORKDE WDUD")
+	if (not building) and money >= 25:
+		instance = cannon.instance()
+		get_parent().add_child(instance)
+		instance.position = get_global_mouse_position()
 
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-#func _process(delta: float) -> void:
-#	pass
+func tower_built() -> void:
+	building = false
+	money -= 25
+	$"../GUI".call("updateMoney", money)

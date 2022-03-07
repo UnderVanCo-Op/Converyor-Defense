@@ -12,6 +12,8 @@ _data = {
 
 [node name="Test" type="Node2D"]
 
+[node name="GameManager" parent="." instance=ExtResource( 4 )]
+
 [node name="Path2D" type="Path2D" parent="."]
 position = Vector2( 0, 37 )
 curve = SubResource( 1 )
@@ -24,5 +26,3 @@ rotation = 0.285746
 position = Vector2( 572, 337 )
 
 [node name="GUI" parent="." instance=ExtResource( 2 )]
-
-[node name="GameManager" parent="." instance=ExtResource( 4 )]
