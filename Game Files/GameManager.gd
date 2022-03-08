@@ -11,7 +11,7 @@ func _ready() -> void:
 	$"../GUI".connect("press_build", self, "_press_build")	# 1 method
 	$"../GUI".call("updateMoney", money)	# 2 method
 	
-func _press_build() -> void:
+func _press_build() -> void:	# signal connected
 	#print("WORKDE WDUD")
 	if (not building) and money >= 25:
 		instance = cannon.instance()
@@ -19,6 +19,9 @@ func _press_build() -> void:
 		instance.position = get_global_mouse_position()
 
 func tower_built() -> void:
-	building = false
-	money -= 25
+	building = false 
+	change_money(-25)
+	
+func change_money(_money) -> void:
+	money += _money
 	$"../GUI".call("updateMoney", money)

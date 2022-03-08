@@ -6,7 +6,7 @@
 [sub_resource type="CircleShape2D" id=1]
 radius = 39.0512
 
-[node name="Bullet" type="Area2D"]
+[node name="Bullet" type="Area2D" groups=["Projectile"]]
 script = ExtResource( 2 )
 
 [node name="VisibilityNotifier2D" type="VisibilityNotifier2D" parent="."]
