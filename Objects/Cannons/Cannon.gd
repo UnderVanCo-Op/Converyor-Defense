@@ -5,6 +5,7 @@ var bullet = preload("res://Objects/Bullets/Bullet.tscn")
 var building = true
 var enemies = []
 var cur_enemy
+var is_drawing = true
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -12,6 +13,8 @@ func _ready():
 
 func _physics_process(delta: float) -> void:
 	if not building:
+		is_drawing = false
+		update()
 		# рескан противников
 		if enemies:
 			#print("enemies not null")
@@ -38,11 +41,15 @@ func _on_Vision_area_exited(area: Area2D) -> void:
 			enemies.erase(area)
 			print("enemy exited")
 
+func _draw():
+	if is_drawing:
+		var col = Color(0, 0, 0, 0.5)
+		draw_circle (Vector2.ZERO, 180, col)
 
 func _on_ReloadTimer_timeout() -> void:
 	if not building:
 		if cur_enemy and enemies:
-			print("reloaded")
+			#print("reloaded")
 			var b = bullet.instance()
 			b.global_position = $DuloSprite/Position2D.global_position
 			b.target = cur_enemy
