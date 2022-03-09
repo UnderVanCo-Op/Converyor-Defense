@@ -11,15 +11,11 @@ var is_drawing = true
 func _ready():
 	pass # Replace with function body.
 
-func start_scan():
-	pass
-
 func _physics_process(delta: float) -> void:
 	if not building:
 		$Vision.monitoring = true
 		is_drawing = false
 		update()
-		# рескан противников
 		if enemies:
 			#print("enemies not null")
 			cur_enemy = enemies[0]
@@ -35,7 +31,7 @@ func _physics_process(delta: float) -> void:
 			
 
 func _on_Vision_area_entered(area: Area2D) -> void:
-	print("smth IN")
+	#print("smth IN")
 	if not building:
 		if(area.is_in_group("Enemies")):
 			enemies.append(area)
