@@ -11,8 +11,12 @@ var is_drawing = true
 func _ready():
 	pass # Replace with function body.
 
+func start_scan():
+	pass
+
 func _physics_process(delta: float) -> void:
 	if not building:
+		$Vision.monitoring = true
 		is_drawing = false
 		update()
 		# рескан противников
@@ -23,6 +27,7 @@ func _physics_process(delta: float) -> void:
 			#rotate(1.5708)
 			$DuloSprite.rotation = (global_position - cur_enemy.global_position).angle() - 1.5708
 	else:
+		$Vision.monitoring = false
 		global_position = get_global_mouse_position()
 		if Input.is_action_just_pressed("LMB"):
 			building = false
@@ -30,6 +35,7 @@ func _physics_process(delta: float) -> void:
 			
 
 func _on_Vision_area_entered(area: Area2D) -> void:
+	print("smth IN")
 	if not building:
 		if(area.is_in_group("Enemies")):
 			enemies.append(area)
@@ -44,7 +50,7 @@ func _on_Vision_area_exited(area: Area2D) -> void:
 func _draw():
 	if is_drawing:
 		var col = Color(0, 0, 0, 0.5)
-		draw_circle (Vector2.ZERO, 180, col)
+		draw_circle (Vector2.ZERO, 250, col)
 
 func _on_ReloadTimer_timeout() -> void:
 	if not building:

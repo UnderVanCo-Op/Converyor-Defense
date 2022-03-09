@@ -5,13 +5,12 @@
 [ext_resource path="res://Objects/Cannons/Cannon.gd" type="Script" id=3]
 
 [sub_resource type="CircleShape2D" id=1]
-radius = 252.958
+radius = 256.0
 
 [node name="Cannon" type="Node2D" groups=["Canons"]]
 script = ExtResource( 3 )
 
 [node name="Vision" type="Area2D" parent="."]
-collision_layer = 7
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Vision"]
 shape = SubResource( 1 )

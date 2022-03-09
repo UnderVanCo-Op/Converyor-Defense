@@ -11,7 +11,7 @@ script = ExtResource( 2 )
 
 [node name="VisibilityNotifier2D" type="VisibilityNotifier2D" parent="."]
 
-[node name="Bullet1" type="Sprite" parent="."]
+[node name="BulletSprite" type="Sprite" parent="."]
 position = Vector2( 7.62939e-06, 4.76837e-07 )
 scale = Vector2( 0.1, 0.1 )
 texture = ExtResource( 1 )
