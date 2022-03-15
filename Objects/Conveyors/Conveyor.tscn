@@ -1,25 +1,31 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=5 format=2]
 
-[ext_resource path="res://Objects/Conveyors/Connector.png" type="Texture" id=1]
-[ext_resource path="res://Objects/Conveyors/ConnectorFree.png" type="Texture" id=2]
-[ext_resource path="res://Objects/Conveyors/ConnectorPressed.png" type="Texture" id=3]
 [ext_resource path="res://Objects/Conveyors/TileTo1.png" type="Texture" id=4]
 [ext_resource path="res://Objects/Conveyors/Conveyor.gd" type="Script" id=5]
+[ext_resource path="res://Objects/Conveyors/End.png" type="Texture" id=6]
+
+[sub_resource type="RectangleShape2D" id=1]
+extents = Vector2( 56, 56 )
 
 [node name="Conveyor" type="Node2D"]
 script = ExtResource( 5 )
 
-[node name="Point" type="TextureButton" parent="."]
-margin_left = 352.0
-margin_top = 448.0
-margin_right = 352.0
-margin_bottom = 448.0
-texture_normal = ExtResource( 1 )
-texture_pressed = ExtResource( 3 )
-texture_hover = ExtResource( 2 )
-
-[node name="Sprite" type="Sprite" parent="."]
-scale = Vector2( 2, 2 )
+[node name="Tile" type="Sprite" parent="."]
+position = Vector2( -26, 39 )
 texture = ExtResource( 4 )
+centered = false
+offset = Vector2( -8, 14 )
 region_enabled = true
-region_rect = Rect2( 0, 0, 1000, 100 )
+region_rect = Rect2( 0, 0, 100, 500 )
+
+[node name="End" type="KinematicBody2D" parent="."]
+z_index = -1
+
+[node name="Hook" type="Sprite" parent="End"]
+position = Vector2( 16, 0 )
+rotation = -1.5708
+texture = ExtResource( 6 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="End"]
+position = Vector2( 16, 0 )
+shape = SubResource( 1 )
