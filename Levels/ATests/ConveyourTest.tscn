@@ -5,4 +5,4 @@
 [node name="ConveyourTest" type="Node2D"]
 
 [node name="ConveyourNew" parent="." instance=ExtResource( 1 )]
-position = Vector2( 686, 541 )
+position = Vector2( 687, 541 )
