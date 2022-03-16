@@ -11,7 +11,10 @@ func StartBuilding() -> void:	# direction: Vector2k
 	startPoint = get_global_mouse_position()
 	dir = Vector2.RIGHT		# give vector of direction from parameter
 	isBuilding = true
+	#$Tile.position = startPoint
+	position = startPoint
 	end = startPoint	#reset the tip position to the player's position
+	$Tile.rotation = deg2rad(-90)
 
 func Built() -> void:
 	isBuilding = false
@@ -23,9 +26,9 @@ func _process(delta: float) -> void:
 		return	# Not visible -> nothing to draw
 	var end_loc = to_local(end)	# Easier to work in local coordinates
 	# We rotate the links (= chain) and the tip to fit on the line between self.position (= origin = player.position) and the tip
-	$Tile.rotation = self.position.angle_to_point(end_loc) - deg2rad(90)
-	$End.rotation = self.position.angle_to_point(end_loc) - deg2rad(90)
-	$Tile.position = end_loc	# The links are moved to start at the tip
+	#$Tile.rotation = self.position.angle_to_point(end_loc) - deg2rad(90)
+	#$End.rotation = self.position.angle_to_point(end_loc) - deg2rad(90)
+	#$Tile.position = end_loc	# The links are moved to start at the tip
 	$Tile.region_rect.size.y = end_loc.length()	# and get extended for the distance between (0,0) and the tip
 	
 func _physics_process(delta: float) -> void:
