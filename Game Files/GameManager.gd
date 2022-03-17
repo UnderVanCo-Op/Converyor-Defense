@@ -2,17 +2,28 @@ extends Node2D
 #This is GameManager.gd
 
 var cannon = preload("res://Objects/Cannons/Cannon.tscn")
-var building = false
-var instance
-var money = 250
+var conv = preload("res://Objects/Conveyors/ConveyourNew.tscn")
+var gui = null
+var building := false
+var instance = null
+var money := 250
 
-# Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	$"../GUI".connect("press_build", self, "_press_build")	# 1 method
-	$"../GUI".call("updateMoney", money)	# 2 method
+	gui = $"../GUI"		# привязка к GUI здесь
+	var smth = get_node_or_null("../Point")				# can be perfomance-lowering
+	if(smth):
+		smth.connect("ConvBuilding", self, "s_ConvBuild")
+	gui.connect("press_build", self, "s_Towerbuild")	# 1 method
+	gui.call("updateMoney", money)						# 2 method
+
+func s_ConvBuild(_Pntposition) -> void:
+	print("signal achieved" + str(_Pntposition))
+	instance = conv.instance()
+	get_parent().add_child(instance)
+	instance.position = _Pntposition
+	instance.call("StartBuilding")
 	
-func _press_build() -> void:	# signal connected
-	#print("WORKDE WDUD")
+func s_Towerbuild() -> void:	# signal connected
 	if (not building) and money >= 25:
 		instance = cannon.instance()
 		get_parent().add_child(instance)
@@ -24,4 +35,4 @@ func tower_built() -> void:
 	
 func change_money(_money) -> void:
 	money += _money
-	$"../GUI".call("updateMoney", money)
+	gui.call("updateMoney", money)
