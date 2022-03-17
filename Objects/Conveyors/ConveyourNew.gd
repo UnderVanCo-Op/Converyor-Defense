@@ -30,7 +30,7 @@ func _process(delta: float) -> void:
 		#$End.global_position.y += 100
 		$Sprite.rotation = $Sprite.position.angle_to_point($End.position) + deg2rad(90)
 		#$Sprite.region_rect.size.y = to_local(get_global_mouse_position()).length() #+ 1
-		$Sprite.region_rect.size.y = $End.position.length()
+		$Sprite.region_rect.size.y = $End.position.length() - 2
 		#$Sprite.region_rect.size.x = $End.position.length()
 		#$Sprite.region_rect = Rect2(0,0,100,$End.global_position.length())
 		#$Sprite.set_region_rect = 
