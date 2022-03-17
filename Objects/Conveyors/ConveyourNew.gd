@@ -1,12 +1,12 @@
 extends Node2D
 
 var startP := Vector2.ZERO
-#var endP := Vector2.ZERO
 
 var isBuilding := false
 var isBuilt := false
 
 func StartBuilding() -> void:	# _startP: Vector2k
+	print("start b")
 	$Sprite.position = Vector2.ZERO
 	#$End.position = Vector2.ZERO
 	$End.rotation = $Sprite.rotation #- deg2rad(180)
@@ -17,6 +17,7 @@ func StartBuilding() -> void:	# _startP: Vector2k
 	
 
 func Built() -> void:
+	print("end b")
 	isBuilding = false
 	isBuilt = true
 
@@ -37,13 +38,11 @@ func _process(delta: float) -> void:
 		
 
 func _physics_process(delta: float) -> void:
-	if(Input.is_action_just_pressed("TestAction")):
-		if(!isBuilding and !isBuilt):
-			StartBuilding()
-			print("start b")
-			return
-	if(Input.is_action_just_pressed("TestAction2")):
-		if(isBuilding):
-			Built()
-			print("end b")
-		
+#	if(Input.is_action_just_pressed("TestAction")):
+#		if(!isBuilding and !isBuilt):
+#			StartBuilding()
+#			return
+#	if(Input.is_action_just_pressed("TestAction2")):
+#		if(isBuilding):
+#			Built()
+	pass
