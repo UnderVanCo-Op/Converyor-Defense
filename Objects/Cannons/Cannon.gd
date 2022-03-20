@@ -2,15 +2,17 @@ extends Node2D
 # This is Cannon.gd
 
 var bullet = preload("res://Objects/Bullets/Bullet.tscn")
+var GM = null
 var building = true
 var enemies = []
 var cur_enemy = null
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	pass # Replace with function body.
+	GM = get_parent().get_node("GameManager")	# connection between nodes
+	
 
-func StartB() -> void:
+func StartB() -> void:				# calling from GM
 	$Vision.monitoring = false
 	$Vision.monitorable = false
 	building = true
@@ -21,7 +23,7 @@ func FinishB() -> void:
 	$Vision.monitoring = true
 	$Vision.monitorable = true
 	building = false
-	get_parent().get_node("GameManager").call("tower_built")
+	GM.call("tower_built")			# calling to GM
 	
 
 func _physics_process(delta: float) -> void:
@@ -35,6 +37,11 @@ func _physics_process(delta: float) -> void:
 	else:
 		global_position = get_global_mouse_position()
 		if Input.is_action_just_pressed("LMB"):
+			for b in $Body.get_overlapping_bodies():
+				if b == self:
+					continue
+				elif(b.is_in_group("Points")):
+					return
 			FinishB()
 	
 

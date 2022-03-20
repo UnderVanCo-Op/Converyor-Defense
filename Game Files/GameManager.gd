@@ -3,21 +3,22 @@ extends Node2D
 
 var cannon = preload("res://Objects/Cannons/Cannon.tscn")
 var conv = preload("res://Objects/Conveyors/ConveyorNew.tscn")
-var instance = null
-var convBuildingRef = null		# mb unjustifiably
+#var instance = null
+var convBuildingRef = null		# ref to conveyor in building stage, mb unjustifiably
+var cannonBuildRef = null		# ref to cannon in b-ing stage, mb unj-ly
 var gui = null
 
 var isStartConv := true
-var twrBuilding := false
 var isFocusedOnSmth := false
 
 var money := 250
 
 
-
 func _ready() -> void:
 	signalConnector()
 
+
+# Method is responsible for finding and connecting signals to THIS script
 func signalConnector() -> void:
 	var t = get_node_or_null("../Points")				# привязка к Точкам
 	if(t):
@@ -31,33 +32,39 @@ func signalConnector() -> void:
 	gui.call("updateMoney", money)						# 2 method
 
 
-func s_ConvBuild(_Pntposition) -> void:					# 
-	#print("signal achieved" + str(_Pntposition))
-	if(isStartConv):
-		instance = conv.instance()
-		get_parent().get_node("Conveyors").add_child(instance)
-		instance.position = _Pntposition
-		instance.call("StartBuilding")
-		convBuildingRef = instance
+# Method for dealing with signal from Point
+func s_ConvBuild(_Pntposition) -> void:					# singal income
+	print("signal achieved" + str(_Pntposition))
+	if(isStartConv and !isFocusedOnSmth):
+		convBuildingRef = conv.instance()
+		get_parent().get_node("Conveyors").add_child(convBuildingRef)
+		convBuildingRef.position = _Pntposition
+		convBuildingRef.call("StartBuilding")
+		isFocusedOnSmth = true
 		isStartConv = false								# carefull
-	else:
+	elif(!isStartConv and isFocusedOnSmth):
 		convBuildingRef.call("Built")
 		isStartConv = true
+		isFocusedOnSmth = false
 
 
-func s_Towerbuild() -> void:				# signal connected
-	if (not twrBuilding) and money >= 25:
-		instance = cannon.instance()
-		get_parent().add_child(instance)
-		instance.position = get_global_mouse_position()
-		instance.call("StartB")
+# Method for dealing with signal from Build Cannon button
+func s_Towerbuild() -> void:				# signal income
+	if !isFocusedOnSmth and money >= 25:
+		cannonBuildRef = cannon.instance()
+		get_parent().add_child(cannonBuildRef)
+		cannonBuildRef.position = get_global_mouse_position()
+		cannonBuildRef.call("StartB")		# calling to Cannon.gd
+		isFocusedOnSmth = true
 
 
-func tower_built() -> void:					#
-	twrBuilding = false 
+# Method for finishing building cannon
+func tower_built() -> void:					# calling from Cannon.gd
+	isFocusedOnSmth = false
 	change_money(-25)
 
 
-func change_money(_money) -> void:			# Вызывается из других скриптов
+# Method for changing money in GUI
+func change_money(_money) -> void:			# calling from THIS script and Enemy.gd
 	money += _money
-	gui.call("updateMoney", money)
+	gui.call("updateMoney", money)			# calling to GUI.gd
