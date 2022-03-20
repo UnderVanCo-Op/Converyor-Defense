@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/ConnectorFree.png-a201d31086d53ff273f03152b6aeb3f3.stex"
+path="res://.import/Connector.png-26e26d228a3dd3778f40a20d6b17642e.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Objects/Conveyors/ConnectorFree.png"
-dest_files=[ "res://.import/ConnectorFree.png-a201d31086d53ff273f03152b6aeb3f3.stex" ]
+source_file="res://Objects/Points/Connector.png"
+dest_files=[ "res://.import/Connector.png-26e26d228a3dd3778f40a20d6b17642e.stex" ]
 
 [params]
 

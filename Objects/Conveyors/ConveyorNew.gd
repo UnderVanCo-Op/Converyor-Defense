@@ -1,4 +1,5 @@
 extends Node2D
+# This is ConveyorNew.gd
 
 var startP := Vector2.ZERO
 
@@ -6,7 +7,7 @@ var isBuilding := false
 var isBuilt := false
 
 func StartBuilding() -> void:	# _startP: Vector2k
-	print("start b")
+	print("start conv")
 	$Sprite.position = Vector2.ZERO
 	#$End.position = Vector2.ZERO
 	$End.rotation = $Sprite.rotation #- deg2rad(180)
@@ -17,7 +18,7 @@ func StartBuilding() -> void:	# _startP: Vector2k
 	
 
 func Built() -> void:
-	print("end b")
+	print("end conv")
 	isBuilding = false
 	isBuilt = true
 
@@ -37,7 +38,7 @@ func _process(delta: float) -> void:
 		#$Sprite.set_region_rect = 
 		
 
-func _physics_process(delta: float) -> void:
+#func _physics_process(delta: float) -> void:
 #	if(Input.is_action_just_pressed("TestAction")):
 #		if(!isBuilding and !isBuilt):
 #			StartBuilding()
@@ -45,4 +46,4 @@ func _physics_process(delta: float) -> void:
 #	if(Input.is_action_just_pressed("TestAction2")):
 #		if(isBuilding):
 #			Built()
-	pass
+#	pass

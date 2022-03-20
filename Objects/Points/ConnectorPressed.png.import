@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/ConnectorBusy.png-0f9bff47fb202e151cabf3905ee318c1.stex"
+path="res://.import/ConnectorPressed.png-3e8d341bee125ee12f3659df5e32f3a3.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Objects/Conveyors/ConnectorBusy.png"
-dest_files=[ "res://.import/ConnectorBusy.png-0f9bff47fb202e151cabf3905ee318c1.stex" ]
+source_file="res://Objects/Points/ConnectorPressed.png"
+dest_files=[ "res://.import/ConnectorPressed.png-3e8d341bee125ee12f3659df5e32f3a3.stex" ]
 
 [params]
 
