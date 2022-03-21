@@ -26,15 +26,23 @@ func signalConnector() -> void:
 		for ch in t.get_children():
 			ch.connect("ConvBuilding", self, "s_ConvBuild")	# signal connection
 	else:
-		print("ERROR: failed to get Points Node!")
+		print("ERROR: failed to get Points Nodes in Points!")
+	
+	t = get_node_or_null("../Factories")					# привязка к Точкам 2
+	if(t):
+		for ch in t.get_children():
+			ch.get_node("Point").connect("ConvBuilding", self, "s_ConvBuild")	# signal connection
+	else:
+		print("ERROR: failed to get Points Nodes in Factories!")
+	
 	
 	gui = $"../GUI"											# привязка к GUI
 	gui.connect("press_build", self, "s_Towerbuild")		# signal connection
-	gui.connect("cancel_conv", self, "s_Cancel")	# signal connection
+	gui.connect("cancel_conv", self, "s_Cancel")			# signal connection
 
 
-# Method for dealing with signal from gui to cancel conveyor building
-func s_Cancel() -> void:			# signal from GUI.gd (RMB)
+# Method for dealing with signal from gui to cancel building (RMB)
+func s_Cancel() -> void:							# signal from GUI.gd (RMB)
 	if(isFocusedOnSmth):
 		if(!isStartConv):
 			print("Canceled conveyor")
@@ -51,7 +59,7 @@ func s_Cancel() -> void:			# signal from GUI.gd (RMB)
 		print("WARNING: Nothing to cancel")
 
 # Method for dealing with signal from Point (click on Point)
-func s_ConvBuild(_Pntposition) -> void:					# singal income
+func s_ConvBuild(_Pntposition) -> void:				# singal income from Point.gd
 	#print("signal achieved" + str(_Pntposition))
 	if(isStartConv and !isFocusedOnSmth):
 		convBuildingRef = conv.instance()
@@ -59,7 +67,7 @@ func s_ConvBuild(_Pntposition) -> void:					# singal income
 		convBuildingRef.position = _Pntposition
 		convBuildingRef.call("StartBuilding")
 		isFocusedOnSmth = true
-		isStartConv = false								# carefull
+		isStartConv = false							# carefull
 	elif(!isStartConv and isFocusedOnSmth):
 		convBuildingRef.call("Built")
 		isStartConv = true
