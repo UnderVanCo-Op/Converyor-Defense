@@ -1,8 +1,9 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=6 format=2]
 
 [ext_resource path="res://Game Files/GameManager.tscn" type="PackedScene" id=1]
 [ext_resource path="res://Objects/Enemies/Enemy.tscn" type="PackedScene" id=2]
 [ext_resource path="res://UI/GUI.tscn" type="PackedScene" id=3]
+[ext_resource path="res://Objects/Points/Point.tscn" type="PackedScene" id=4]
 
 [sub_resource type="Curve2D" id=1]
 _data = {
@@ -12,6 +13,8 @@ _data = {
 [node name="Main" type="Node2D"]
 
 [node name="GameManager" parent="." instance=ExtResource( 1 )]
+
+[node name="GUI" parent="." instance=ExtResource( 3 )]
 
 [node name="Path2D" type="Path2D" parent="."]
 position = Vector2( 0, 37 )
@@ -26,4 +29,12 @@ offset = 83.98
 position = Vector2( -159, 33 )
 rotation = 0.285746
 
-[node name="GUI" parent="." instance=ExtResource( 3 )]
+[node name="Conveyors" type="Node2D" parent="."]
+
+[node name="Points" type="Node2D" parent="."]
+
+[node name="Point" parent="Points" instance=ExtResource( 4 )]
+position = Vector2( 177, 572 )
+
+[node name="Point2" parent="Points" instance=ExtResource( 4 )]
+position = Vector2( 910, 565 )

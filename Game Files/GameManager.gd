@@ -16,25 +16,43 @@ var money := 250
 
 func _ready() -> void:
 	signalConnector()
+	gui.call("updateMoney", money)							# calling to GUI.gd
 
 
 # Method is responsible for finding and connecting signals to THIS script
 func signalConnector() -> void:
-	var t = get_node_or_null("../Points")				# привязка к Точкам
+	var t = get_node_or_null("../Points")					# привязка к Точкам
 	if(t):
 		for ch in t.get_children():
-			ch.connect("ConvBuilding", self, "s_ConvBuild")
+			ch.connect("ConvBuilding", self, "s_ConvBuild")	# signal connection
 	else:
 		print("ERROR: failed to get Points Node!")
 	
-	gui = $"../GUI"										# привязка к GUI
-	gui.connect("press_build", self, "s_Towerbuild")	# 1 method
-	gui.call("updateMoney", money)						# 2 method
+	gui = $"../GUI"											# привязка к GUI
+	gui.connect("press_build", self, "s_Towerbuild")		# signal connection
+	gui.connect("cancel_conv", self, "s_Cancel")	# signal connection
 
 
-# Method for dealing with signal from Point
+# Method for dealing with signal from gui to cancel conveyor building
+func s_Cancel() -> void:			# signal from GUI.gd (RMB)
+	if(isFocusedOnSmth):
+		if(!isStartConv):
+			print("Canceled conveyor")
+			isStartConv = true
+			isFocusedOnSmth = false
+			convBuildingRef.queue_free()
+		elif(cannonBuildRef):
+			print("Canceled cannon")
+			isFocusedOnSmth = false
+			cannonBuildRef.queue_free()
+		else:
+			print("ERROR: Cannon find focused thing to cancel")
+	else:
+		print("WARNING: Nothing to cancel")
+
+# Method for dealing with signal from Point (click on Point)
 func s_ConvBuild(_Pntposition) -> void:					# singal income
-	print("signal achieved" + str(_Pntposition))
+	#print("signal achieved" + str(_Pntposition))
 	if(isStartConv and !isFocusedOnSmth):
 		convBuildingRef = conv.instance()
 		get_parent().get_node("Conveyors").add_child(convBuildingRef)
@@ -49,7 +67,7 @@ func s_ConvBuild(_Pntposition) -> void:					# singal income
 
 
 # Method for dealing with signal from Build Cannon button
-func s_Towerbuild() -> void:				# signal income
+func s_Towerbuild() -> void:				# signal income from GUI.gd
 	if !isFocusedOnSmth and money >= 25:
 		cannonBuildRef = cannon.instance()
 		get_parent().add_child(cannonBuildRef)
