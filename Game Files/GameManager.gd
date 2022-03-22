@@ -68,7 +68,7 @@ func s_ConvBuild(_Pntposition) -> void:				# singal income from Point.gd
 		convBuildingRef.call("StartBuilding")
 		isFocusedOnSmth = true
 		isStartConv = false							# carefull
-	elif(!isStartConv and isFocusedOnSmth):
+	elif(!isStartConv and isFocusedOnSmth and _Pntposition != convBuildingRef.position):
 		convBuildingRef.call("Built")
 		isStartConv = true
 		isFocusedOnSmth = false

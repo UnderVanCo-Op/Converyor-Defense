@@ -76,8 +76,9 @@ TestAction={
 
 2d_physics/layer_1="Low Ground"
 2d_physics/layer_2="Top Ground"
-2d_physics/layer_3="Point"
-2d_physics/layer_4="Cannons"
+2d_physics/layer_3="Buildings"
+2d_physics/layer_4="Conveyors"
+2d_physics/layer_5="Cannons"
 
 [physics]
 
