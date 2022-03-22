@@ -28,7 +28,7 @@ func signalConnector() -> void:
 	else:
 		print("ERROR: failed to get Points Nodes in Points!")
 	
-	t = get_node_or_null("../Factories")					# привязка к Точкам 2
+	t = get_node_or_null("../Factories")					# привязка к Точкам 2 в факторках
 	if(t):
 		for ch in t.get_children():
 			ch.get_node("Point").connect("ConvBuilding", self, "s_ConvBuild")	# signal connection
@@ -57,6 +57,7 @@ func s_Cancel() -> void:							# signal from GUI.gd (RMB)
 			print("ERROR: Cannon find focused thing to cancel")
 	else:
 		print("WARNING: Nothing to cancel")
+
 
 # Method for dealing with signal from Point (click on Point)
 func s_ConvBuild(_Pntposition) -> void:				# singal income from Point.gd

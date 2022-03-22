@@ -29,4 +29,8 @@ shape = SubResource( 1 )
 [node name="Point" parent="." instance=ExtResource( 2 )]
 position = Vector2( -124, -208 )
 
+[node name="Menu" type="Control" parent="."]
+margin_right = 40.0
+margin_bottom = 40.0
+
 [connection signal="pressed" from="TextureButton" to="." method="_on_TextureButton_pressed"]
