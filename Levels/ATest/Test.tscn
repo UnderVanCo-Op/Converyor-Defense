@@ -1,0 +1,45 @@
+[gd_scene load_steps=9 format=2]
+
+[ext_resource path="res://Objects/Cannons/Cannon.tscn" type="PackedScene" id=1]
+[ext_resource path="res://UI/GUI.tscn" type="PackedScene" id=2]
+[ext_resource path="res://Objects/Enemies/Enemy.tscn" type="PackedScene" id=3]
+[ext_resource path="res://Game Files/GameManager.tscn" type="PackedScene" id=4]
+[ext_resource path="res://Levels/ATest/Path2D.gd" type="Script" id=5]
+[ext_resource path="res://Levels/ATest/SecondWay.gd" type="Script" id=6]
+
+[sub_resource type="Curve2D" id=1]
+_data = {
+"points": PoolVector2Array( 0, 0, 0, 0, -185.07, 259.806, 0, 0, 0, 0, -19.3403, 258.521, 0, 0, 0, 0, 219.943, 227.037, 0, 0, 0, 0, 402.432, 15.6477, 0, 0, 0, 0, 721.787, 9.86496, 0, 0, 0, 0, 1261.8, 1.51217, 0, 0, 0, 0, 1368, 299, 0, 0, 0, 0, 1458, 291, 0, 0, 0, 0, 1975, 296 )
+}
+
+[sub_resource type="Curve2D" id=2]
+_data = {
+"points": PoolVector2Array( 0, 0, 0, 0, -413, 556, 0, 0, 0, 0, -207, 552, 0, 0, 0, 0, 62, 549, 0, 0, 0, 0, 274, 797, 0, 0, 0, 0, 1276, 818, 0, 0, 0, 0, 1337, 566, 0, 0, 0, 0, 1969, 548 )
+}
+
+[node name="Test" type="Node2D"]
+
+[node name="FerstWay" type="Path2D" parent="."]
+position = Vector2( -146.228, 57.6465 )
+scale = Vector2( 1.07404, 1.55637 )
+curve = SubResource( 1 )
+script = ExtResource( 5 )
+
+[node name="Enemy" parent="FerstWay" instance=ExtResource( 3 )]
+position = Vector2( -185.07, 259.806 )
+rotation = -0.00774612
+
+[node name="SecondWay" type="Path2D" parent="."]
+curve = SubResource( 2 )
+script = ExtResource( 6 )
+
+[node name="Enemy" parent="SecondWay" instance=ExtResource( 3 )]
+position = Vector2( -425, 562 )
+rotation = 0.0755386
+
+[node name="Cannon" parent="." instance=ExtResource( 1 )]
+position = Vector2( 572, 337 )
+
+[node name="GUI" parent="." instance=ExtResource( 2 )]
+
+[node name="GameManager" parent="." instance=ExtResource( 4 )]
