@@ -1,15 +1,19 @@
-[gd_scene load_steps=2 format=2]
+[gd_scene load_steps=3 format=2]
 
 [ext_resource path="res://UI/but1.png" type="Texture" id=1]
+[ext_resource path="res://UI/RoundBut.gd" type="Script" id=2]
 
 [node name="RoundBut" type="TextureButton"]
-anchor_right = 0.0235937
-anchor_bottom = 0.0419444
-margin_right = 407.7
-margin_bottom = 407.7
-rect_min_size = Vector2( 64, 64 )
-rect_scale = Vector2( 0.1, 0.1 )
+anchor_right = 0.0707813
+anchor_bottom = 0.125833
+margin_right = 317.1
+margin_bottom = 317.1
+rect_min_size = Vector2( 256, 256 )
+rect_scale = Vector2( 0.3, 0.3 )
 texture_normal = ExtResource( 1 )
+script = ExtResource( 2 )
 __meta__ = {
 "_edit_use_anchors_": true
 }
+
+[connection signal="pressed" from="." to="." method="_on_RoundBut_pressed"]
