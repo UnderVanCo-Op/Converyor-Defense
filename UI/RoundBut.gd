@@ -11,6 +11,6 @@ func set_sprite(sprite_name) -> void:
 
 
 func _on_RoundBut_pressed() -> void:
-	#print("Round button pressed")
+	print("Round button pressed")
 	emit_signal("FactoryButPressed", SSpriteName)
 	pass # Replace with function body.
