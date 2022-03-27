@@ -27,15 +27,15 @@ script = ExtResource( 5 )
 
 [node name="Enemy" parent="FerstWay" instance=ExtResource( 3 )]
 position = Vector2( -185.07, 259.806 )
-rotation = -0.00774612
+rotation = -0.00775392
 
 [node name="SecondWay" type="Path2D" parent="."]
 curve = SubResource( 2 )
 script = ExtResource( 6 )
 
 [node name="Enemy" parent="SecondWay" instance=ExtResource( 3 )]
-position = Vector2( -425, 562 )
-rotation = 0.0755386
+position = Vector2( -413, 556 )
+rotation = -0.0194162
 
 [node name="Cannon" parent="." instance=ExtResource( 1 )]
 position = Vector2( 572, 337 )
