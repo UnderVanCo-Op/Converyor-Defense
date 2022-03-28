@@ -1,0 +1,31 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://UI/RoundBut.tscn" type="PackedScene" id=1]
+
+[node name="Menu" type="Control"]
+anchor_right = 0.746354
+anchor_bottom = 0.780556
+rect_min_size = Vector2( 192, 131 )
+__meta__ = {
+"_edit_use_anchors_": true
+}
+
+[node name="RoundBut" parent="." instance=ExtResource( 1 )]
+anchor_left = 0.0979167
+anchor_top = 0.572222
+anchor_right = 0.12151
+anchor_bottom = 0.614167
+
+[node name="RoundBut2" parent="." instance=ExtResource( 1 )]
+anchor_left = 0.478125
+anchor_top = 0.107407
+anchor_right = 0.501719
+anchor_bottom = 0.149352
+
+[node name="RoundBut3" parent="." instance=ExtResource( 1 )]
+anchor_left = 0.879162
+anchor_top = 0.593518
+anchor_right = 0.90276
+anchor_bottom = 0.635445
+margin_left = 0.00801086
+margin_bottom = 407.719
