@@ -3,6 +3,8 @@ extends Node2D
 
 var cannon = preload("res://Objects/Cannons/Cannon.tscn")
 var conv = preload("res://Objects/Conveyors/ConveyorNew.tscn")
+var convnew = preload("res://Objects/Conveyors/Conveyor.tscn")
+
 #var instance = null
 var convBuildingRef = null		# ref to conveyor in building stage, mb unjustifiably
 var cannonBuildRef = null		# ref to cannon in b-ing stage, mb unj-ly
@@ -10,6 +12,7 @@ var gui = null
 
 var isStartConv := true
 var isFocusedOnSmth := false
+var NewVersionSwitcher := true
 
 var money := 250
 
@@ -61,18 +64,26 @@ func s_Cancel() -> void:							# signal from GUI.gd (RMB)
 
 # Method for dealing with signal from Point (click on Point)
 func s_ConvBuild(_Pntposition) -> void:				# singal income from Point.gd
-	#print("signal achieved" + str(_Pntposition))
-	if(isStartConv and !isFocusedOnSmth):
-		convBuildingRef = conv.instance()
-		get_parent().get_node("Conveyors").add_child(convBuildingRef)
-		convBuildingRef.position = _Pntposition
-		convBuildingRef.call("StartBuilding")
-		isFocusedOnSmth = true
-		isStartConv = false							# carefull
-	elif(!isStartConv and isFocusedOnSmth and _Pntposition != convBuildingRef.position):
-		convBuildingRef.call("Built")
-		isStartConv = true
-		isFocusedOnSmth = false
+	if(NewVersionSwitcher):
+		print("NewVSwitcher")
+		var ref = convnew.instance()
+		get_parent().get_node("Conveyors").add_child(ref)
+		ref.FullWithCells()
+		ref.position = Vector2(0, 0)
+		NewVersionSwitcher = false
+	else:
+		#print("signal achieved" + str(_Pntposition))
+		if(isStartConv and !isFocusedOnSmth):
+			convBuildingRef = conv.instance()
+			get_parent().get_node("Conveyors").add_child(convBuildingRef)
+			convBuildingRef.position = _Pntposition
+			convBuildingRef.call("StartBuilding")
+			isFocusedOnSmth = true
+			isStartConv = false							# carefull
+		elif(!isStartConv and isFocusedOnSmth and _Pntposition != convBuildingRef.position):
+			convBuildingRef.call("Built")
+			isStartConv = true
+			isFocusedOnSmth = false
 
 
 # Method for dealing with signal from Build Cannon button
