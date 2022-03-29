@@ -16,7 +16,8 @@ func _ready() -> void:
 			counter += 1
 			rndbut.connect("FactoryButPressed", self, "s_FactoryButPressed")		# signal connection
 			rndbut.texture_normal = load("res://UI/but" + str(counter) + ".png")
-			rndbut.set_sprite(str(counter))
+			rndbut.set_sprite(counter)
+			#rndbut.call("set_sprite", str(counter))
 	else:
 		print("ERROR: failed to get ObjectMenu in Factory!")
 

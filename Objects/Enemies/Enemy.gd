@@ -1,6 +1,7 @@
 extends PathFollow2D
+# This is Enemy.gd
 
-var speed = 10
+var speed = 4
 var hp = 10
 
 func _physics_process(delta: float) -> void:
