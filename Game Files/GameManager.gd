@@ -40,7 +40,7 @@ func signalConnector() -> void:
 	
 	
 	gui = $"../GUI"											# привязка к GUI
-	gui.connect("press_build", self, "s_Towerbuild")		# signal connection
+	gui.connect("press_build", self, "s_Towerbuild()")		# signal connection
 	gui.connect("cancel_conv", self, "s_Cancel")			# signal connection
 
 
