@@ -1,13 +1,13 @@
 extends PathFollow2D
 # This is ConvCell.gd
 
-var speed = 10
-var isMoving := true
+var speed = 10			# speed of the cell (needs to be moved in conveyor)
+var isMoving := true	# if the cell is in movement
 #var isOccupied := false
 
 func _ready() -> void:
-	get_parent().connect("StopCells", self, "s_StopCell")
-	pass
+	get_parent().connect("StopCells", self, "s_StopCell")	# connecting signal from parent conv
+	
 
 func _physics_process(delta: float) -> void:
 	if(isMoving):
@@ -18,4 +18,4 @@ func _physics_process(delta: float) -> void:
 
 func s_StopCell() -> void:		# signal income from Conveyor.gd
 	isMoving = false
-	pass
+

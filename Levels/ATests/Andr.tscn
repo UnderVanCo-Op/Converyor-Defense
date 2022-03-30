@@ -22,8 +22,6 @@ _data = {
 position = Vector2( 40, 45 )
 curve = SubResource( 1 )
 
-[node name="Conveyors" type="Node2D" parent="."]
-
 [node name="Points" type="Node2D" parent="."]
 
 [node name="Point" parent="Points" instance=ExtResource( 4 )]
@@ -38,5 +36,7 @@ position = Vector2( 910, 565 )
 
 [node name="Factory" parent="Factories" instance=ExtResource( 5 )]
 position = Vector2( 1586, 679 )
+
+[node name="Conveyors" type="Node2D" parent="."]
 
 [node name="GUI" parent="." instance=ExtResource( 3 )]
