@@ -1,12 +1,8 @@
 extends CanvasLayer
+# This is GUI.gd
 
 signal press_build
-
-
-# Called when the node enters the scene tree for the first time.
-func _ready() -> void:
-	pass # Replace with function body.
-
+signal cancel_conv
 
 func _on_Button_pressed() -> void:
 	emit_signal("press_build")
@@ -14,3 +10,7 @@ func _on_Button_pressed() -> void:
 
 func updateMoney(money) -> void:
 	$Label.text = "Money: " + str(money)
+
+func _input(event: InputEvent) -> void:
+	if event.is_action_pressed("RMB"):
+		emit_signal("cancel_conv")

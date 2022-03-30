@@ -1,0 +1,31 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://Objects/Conveyors/TileTo1.png" type="Texture" id=4]
+[ext_resource path="res://Objects/Conveyors/ConveyorOld.gd" type="Script" id=5]
+[ext_resource path="res://Objects/Conveyors/End.png" type="Texture" id=6]
+
+[sub_resource type="RectangleShape2D" id=1]
+extents = Vector2( 56, 56 )
+
+[node name="Conveyor" type="Node2D"]
+script = ExtResource( 5 )
+
+[node name="Tile" type="Sprite" parent="."]
+position = Vector2( -26, 39 )
+texture = ExtResource( 4 )
+centered = false
+offset = Vector2( -8, 14 )
+region_enabled = true
+region_rect = Rect2( 0, 0, 100, 500 )
+
+[node name="End" type="KinematicBody2D" parent="."]
+z_index = -1
+
+[node name="Hook" type="Sprite" parent="End"]
+position = Vector2( 16, 0 )
+rotation = -1.5708
+texture = ExtResource( 6 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="End"]
+position = Vector2( 16, 0 )
+shape = SubResource( 1 )

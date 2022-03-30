@@ -1,0 +1,34 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://UI/GUI.tscn" type="PackedScene" id=2]
+[ext_resource path="res://Game Files/GameManager.tscn" type="PackedScene" id=4]
+[ext_resource path="res://Objects/Ways/Way.tscn" type="PackedScene" id=5]
+[ext_resource path="res://Levels/ATest/Ways.gd" type="Script" id=7]
+
+[sub_resource type="Curve2D" id=1]
+resource_local_to_scene = true
+_data = {
+"points": PoolVector2Array( 0, 0, 0, 0, -185.07, 259.806, 0, 0, 0, 0, 322, 505, 0, 0, 0, 0, 1051, 107, 0, 0, 0, 0, 1975, 296 )
+}
+
+[sub_resource type="Curve2D" id=2]
+resource_local_to_scene = true
+_data = {
+"points": PoolVector2Array( 0, 0, 0, 0, -185.07, 259.806, 0, 0, 0, 0, 343, 148, 0, 0, 0, 0, 949, -133, 0, 0, 0, 0, 1975, 296 )
+}
+
+[node name="Test" type="Node2D"]
+
+[node name="GameManager" parent="." instance=ExtResource( 4 )]
+
+[node name="Ways" type="Node2D" parent="."]
+script = ExtResource( 7 )
+
+[node name="Way" parent="Ways" instance=ExtResource( 5 )]
+curve = SubResource( 1 )
+
+[node name="Way2" parent="Ways" instance=ExtResource( 5 )]
+position = Vector2( 37, 441 )
+curve = SubResource( 2 )
+
+[node name="GUI" parent="." instance=ExtResource( 2 )]

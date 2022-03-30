@@ -1,0 +1,19 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://Objects/Conveyors/conveyorTile.png" type="Texture" id=1]
+[ext_resource path="res://Objects/Conveyors/End.png" type="Texture" id=2]
+[ext_resource path="res://Objects/Conveyors/ConveyorNew.gd" type="Script" id=3]
+
+[node name="ConveyorNew" type="Node2D"]
+script = ExtResource( 3 )
+
+[node name="Sprite" type="Sprite" parent="."]
+position = Vector2( 76, 0 )
+texture = ExtResource( 1 )
+centered = false
+offset = Vector2( -76, 0 )
+region_enabled = true
+region_rect = Rect2( 0, 0, 151, 151 )
+
+[node name="End" type="Sprite" parent="."]
+texture = ExtResource( 2 )
