@@ -76,7 +76,8 @@ func s_ConvBuild(_Pntposition) -> void:				# singal income from Point.gd
 			
 			convBuildRef2.position = Vector2.ZERO
 			convBuildRef2.curve.clear_points()
-			convBuildRef2.curve.add_point(_Pntposition,Vector2(700,0))
+			convBuildRef2.curve.add_point(_Pntposition)
+			convBuildRef2.StartPpos = _Pntposition
 			
 			#convBuildRef2.curve.add_point(Vector2(400,400),Vector2(700,0),Vector2(-500,-100))
 			#convBuildRef2.FullWithCells()
@@ -87,9 +88,10 @@ func s_ConvBuild(_Pntposition) -> void:				# singal income from Point.gd
 			isStartConv = false							# carefull
 		elif(!isStartConv and isFocusedOnSmth and _Pntposition != convBuildRef2.position):
 			#convBuildingRef.call("Built")
-			convBuildRef2.curve.add_point(_Pntposition,Vector2(700,0))
+			convBuildRef2.curve.add_point(_Pntposition)
 			print("End of new conveyor")
 			convBuildRef2.FullWithCells()
+			convBuildRef2 = null
 			isStartConv = true
 			isFocusedOnSmth = false
 		

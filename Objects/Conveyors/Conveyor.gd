@@ -3,6 +3,7 @@ extends Path2D
 
 var ConvCell := preload("res://Objects/Conveyors/ConvCell.tscn")
 var refToFirstCell = null	# stores reference to first cell in conv
+var StartPpos := Vector2(0,0)
 var isFull := false			# shows if the conveyor is fulled with cells
 
 signal StopCells()			# signal is emitted when cells are need to be stopped

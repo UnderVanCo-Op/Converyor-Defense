@@ -18,10 +18,14 @@ position = Vector2( 126, 125 )
 shape = SubResource( 1 )
 
 [node name="TextureButton" type="TextureButton" parent="."]
-margin_right = 40.0
-margin_bottom = 40.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+rect_pivot_offset = Vector2( 126, 125 )
 texture_normal = ExtResource( 1 )
 texture_pressed = ExtResource( 3 )
 texture_hover = ExtResource( 2 )
+
+[node name="Position2D" type="Position2D" parent="."]
+position = Vector2( 126, 125 )
 
 [connection signal="pressed" from="TextureButton" to="." method="_on_TextureButton_pressed"]
