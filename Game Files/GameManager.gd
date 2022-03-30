@@ -8,6 +8,7 @@ var convnew = preload("res://Objects/Conveyors/Conveyor.tscn")
 #var instance = null
 var convBuildingRef = null		# ref to conveyor in building stage, mb unjustifiably
 var cannonBuildRef = null		# ref to cannon in b-ing stage, mb unj-ly
+var convBuildRef2 = null 		# ref to new v of conveyour building
 var gui = null
 
 var isStartConv := true
@@ -40,7 +41,7 @@ func signalConnector() -> void:
 	
 	
 	gui = $"../GUI"											# привязка к GUI
-	gui.connect("press_build", self, "s_Towerbuild")		# signal connection
+	gui.connect("press_build", self, "s_Towerbuild()")		# signal connection
 	gui.connect("cancel_conv", self, "s_Cancel")			# signal connection
 
 
@@ -65,12 +66,36 @@ func s_Cancel() -> void:							# signal from GUI.gd (RMB)
 # Method for dealing with signal from Point (click on Point)
 func s_ConvBuild(_Pntposition) -> void:				# singal income from Point.gd
 	if(NewVersionSwitcher):
-		print("NewVSwitcher")
-		var ref = convnew.instance()
-		get_parent().get_node("Conveyors").add_child(ref)
-		ref.FullWithCells()
-		ref.position = Vector2(0, 0)
-		NewVersionSwitcher = false
+		#print("NewVSwitcher")
+		
+		
+		if(isStartConv and !isFocusedOnSmth):
+			print("Start of new conveyor")
+			convBuildRef2 = convnew.instance()
+			get_parent().get_node("Conveyors").add_child(convBuildRef2)
+			
+			convBuildRef2.position = Vector2.ZERO
+			convBuildRef2.curve.clear_points()
+			convBuildRef2.curve.add_point(_Pntposition)
+			convBuildRef2.StartPpos = _Pntposition
+			
+			#convBuildRef2.curve.add_point(Vector2(400,400),Vector2(700,0),Vector2(-500,-100))
+			#convBuildRef2.FullWithCells()
+			#print(convBuildRef2.curve.get_point_count())
+			
+			#convBuildingRef.call("StartBuilding")
+			isFocusedOnSmth = true
+			isStartConv = false							# carefull
+		elif(!isStartConv and isFocusedOnSmth and _Pntposition != convBuildRef2.position):
+			#convBuildingRef.call("Built")
+			convBuildRef2.curve.add_point(_Pntposition)
+			print("End of new conveyor")
+			convBuildRef2.FullWithCells()
+			convBuildRef2 = null
+			isStartConv = true
+			isFocusedOnSmth = false
+		
+		#NewVersionSwitcher = false
 	else:
 		#print("signal achieved" + str(_Pntposition))
 		if(isStartConv and !isFocusedOnSmth):
