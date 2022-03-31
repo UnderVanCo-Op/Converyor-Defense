@@ -68,13 +68,12 @@ func DeMarkPoint(PointName := "NULL_NAME2"):
 	pass
 
 
-# Finds Point Node by name and marks in (inside) as Used, and Start or End of some Conveyor	isStartP
-func MarkPoint(PointName := "NULL_NAME2", isStart := false):
-	var point = get_parent().get_node("Points").find_node(PointName)
+# Gets Point by NodePath and marks in (inside) as Used, and Start or End of some Conveyor
+func MarkPoint(PointPath, isStart := false):
+	var point = get_node_or_null(PointPath)
 	if(point):
 		if(!point.isUsed):		# first use of this point
 			point.isUsed = true
-			#print("GM_ERROR: Point is already a start for some conveyor (multiply conv-s aren't supp-ed yet)")
 		
 		if(isStart):
 			point.outConv += 1
@@ -83,16 +82,16 @@ func MarkPoint(PointName := "NULL_NAME2", isStart := false):
 			point.incConv += 1
 			print("Point inc has been increased to 1")
 	else:
-		print("GM_ERROR: can not find point to mark")		# Game Manager Error
+		print("GM_ERROR: can not get point to mark")		# Game Manager Error
 
 
 # Method for dealing with signal from Point (click on Point)
-func s_ConvBuild(_Pntposition := Vector2.ZERO, isEnd := false, PointName := "NULL_NAME") -> void:				# singal income from Point.gd
+func s_ConvBuild(PathToPoint, _Pntposition := Vector2.ZERO, isUsed := false) -> void:				# singal income from Point.gd
 	if(NewVersionSwitcher):
-		print("signal received, pos: " + str(_Pntposition) + ", isEnd: " + str(isEnd) + ", PointName: " + str(PointName)) 
+		print("signal received, pos: " + str(_Pntposition) + ", isUsed: " + str(isUsed) + ", Pointpath: " + str(PathToPoint)) 
 		if(isStartConv and !isFocusedOnSmth):
 			
-			MarkPoint(PointName, true)					# mark as used for start
+			MarkPoint(PathToPoint, true)					# mark as used for start
 			print("Start of new conveyor")
 			
 			convBuildRef2 = convnew.instance()
@@ -113,7 +112,7 @@ func s_ConvBuild(_Pntposition := Vector2.ZERO, isEnd := false, PointName := "NUL
 			
 		elif(!isStartConv and isFocusedOnSmth and _Pntposition != convBuildRef2.position):
 			#convBuildingRef.call("Built")
-			MarkPoint(PointName, false)					# mark as used for end
+			MarkPoint(PathToPoint, false)					# mark as used for end
 			convBuildRef2.curve.add_point(_Pntposition)
 			print("End of new conveyor")
 			convBuildRef2.FullWithCells()				# start filling of conveyor
