@@ -45,6 +45,6 @@ func FullWithCells() -> void:		# mb add some bool to ensure spawning or getting 
 	#print(curve.get_baked_length())
 	while(!isFull):
 		AddCell()											# 7 cells if addcell is pre yield, otherwise 8
-		yield(get_tree().create_timer(0.3333), "timeout")	# 0.3333 needs for fixing disctance btw
+		yield(get_tree().create_timer(0.3333333), "timeout")	# 0.3333 needs for fixing disctance btw
 		
 

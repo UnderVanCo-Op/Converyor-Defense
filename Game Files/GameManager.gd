@@ -2,8 +2,8 @@ extends Node2D
 #This is GameManager.gd
 
 var cannon = preload("res://Objects/Cannons/Cannon.tscn")
-var conv = preload("res://Objects/Conveyors/ConveyorNew.tscn")
-var convnew = preload("res://Objects/Conveyors/Conveyor.tscn")
+var conv = preload("res://Objects/Conveyors/ConveyorNew.tscn")	# old version
+var convnew = preload("res://Objects/Conveyors/Conveyor.tscn")	# new version
 
 #var instance = null
 var convBuildingRef = null		# ref to conveyor in building stage, mb unjustifiably
@@ -11,9 +11,9 @@ var cannonBuildRef = null		# ref to cannon in b-ing stage, mb unj-ly
 var convBuildRef2 = null 		# ref to new v of conveyour building
 var gui = null
 
-var isStartConv := true
-var isFocusedOnSmth := false
-var NewVersionSwitcher := true
+var isStartConv := true			# if there was a start of a conveyor (switcher btw start/end)
+var isFocusedOnSmth := false	# if we are already interacting with smth
+var NewVersionSwitcher := true	# if we are on a newest version of conveyor (misc)
 
 var money := 250
 
@@ -30,14 +30,14 @@ func signalConnector() -> void:
 		for ch in t.get_children():
 			ch.connect("ConvBuilding", self, "s_ConvBuild")	# signal connection
 	else:
-		print("ERROR: failed to get Points Nodes in Points!")
+		print("GM_ERROR: failed to get Points Nodes in Points!")
 	
 	t = get_node_or_null("../Factories")					# привязка к Точкам 2 в факторках
 	if(t):
 		for ch in t.get_children():
 			ch.get_node("Point").connect("ConvBuilding", self, "s_ConvBuild")	# signal connection
 	else:
-		print("ERROR: failed to get Points Nodes in Factories!")
+		print("GM_ERROR: failed to get Points Nodes in Factories!")
 	
 	
 	gui = $"../GUI"											# привязка к GUI
@@ -58,19 +58,43 @@ func s_Cancel() -> void:							# signal from GUI.gd (RMB)
 			isFocusedOnSmth = false
 			cannonBuildRef.queue_free()
 		else:
-			print("ERROR: Cannon find focused thing to cancel")
+			print("GM_ERROR: Cannon find focused thing to cancel")
 	else:
 		print("WARNING: Nothing to cancel")
 
 
+#
+func DeMarkPoint(PointName := "NULL_NAME2"):
+	pass
+
+
+# Finds Point Node by name and marks in (inside) as Used, and Start or End of some Conveyor	isStartP
+func MarkPoint(PointName := "NULL_NAME2", isStart := false):
+	var point = get_parent().get_node("Points").find_node(PointName)
+	if(point):
+		if(!point.isUsed):		# first use of this point
+			point.isUsed = true
+			#print("GM_ERROR: Point is already a start for some conveyor (multiply conv-s aren't supp-ed yet)")
+		
+		if(isStart):
+			point.outConv += 1
+			print("Point out has been increased to 1")
+		else:
+			point.incConv += 1
+			print("Point inc has been increased to 1")
+	else:
+		print("GM_ERROR: can not find point to mark")		# Game Manager Error
+
+
 # Method for dealing with signal from Point (click on Point)
-func s_ConvBuild(_Pntposition) -> void:				# singal income from Point.gd
+func s_ConvBuild(_Pntposition := Vector2.ZERO, isEnd := false, PointName := "NULL_NAME") -> void:				# singal income from Point.gd
 	if(NewVersionSwitcher):
-		#print("NewVSwitcher")
-		
-		
+		print("signal received, pos: " + str(_Pntposition) + ", isEnd: " + str(isEnd) + ", PointName: " + str(PointName)) 
 		if(isStartConv and !isFocusedOnSmth):
+			
+			MarkPoint(PointName, true)					# mark as used for start
 			print("Start of new conveyor")
+			
 			convBuildRef2 = convnew.instance()
 			get_parent().get_node("Conveyors").add_child(convBuildRef2)
 			
@@ -86,12 +110,14 @@ func s_ConvBuild(_Pntposition) -> void:				# singal income from Point.gd
 			#convBuildingRef.call("StartBuilding")
 			isFocusedOnSmth = true
 			isStartConv = false							# carefull
+			
 		elif(!isStartConv and isFocusedOnSmth and _Pntposition != convBuildRef2.position):
 			#convBuildingRef.call("Built")
+			MarkPoint(PointName, false)					# mark as used for end
 			convBuildRef2.curve.add_point(_Pntposition)
 			print("End of new conveyor")
-			convBuildRef2.FullWithCells()
-			convBuildRef2 = null
+			convBuildRef2.FullWithCells()				# start filling of conveyor
+			convBuildRef2 = null						# deleting reference as a precaution
 			isStartConv = true
 			isFocusedOnSmth = false
 		
