@@ -6,7 +6,7 @@ var conv = preload("res://Objects/Conveyors/Conveyor.tscn")		# new version
 
 #var instance = null
 var convBuildRef = null 			# ref to new v of conveyour building
-var cannonBuildRef = null		# ref to cannon in b-ing stage, mb unj-ly
+var cannonBuildRef = null			# ref to cannon in b-ing stage, mb unj-ly
 var lastPointPath : NodePath = ""	# Path to the last Point used (for cancelling)
 var isStartPoint := false			# additional parametr for Point (for cancelling)
 var gui = null						# gui reference
@@ -48,6 +48,7 @@ func s_Cancel() -> void:				# signal from GUI.gd (RMB)
 	if(isFocusedOnSmth):
 		if(!isStartConv):
 			print("Canceled conveyor")
+			DeMarkPoint()
 			isStartConv = true
 			isFocusedOnSmth = false
 			convBuildRef.queue_free()
@@ -61,9 +62,28 @@ func s_Cancel() -> void:				# signal from GUI.gd (RMB)
 	else:
 		print("WARNING: Nothing to cancel")
 
+# Gets Point by NodePath and demarks it (inside), also set Used to 0 if no other conv are connected
+func DeMarkPoint() -> void:
+	var point = get_node_or_null(lastPointPath)
+	if(point):
+		if(!point.isUsed):				# first use of this point
+			print("GM_ERROR: Can't demark point bcs it's unused")
+		else:
+			if(isStartPoint):
+				point.outConv -= 1
+				print("Point out has been decreased to 1")
+				if(point.outConv == 0 and point.incConv == 0):
+					point.isUsed = false
+					print("Point has been marked as not used")
+			else:
+				#point.incConv -= 1
+				print("GM_ERROR: Trying to decrease end point, wtf?")
+	else:
+		print("GM_ERROR: can not get point to mark")		# Game Manager Error
 
-# Gets Point by NodePath and marks in (inside) as Used, and Start or End of some Conveyor
-func MarkPoint():
+
+# Gets Point by NodePath and marks it (inside) as Used, and Start or End of some Conveyor
+func MarkPoint() -> void:
 	var point = get_node_or_null(lastPointPath)
 	if(point):
 		if(!point.isUsed):				# first use of this point
