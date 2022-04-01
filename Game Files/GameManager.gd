@@ -2,18 +2,16 @@ extends Node2D
 #This is GameManager.gd
 
 var cannon = preload("res://Objects/Cannons/Cannon.tscn")
-var conv = preload("res://Objects/Conveyors/ConveyorNew.tscn")	# old version
-var convnew = preload("res://Objects/Conveyors/Conveyor.tscn")	# new version
+var conv = preload("res://Objects/Conveyors/Conveyor.tscn")		# new version
 
 #var instance = null
-var convBuildingRef = null		# ref to conveyor in building stage, mb unjustifiably
+var convBuildRef = null 			# ref to new v of conveyour building
 var cannonBuildRef = null		# ref to cannon in b-ing stage, mb unj-ly
-var convBuildRef2 = null 		# ref to new v of conveyour building
-var gui = null
-
-var isStartConv := true			# if there was a start of a conveyor (switcher btw start/end)
-var isFocusedOnSmth := false	# if we are already interacting with smth
-var NewVersionSwitcher := true	# if we are on a newest version of conveyor (misc)
+var lastPointPath : NodePath = ""	# Path to the last Point used (for cancelling)
+var isStartPoint := false			# additional parametr for Point (for cancelling)
+var gui = null						# gui reference
+var isStartConv := true				# if there was a start of a conveyor (switcher btw start/end)
+var isFocusedOnSmth := false		# if we are already interacting with smth
 
 var money := 250
 
@@ -46,13 +44,14 @@ func signalConnector() -> void:
 
 
 # Method for dealing with signal from gui to cancel building (RMB)
-func s_Cancel() -> void:							# signal from GUI.gd (RMB)
+func s_Cancel() -> void:				# signal from GUI.gd (RMB)
 	if(isFocusedOnSmth):
 		if(!isStartConv):
 			print("Canceled conveyor")
 			isStartConv = true
 			isFocusedOnSmth = false
-			convBuildingRef.queue_free()
+			convBuildRef.queue_free()
+			
 		elif(cannonBuildRef):
 			print("Canceled cannon")
 			isFocusedOnSmth = false
@@ -63,19 +62,14 @@ func s_Cancel() -> void:							# signal from GUI.gd (RMB)
 		print("WARNING: Nothing to cancel")
 
 
-#
-func DeMarkPoint(PointName := "NULL_NAME2"):
-	pass
-
-
 # Gets Point by NodePath and marks in (inside) as Used, and Start or End of some Conveyor
-func MarkPoint(PointPath, isStart := false):
-	var point = get_node_or_null(PointPath)
+func MarkPoint():
+	var point = get_node_or_null(lastPointPath)
 	if(point):
-		if(!point.isUsed):		# first use of this point
+		if(!point.isUsed):				# first use of this point
 			point.isUsed = true
 		
-		if(isStart):
+		if(isStartPoint):
 			point.outConv += 1
 			print("Point out has been increased to 1")
 		else:
@@ -87,53 +81,48 @@ func MarkPoint(PointPath, isStart := false):
 
 # Method for dealing with signal from Point (click on Point)
 func s_ConvBuild(PathToPoint, _Pntposition := Vector2.ZERO, isUsed := false) -> void:				# singal income from Point.gd
-	if(NewVersionSwitcher):
-		print("signal received, pos: " + str(_Pntposition) + ", isUsed: " + str(isUsed) + ", Pointpath: " + str(PathToPoint)) 
-		if(isStartConv and !isFocusedOnSmth):
-			
-			MarkPoint(PathToPoint, true)					# mark as used for start
-			print("Start of new conveyor")
-			
-			convBuildRef2 = convnew.instance()
-			get_parent().get_node("Conveyors").add_child(convBuildRef2)
-			
-			convBuildRef2.position = Vector2.ZERO
-			convBuildRef2.curve.clear_points()
-			convBuildRef2.curve.add_point(_Pntposition)
-			convBuildRef2.StartPpos = _Pntposition
-			
-			#convBuildRef2.curve.add_point(Vector2(400,400),Vector2(700,0),Vector2(-500,-100))
-			#convBuildRef2.FullWithCells()
-			#print(convBuildRef2.curve.get_point_count())
-			
-			#convBuildingRef.call("StartBuilding")
-			isFocusedOnSmth = true
-			isStartConv = false							# carefull
-			
-		elif(!isStartConv and isFocusedOnSmth and _Pntposition != convBuildRef2.position):
-			#convBuildingRef.call("Built")
-			MarkPoint(PathToPoint, false)					# mark as used for end
-			convBuildRef2.curve.add_point(_Pntposition)
-			print("End of new conveyor")
-			convBuildRef2.FullWithCells()				# start filling of conveyor
-			convBuildRef2 = null						# deleting reference as a precaution
-			isStartConv = true
-			isFocusedOnSmth = false
+	
+	print("signal received, pos: " + str(_Pntposition) + ", isUsed: " + str(isUsed) + ", Pointpath: " + str(PathToPoint)) 
+	if(isStartConv and !isFocusedOnSmth):
 		
-		#NewVersionSwitcher = false
-	else:
-		#print("signal achieved" + str(_Pntposition))
-		if(isStartConv and !isFocusedOnSmth):
-			convBuildingRef = conv.instance()
-			get_parent().get_node("Conveyors").add_child(convBuildingRef)
-			convBuildingRef.position = _Pntposition
-			convBuildingRef.call("StartBuilding")
-			isFocusedOnSmth = true
-			isStartConv = false							# carefull
-		elif(!isStartConv and isFocusedOnSmth and _Pntposition != convBuildingRef.position):
-			convBuildingRef.call("Built")
-			isStartConv = true
-			isFocusedOnSmth = false
+		#MarkPoint(PathToPoint, true)					# mark as used for start
+		lastPointPath = PathToPoint
+		isStartPoint = true
+		MarkPoint()
+		
+		print("Start of new conveyor")
+		
+		convBuildRef = conv.instance()
+		get_parent().get_node("Conveyors").add_child(convBuildRef)
+		
+		convBuildRef.position = Vector2.ZERO
+		convBuildRef.curve.clear_points()
+		convBuildRef.curve.add_point(_Pntposition)
+		convBuildRef.StartPpos = _Pntposition
+		
+		#convBuildRef2.curve.add_point(Vector2(400,400),Vector2(700,0),Vector2(-500,-100))
+		#convBuildRef2.FullWithCells()
+		#print(convBuildRef2.curve.get_point_count())
+		
+		#convBuildingRef.call("StartBuilding")
+		isFocusedOnSmth = true
+		isStartConv = false							# carefull
+		
+	elif(!isStartConv and isFocusedOnSmth and _Pntposition != convBuildRef.position):
+		
+		#MarkPoint(PathToPoint, false)					# mark as used for end
+		lastPointPath = PathToPoint
+		isStartPoint = false
+		MarkPoint()
+		print("End of new conveyor")
+		
+		convBuildRef.curve.add_point(_Pntposition)
+		
+		convBuildRef.FullWithCells()				# start filling of conveyor
+		convBuildRef = null						# deleting reference as a precaution
+		isStartConv = true
+		isFocusedOnSmth = false
+
 
 
 # Method for dealing with signal from Build Cannon button
