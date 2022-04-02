@@ -15,7 +15,7 @@ func _on_Area2D_area_entered(area: Area2D) -> void:
 		area.queue_free()
 		hp -=5
 		if hp <= 0:
-			print("enemy died")
+			#print("enemy died")
 			$"../../../GameManager".call("change_money", 15)
 			queue_free()
 

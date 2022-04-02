@@ -3,7 +3,7 @@ extends Path2D
 
 var ConvCell := preload("res://Objects/Conveyors/ConvCell.tscn")
 var refToFirstCell = null		# stores reference to first cell in conv
-var StartPpos := Vector2(0,0)	# mb depricated later
+var StartPpos := Vector2.ZERO	# stores Vector2 position of a start Point
 var isFull := false				# shows if the conveyor is fulled with cells
 
 signal StopCells()				# signal is emitted when cells are need to be stopped
@@ -15,21 +15,23 @@ signal StopCells()				# signal is emitted when cells are need to be stopped
 
 # Method adds one cell to conveyor
 func AddCell() -> void:
-	var ref = ConvCell.instance()
-	add_child(ref)
-	if(get_child_count() == 1):
-		refToFirstCell = ref
-		#print(refToFirstCell.unit_offset)
-		#refToFirstCell.add_user_signal("FirstCellEnd")
-	#ref.connect("ReachedEnd", self, "s_CellReachedEnd")
-	
+	if(!isFull):
+		var ref = ConvCell.instance()
+		add_child(ref)
+		if(get_child_count() == 1):
+			refToFirstCell = ref
+			#print(refToFirstCell.unit_offset)
+			#refToFirstCell.add_user_signal("FirstCellEnd")
+		#ref.connect("ReachedEnd", self, "s_CellReachedEnd")
+	else:
+		print("Conveyor_ERROR: Can't add cell bcs Conv is full")
+
 
 func _physics_process(delta: float) -> void:
-	if(refToFirstCell and refToFirstCell.unit_offset >= 1):
+	if(refToFirstCell and !isFull and refToFirstCell.unit_offset >= 1):
 		#print("First cell is in the end!")
 		isFull = true
 		emit_signal("StopCells")
-	pass
 
 #func s_CellReachedEnd() -> void:
 #	#print("cell reached end, stopping spawn...")

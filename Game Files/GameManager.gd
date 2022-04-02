@@ -47,20 +47,21 @@ func signalConnector() -> void:
 func s_Cancel() -> void:				# signal from GUI.gd (RMB)
 	if(isFocusedOnSmth):
 		if(!isStartConv):
-			print("Canceled conveyor")
 			DeMarkPoint()
 			isStartConv = true
 			isFocusedOnSmth = false
 			convBuildRef.queue_free()
+			print("Canceled conveyor")
 			
 		elif(cannonBuildRef):
-			print("Canceled cannon")
 			isFocusedOnSmth = false
 			cannonBuildRef.queue_free()
+			print("Canceled cannon")
 		else:
 			print("GM_ERROR: Cannon find focused thing to cancel")
 	else:
 		print("WARNING: Nothing to cancel")
+
 
 # Gets Point by NodePath and demarks it (inside), also set Used to 0 if no other conv are connected
 func DeMarkPoint() -> void:
@@ -100,49 +101,42 @@ func MarkPoint() -> void:
 
 
 # Method for dealing with signal from Point (click on Point)
-func s_ConvBuild(PathToPoint, _Pntposition := Vector2.ZERO, isUsed := false) -> void:				# singal income from Point.gd
+func s_ConvBuild(PathToPoint, _Pntposition := Vector2.ZERO, isUsed := false) -> void:	# singal income from Point.gd
 	
-	print("signal received, pos: " + str(_Pntposition) + ", isUsed: " + str(isUsed) + ", Pointpath: " + str(PathToPoint)) 
-	if(isStartConv and !isFocusedOnSmth):
-		
-		#MarkPoint(PathToPoint, true)					# mark as used for start
-		lastPointPath = PathToPoint
-		isStartPoint = true
-		MarkPoint()
-		
+	print("\nsignal received, pos: " + str(_Pntposition) + ", isUsed: " + str(isUsed) + ", Pointpath: " + str(PathToPoint)) 
+	if(isStartConv and !isFocusedOnSmth):			# START POINT
 		print("Start of new conveyor")
+		
+		lastPointPath = PathToPoint		# 
+		isStartPoint = true				# 
+		MarkPoint()						# marking point
 		
 		convBuildRef = conv.instance()
 		get_parent().get_node("Conveyors").add_child(convBuildRef)
-		
-		convBuildRef.position = Vector2.ZERO
-		convBuildRef.curve.clear_points()
-		convBuildRef.curve.add_point(_Pntposition)
-		convBuildRef.StartPpos = _Pntposition
-		
-		#convBuildRef2.curve.add_point(Vector2(400,400),Vector2(700,0),Vector2(-500,-100))
-		#convBuildRef2.FullWithCells()
-		#print(convBuildRef2.curve.get_point_count())
+		convBuildRef.position = Vector2.ZERO				# clearing pos
+		convBuildRef.curve.clear_points()					# clearing points just in case
+		convBuildRef.curve.add_point(_Pntposition)			# add start point
+		convBuildRef.StartPpos = _Pntposition				# setting start point in conv
 		
 		#convBuildingRef.call("StartBuilding")
 		isFocusedOnSmth = true
 		isStartConv = false							# carefull
 		
-	elif(!isStartConv and isFocusedOnSmth and _Pntposition != convBuildRef.position):
-		
-		#MarkPoint(PathToPoint, false)					# mark as used for end
+	elif(!isStartConv and isFocusedOnSmth):			# END POINT
+		if(lastPointPath == PathToPoint):
+			print("GM_ERROR: Can not stretch conv to itself (for now)")
+			s_Cancel()
+			return
+		print("End of new conveyor")
 		lastPointPath = PathToPoint
 		isStartPoint = false
 		MarkPoint()
-		print("End of new conveyor")
 		
 		convBuildRef.curve.add_point(_Pntposition)
-		
 		convBuildRef.FullWithCells()				# start filling of conveyor
 		convBuildRef = null						# deleting reference as a precaution
 		isStartConv = true
 		isFocusedOnSmth = false
-
 
 
 # Method for dealing with signal from Build Cannon button
