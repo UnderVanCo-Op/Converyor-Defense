@@ -13,12 +13,15 @@ var gui = null						# gui reference
 var isStartConv := true				# if there was a start of a conveyor (switcher btw start/end)
 var isFocusedOnSmth := false		# if we are already interacting with smth
 
+var conveyors_dict = {}				# dictionary of all conv by vector2
 var money := 250
 
 
 func _ready() -> void:
 	signalConnector()
 	gui.call("updateMoney", money)							# calling to GUI.gd
+	
+	
 
 
 # Method is responsible for finding and connecting signals to THIS script
@@ -103,12 +106,12 @@ func MarkPoint() -> void:
 # Method for dealing with signal from Point (click on Point)
 func s_ConvBuild(PathToPoint, _Pntposition := Vector2.ZERO, isUsed := false) -> void:	# singal income from Point.gd
 	
-	print("\nsignal received, pos: " + str(_Pntposition) + ", isUsed: " + str(isUsed) + ", Pointpath: " + str(PathToPoint)) 
+	print("\nsignal received, pos: " + str(_Pntposition) + ", isUsed: " + str(isUsed) + ", Pointpath: " + str(PathToPoint))
 	if(isStartConv and !isFocusedOnSmth):			# START POINT
 		print("Start of new conveyor")
 		
-		lastPointPath = PathToPoint		# 
-		isStartPoint = true				# 
+		lastPointPath = PathToPoint		#
+		isStartPoint = true				#
 		MarkPoint()						# marking point
 		
 		convBuildRef = conv.instance()
@@ -118,7 +121,6 @@ func s_ConvBuild(PathToPoint, _Pntposition := Vector2.ZERO, isUsed := false) -> 
 		convBuildRef.curve.add_point(_Pntposition)			# add start point
 		convBuildRef.StartPpos = _Pntposition				# setting start point in conv
 		
-		#convBuildingRef.call("StartBuilding")
 		isFocusedOnSmth = true
 		isStartConv = false							# carefull
 		
@@ -132,6 +134,8 @@ func s_ConvBuild(PathToPoint, _Pntposition := Vector2.ZERO, isUsed := false) -> 
 		isStartPoint = false
 		MarkPoint()
 		
+		conveyors_dict[convBuildRef.StartPpos] = _Pntposition
+		print("Conv added to dict, ", convBuildRef.StartPpos, _Pntposition)
 		convBuildRef.curve.add_point(_Pntposition)
 		convBuildRef.FullWithCells()				# start filling of conveyor
 		convBuildRef = null						# deleting reference as a precaution

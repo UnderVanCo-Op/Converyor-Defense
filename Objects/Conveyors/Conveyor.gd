@@ -10,7 +10,7 @@ signal StopCells()				# signal is emitted when cells are need to be stopped
 
 #func _ready() -> void:
 #	#print(curve.get_baked_length())
-#	pass
+#	pass3
 
 
 # Method adds one cell to conveyor
