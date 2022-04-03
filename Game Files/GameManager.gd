@@ -7,21 +7,20 @@ var conv = preload("res://Objects/Conveyors/Conveyor.tscn")		# new version
 #var instance = null
 var convBuildRef = null 			# ref to new v of conveyour building
 var cannonBuildRef = null			# ref to cannon in b-ing stage, mb unj-ly
+var gui = null						# gui reference
 var lastPointPath : NodePath = ""	# Path to the last Point used (for cancelling)
 var isStartPoint := false			# additional parametr for Point (for cancelling)
-var gui = null						# gui reference
 var isStartConv := true				# if there was a start of a conveyor (switcher btw start/end)
 var isFocusedOnSmth := false		# if we are already interacting with smth
 
-var conveyors_dict = {}				# dictionary of all conv by vector2
+var conv_list := []					# list of all conv objects
 var money := 250
 
 
 func _ready() -> void:
+	conv_list.clear()
 	signalConnector()
-	gui.call("updateMoney", money)							# calling to GUI.gd
-	
-	
+	gui.call("updateMoney", money)				# calling to GUI.gd
 
 
 # Method is responsible for finding and connecting signals to THIS script
@@ -45,12 +44,20 @@ func signalConnector() -> void:
 	gui.connect("press_build", self, "s_Towerbuild()")		# signal connection
 	gui.connect("cancel_conv", self, "s_Cancel")			# signal connection
 
+# Print all conveyors in conv_list
+func PrintConvList() -> void:
+	print("Conv list:")
+	for c in conv_list:
+		print(c)
+
 
 # Method for dealing with signal from gui to cancel building (RMB)
 func s_Cancel() -> void:				# signal from GUI.gd (RMB)
 	if(isFocusedOnSmth):
 		if(!isStartConv):
-			DeMarkPoint()
+			conv_list.erase(convBuildRef)	# delete conv from list
+			PrintConvList()					# print active conv-s
+			DeMarkPoint() 
 			isStartConv = true
 			isFocusedOnSmth = false
 			convBuildRef.queue_free()
@@ -71,7 +78,7 @@ func DeMarkPoint() -> void:
 	var point = get_node_or_null(lastPointPath)
 	if(point):
 		if(!point.isUsed):				# first use of this point
-			print("GM_ERROR: Can't demark point bcs it's unused")
+			print("GM_DeMarkPoint_ERROR: Can't demark point bcs it's unused")
 		else:
 			if(isStartPoint):
 				point.outConv -= 1
@@ -80,10 +87,9 @@ func DeMarkPoint() -> void:
 					point.isUsed = false
 					print("Point has been marked as not used")
 			else:
-				#point.incConv -= 1
-				print("GM_ERROR: Trying to decrease end point, wtf?")
+				print("GM_DeMarkPoint_ERROR: Trying to decrease end point, wtf?")
 	else:
-		print("GM_ERROR: can not get point to mark")		# Game Manager Error
+		print("GM_DeMarkPoint_ERROR: can not get point to mark")		# Game Manager Error
 
 
 # Gets Point by NodePath and marks it (inside) as Used, and Start or End of some Conveyor
@@ -104,10 +110,10 @@ func MarkPoint() -> void:
 
 
 # Method for dealing with signal from Point (click on Point)
-func s_ConvBuild(PathToPoint, _Pntposition := Vector2.ZERO, isUsed := false) -> void:	# singal income from Point.gd
+func s_ConvBuild(PathToPoint, isUsed, _Pntposition := Vector2.ZERO) -> void:	# singal income from Point.gd
 	
 	print("\nsignal received, pos: " + str(_Pntposition) + ", isUsed: " + str(isUsed) + ", Pointpath: " + str(PathToPoint))
-	if(isStartConv and !isFocusedOnSmth):			# START POINT
+	if(isStartConv and !isFocusedOnSmth):					# START POINT
 		print("Start of new conveyor")
 		
 		lastPointPath = PathToPoint		#
@@ -120,25 +126,40 @@ func s_ConvBuild(PathToPoint, _Pntposition := Vector2.ZERO, isUsed := false) -> 
 		convBuildRef.curve.clear_points()					# clearing points just in case
 		convBuildRef.curve.add_point(_Pntposition)			# add start point
 		convBuildRef.StartPpos = _Pntposition				# setting start point in conv
+		conv_list.append(convBuildRef)						# adding to the list
+		PrintConvList()										# print list of conv-s
 		
 		isFocusedOnSmth = true
-		isStartConv = false							# carefull
+		isStartConv = false									# carefull
 		
-	elif(!isStartConv and isFocusedOnSmth):			# END POINT
-		if(lastPointPath == PathToPoint):
+	elif(!isStartConv and isFocusedOnSmth):					# END POINT
+		if(lastPointPath == PathToPoint):					# checking for conv to itself
 			print("GM_ERROR: Can not stretch conv to itself (for now)")
 			s_Cancel()
 			return
+		
+		if(isUsed):											# Point has been used
+			for c in conv_list:
+				# if conv are identical
+				if(convBuildRef.StartPpos == c.StartPpos and _Pntposition == c.EndPpos):
+					print("GM_ERROR: can not stretch identical conveyor!")
+					s_Cancel()
+					return
+				# if conv are inverted identical
+				if(convBuildRef.StartPpos == c.EndPpos and _Pntposition == c.StartPpos):
+					print("GM_ERROR: can not stretch identical reversed conveyor!")
+					s_Cancel()
+					return
+		
 		print("End of new conveyor")
 		lastPointPath = PathToPoint
 		isStartPoint = false
 		MarkPoint()
 		
-		conveyors_dict[convBuildRef.StartPpos] = _Pntposition
-		print("Conv added to dict, ", convBuildRef.StartPpos, _Pntposition)
+		convBuildRef.EndPpos = _Pntposition			# setting end point in conv
 		convBuildRef.curve.add_point(_Pntposition)
 		convBuildRef.FullWithCells()				# start filling of conveyor
-		convBuildRef = null						# deleting reference as a precaution
+		convBuildRef = null							# deleting reference as a precaution
 		isStartConv = true
 		isFocusedOnSmth = false
 
