@@ -2,25 +2,25 @@ extends Node2D
 #This is GameManager.gd
 
 var cannon = preload("res://Objects/Cannons/Cannon.tscn")
-var conv = preload("res://Objects/Conveyors/ConveyorNew.tscn")
-var convnew = preload("res://Objects/Conveyors/Conveyor.tscn")
+var conv = preload("res://Objects/Conveyors/Conveyor.tscn")		# new version
 
 #var instance = null
-var convBuildingRef = null		# ref to conveyor in building stage, mb unjustifiably
-var cannonBuildRef = null		# ref to cannon in b-ing stage, mb unj-ly
-var convBuildRef2 = null 		# ref to new v of conveyour building
-var gui = null
+var convBuildRef = null 			# ref to new v of conveyour building
+var cannonBuildRef = null			# ref to cannon in b-ing stage, mb unj-ly
+var gui = null						# gui reference
+var lastPointPath : NodePath = ""	# Path to the last Point used (for cancelling)
+var isStartPoint := false			# additional parametr for Point (for cancelling)
+var isStartConv := true				# if there was a start of a conveyor (switcher btw start/end)
+var isFocusedOnSmth := false		# if we are already interacting with smth
 
-var isStartConv := true
-var isFocusedOnSmth := false
-var NewVersionSwitcher := true
-
+var conv_list := []					# list of all conv objects
 var money := 250
 
 
 func _ready() -> void:
+	conv_list.clear()
 	signalConnector()
-	gui.call("updateMoney", money)							# calling to GUI.gd
+	gui.call("updateMoney", money)				# calling to GUI.gd
 
 
 # Method is responsible for finding and connecting signals to THIS script
@@ -30,85 +30,138 @@ func signalConnector() -> void:
 		for ch in t.get_children():
 			ch.connect("ConvBuilding", self, "s_ConvBuild")	# signal connection
 	else:
-		print("ERROR: failed to get Points Nodes in Points!")
+		print("GM_ERROR: failed to get Points Nodes in Points!")
 	
 	t = get_node_or_null("../Factories")					# привязка к Точкам 2 в факторках
 	if(t):
 		for ch in t.get_children():
 			ch.get_node("Point").connect("ConvBuilding", self, "s_ConvBuild")	# signal connection
 	else:
-		print("ERROR: failed to get Points Nodes in Factories!")
+		print("GM_ERROR: failed to get Points Nodes in Factories!")
 	
 	
 	gui = $"../GUI"											# привязка к GUI
 	gui.connect("press_build", self, "s_Towerbuild()")		# signal connection
 	gui.connect("cancel_conv", self, "s_Cancel")			# signal connection
 
+# Print all conveyors in conv_list
+func PrintConvList() -> void:
+	print("Conv list:")
+	for c in conv_list:
+		print(c)
+
 
 # Method for dealing with signal from gui to cancel building (RMB)
-func s_Cancel() -> void:							# signal from GUI.gd (RMB)
+func s_Cancel() -> void:				# signal from GUI.gd (RMB)
 	if(isFocusedOnSmth):
 		if(!isStartConv):
-			print("Canceled conveyor")
+			conv_list.erase(convBuildRef)	# delete conv from list
+			PrintConvList()					# print active conv-s
+			DeMarkPoint() 
 			isStartConv = true
 			isFocusedOnSmth = false
-			convBuildingRef.queue_free()
+			convBuildRef.queue_free()
+			print("Canceled conveyor")
+			
 		elif(cannonBuildRef):
-			print("Canceled cannon")
 			isFocusedOnSmth = false
 			cannonBuildRef.queue_free()
+			print("Canceled cannon")
 		else:
-			print("ERROR: Cannon find focused thing to cancel")
+			print("GM_ERROR: Cannon find focused thing to cancel")
 	else:
 		print("WARNING: Nothing to cancel")
 
 
-# Method for dealing with signal from Point (click on Point)
-func s_ConvBuild(_Pntposition) -> void:				# singal income from Point.gd
-	if(NewVersionSwitcher):
-		#print("NewVSwitcher")
-		
-		
-		if(isStartConv and !isFocusedOnSmth):
-			print("Start of new conveyor")
-			convBuildRef2 = convnew.instance()
-			get_parent().get_node("Conveyors").add_child(convBuildRef2)
-			
-			convBuildRef2.position = Vector2.ZERO
-			convBuildRef2.curve.clear_points()
-			convBuildRef2.curve.add_point(_Pntposition)
-			convBuildRef2.StartPpos = _Pntposition
-			
-			#convBuildRef2.curve.add_point(Vector2(400,400),Vector2(700,0),Vector2(-500,-100))
-			#convBuildRef2.FullWithCells()
-			#print(convBuildRef2.curve.get_point_count())
-			
-			#convBuildingRef.call("StartBuilding")
-			isFocusedOnSmth = true
-			isStartConv = false							# carefull
-		elif(!isStartConv and isFocusedOnSmth and _Pntposition != convBuildRef2.position):
-			#convBuildingRef.call("Built")
-			convBuildRef2.curve.add_point(_Pntposition)
-			print("End of new conveyor")
-			convBuildRef2.FullWithCells()
-			convBuildRef2 = null
-			isStartConv = true
-			isFocusedOnSmth = false
-		
-		#NewVersionSwitcher = false
+# Gets Point by NodePath and demarks it (inside), also set Used to 0 if no other conv are connected
+func DeMarkPoint() -> void:
+	var point = get_node_or_null(lastPointPath)
+	if(point):
+		if(!point.isUsed):				# first use of this point
+			print("GM_DeMarkPoint_ERROR: Can't demark point bcs it's unused")
+		else:
+			if(isStartPoint):
+				point.outConv -= 1
+				print("Point out has been decreased to 1")
+				if(point.outConv == 0 and point.incConv == 0):
+					point.isUsed = false
+					print("Point has been marked as not used")
+			else:
+				print("GM_DeMarkPoint_ERROR: Trying to decrease end point, wtf?")
 	else:
-		#print("signal achieved" + str(_Pntposition))
-		if(isStartConv and !isFocusedOnSmth):
-			convBuildingRef = conv.instance()
-			get_parent().get_node("Conveyors").add_child(convBuildingRef)
-			convBuildingRef.position = _Pntposition
-			convBuildingRef.call("StartBuilding")
-			isFocusedOnSmth = true
-			isStartConv = false							# carefull
-		elif(!isStartConv and isFocusedOnSmth and _Pntposition != convBuildingRef.position):
-			convBuildingRef.call("Built")
-			isStartConv = true
-			isFocusedOnSmth = false
+		print("GM_DeMarkPoint_ERROR: can not get point to mark")		# Game Manager Error
+
+
+# Gets Point by NodePath and marks it (inside) as Used, and Start or End of some Conveyor
+func MarkPoint() -> void:
+	var point = get_node_or_null(lastPointPath)
+	if(point):
+		if(!point.isUsed):				# first use of this point
+			point.isUsed = true
+		
+		if(isStartPoint):
+			point.outConv += 1
+			print("Point out has been increased to 1")
+		else:
+			point.incConv += 1
+			print("Point inc has been increased to 1")
+	else:
+		print("GM_ERROR: can not get point to mark")		# Game Manager Error
+
+
+# Method for dealing with signal from Point (click on Point)
+func s_ConvBuild(PathToPoint, isUsed, _Pntposition := Vector2.ZERO) -> void:	# singal income from Point.gd
+	
+	print("\nsignal received, pos: " + str(_Pntposition) + ", isUsed: " + str(isUsed) + ", Pointpath: " + str(PathToPoint))
+	if(isStartConv and !isFocusedOnSmth):					# START POINT
+		print("Start of new conveyor")
+		
+		lastPointPath = PathToPoint		#
+		isStartPoint = true				#
+		MarkPoint()						# marking point
+		
+		convBuildRef = conv.instance()
+		get_parent().get_node("Conveyors").add_child(convBuildRef)
+		convBuildRef.position = Vector2.ZERO				# clearing pos
+		convBuildRef.curve.clear_points()					# clearing points just in case
+		convBuildRef.curve.add_point(_Pntposition)			# add start point
+		convBuildRef.StartPpos = _Pntposition				# setting start point in conv
+		conv_list.append(convBuildRef)						# adding to the list
+		PrintConvList()										# print list of conv-s
+		
+		isFocusedOnSmth = true
+		isStartConv = false									# carefull
+		
+	elif(!isStartConv and isFocusedOnSmth):					# END POINT
+		if(lastPointPath == PathToPoint):					# checking for conv to itself
+			print("GM_ERROR: Can not stretch conv to itself (for now)")
+			s_Cancel()
+			return
+		
+		if(isUsed):											# Point has been used
+			for c in conv_list:
+				# if conv are identical
+				if(convBuildRef.StartPpos == c.StartPpos and _Pntposition == c.EndPpos):
+					print("GM_ERROR: can not stretch identical conveyor!")
+					s_Cancel()
+					return
+				# if conv are inverted identical
+				if(convBuildRef.StartPpos == c.EndPpos and _Pntposition == c.StartPpos):
+					print("GM_ERROR: can not stretch identical reversed conveyor!")
+					s_Cancel()
+					return
+		
+		print("End of new conveyor")
+		lastPointPath = PathToPoint
+		isStartPoint = false
+		MarkPoint()
+		
+		convBuildRef.EndPpos = _Pntposition			# setting end point in conv
+		convBuildRef.curve.add_point(_Pntposition)
+		convBuildRef.FullWithCells()				# start filling of conveyor
+		convBuildRef = null							# deleting reference as a precaution
+		isStartConv = true
+		isFocusedOnSmth = false
 
 
 # Method for dealing with signal from Build Cannon button

@@ -1,6 +1,6 @@
 extends Area2D
 
-var speed = 3
+var speed = 8
 var lookV = Vector2.ZERO
 var target = null
 
