@@ -30,19 +30,20 @@ func signalConnector() -> void:
 		for ch in t.get_children():
 			ch.connect("ConvBuilding", self, "s_ConvBuild")	# signal connection
 	else:
-		print("GM_ERROR: failed to get Points Nodes in Points!")
+		push_error("GM_ERROR: failed to get Points Nodes in Points!")
 	
 	t = get_node_or_null("../Factories")					# привязка к Точкам 2 в факторках
 	if(t):
 		for ch in t.get_children():
 			ch.get_node("Point").connect("ConvBuilding", self, "s_ConvBuild")	# signal connection
 	else:
-		print("GM_ERROR: failed to get Points Nodes in Factories!")
+		push_error("GM_ERROR: failed to get Points Nodes in Factories!")
 	
 	
 	gui = $"../GUI"											# привязка к GUI
 	gui.connect("press_build", self, "s_Towerbuild()")		# signal connection
 	gui.connect("cancel_conv", self, "s_Cancel")			# signal connection
+
 
 # Print all conveyors in conv_list
 func PrintConvList() -> void:
@@ -55,22 +56,21 @@ func PrintConvList() -> void:
 func s_Cancel() -> void:				# signal from GUI.gd (RMB)
 	if(isFocusedOnSmth):
 		if(!isStartConv):
+			print("\nCanceling conveyor")
 			conv_list.erase(convBuildRef)	# delete conv from list
 			PrintConvList()					# print active conv-s
 			DeMarkPoint() 
 			isStartConv = true
 			isFocusedOnSmth = false
 			convBuildRef.queue_free()
-			print("Canceled conveyor")
-			
 		elif(cannonBuildRef):
+			print("\nCanceling cannon")
 			isFocusedOnSmth = false
 			cannonBuildRef.queue_free()
-			print("Canceled cannon")
 		else:
-			print("GM_ERROR: Cannon find focused thing to cancel")
+			push_error("GM_ERROR: Cannon find focused thing to cancel")
 	else:
-		print("WARNING: Nothing to cancel")
+		push_warning("WARNING: Nothing to cancel")
 
 
 # Gets Point by NodePath and demarks it (inside), also set Used to 0 if no other conv are connected
@@ -78,18 +78,18 @@ func DeMarkPoint() -> void:
 	var point = get_node_or_null(lastPointPath)
 	if(point):
 		if(!point.isUsed):				# first use of this point
-			print("GM_DeMarkPoint_ERROR: Can't demark point bcs it's unused")
+			push_error("GM_DeMarkPoint_ERROR: Can't demark point bcs it's unused")
 		else:
 			if(isStartPoint):
 				point.outConv -= 1
-				print("Point out has been decreased to 1")
+				#print("Point out has been decreased to 1")
 				if(point.outConv == 0 and point.incConv == 0):
 					point.isUsed = false
-					print("Point has been marked as not used")
+					#print("Point also has been marked as not used")
 			else:
-				print("GM_DeMarkPoint_ERROR: Trying to decrease end point, wtf?")
+				push_error("GM_DeMarkPoint_ERROR: Trying to decrease end point, wtf?")
 	else:
-		print("GM_DeMarkPoint_ERROR: can not get point to mark")		# Game Manager Error
+		push_error("GM_DeMarkPoint_ERROR: can not get point to mark")		# Game Manager Error
 
 
 # Gets Point by NodePath and marks it (inside) as Used, and Start or End of some Conveyor
@@ -101,12 +101,12 @@ func MarkPoint() -> void:
 		
 		if(isStartPoint):
 			point.outConv += 1
-			print("Point out has been increased to 1")
+			#print("Point out has been increased to 1")
 		else:
 			point.incConv += 1
-			print("Point inc has been increased to 1")
+			#print("Point inc has been increased to 1")
 	else:
-		print("GM_ERROR: can not get point to mark")		# Game Manager Error
+		push_error("GM_ERROR: can not get point to mark")		# Game Manager Error
 
 
 # Method for dealing with signal from Point (click on Point)
@@ -131,10 +131,10 @@ func s_ConvBuild(PathToPoint, isUsed, _Pntposition := Vector2.ZERO) -> void:	# s
 		
 		isFocusedOnSmth = true
 		isStartConv = false									# carefull
-		
+
 	elif(!isStartConv and isFocusedOnSmth):					# END POINT
 		if(lastPointPath == PathToPoint):					# checking for conv to itself
-			print("GM_ERROR: Can not stretch conv to itself (for now)")
+			push_warning("GM_ERROR: Can not stretch conv to itself (for now)")
 			s_Cancel()
 			return
 		
@@ -142,12 +142,12 @@ func s_ConvBuild(PathToPoint, isUsed, _Pntposition := Vector2.ZERO) -> void:	# s
 			for c in conv_list:
 				# if conv are identical
 				if(convBuildRef.StartPpos == c.StartPpos and _Pntposition == c.EndPpos):
-					print("GM_ERROR: can not stretch identical conveyor!")
+					push_warning("GM_WARNING: can not stretch identical conveyor!")
 					s_Cancel()
 					return
 				# if conv are inverted identical
 				if(convBuildRef.StartPpos == c.EndPpos and _Pntposition == c.StartPpos):
-					print("GM_ERROR: can not stretch identical reversed conveyor!")
+					push_warning("GM_WARNING: can not stretch identical reversed conveyor!")
 					s_Cancel()
 					return
 		
@@ -158,10 +158,31 @@ func s_ConvBuild(PathToPoint, isUsed, _Pntposition := Vector2.ZERO) -> void:	# s
 		
 		convBuildRef.EndPpos = _Pntposition			# setting end point in conv
 		convBuildRef.curve.add_point(_Pntposition)
-		convBuildRef.FullWithCells()				# start filling of conveyor
+		CheckForNearByConv()
+		
 		convBuildRef = null							# deleting reference as a precaution
 		isStartConv = true
 		isFocusedOnSmth = false
+
+
+# 
+func CheckForNearByConv() -> void:
+	var switcher := false
+	if(convBuildRef):
+		for c in conv_list:
+			if(convBuildRef.StartPpos == c.EndPpos):		# if our conv is a continuation for other
+				print("inc conv has been identified, info:", c)
+				c.StartSendingCellsTo(convBuildRef.get_path())
+				switcher = true
+				continue
+			if(convBuildRef.EndPpos == c.StartPpos):		# if our conv is a start for other conv
+				print("out conv has been identified, info:", c)
+				convBuildRef.StartSendingCellsTo(c.get_path())
+		if(!switcher):
+			convBuildRef.FullWithCells()
+	
+	else:
+		push_error("GM_CheckForNearByConv_ERROR: can not find convBuildRef")
 
 
 # Method for dealing with signal from Build Cannon button
