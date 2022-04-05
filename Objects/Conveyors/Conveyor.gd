@@ -11,17 +11,19 @@ var isSending := false			# shows if conv is sending cells somewhere to next conv
 #var isContinue := false			# shows if the conveyor has a start in the end of the other conv
 
 signal StopCells()				# signal is emitted when cells are need to be stopped
+signal StartCells()				# signal is emitted when cells are need to be started
 
-func ActivatePhysics() -> void:
-	set_physics_process(true)
+#func ActivatePhysics() -> void:
+#	set_physics_process(true)
+#
+#func DeactivatePhysics() -> void:
+#	set_physics_process(false)
 
-func DeactivatePhysics() -> void:
-	set_physics_process(false)
 
-
-# 
-func SetSendCellsTo(convPath : NodePath) -> void:
+# Method does all the starting preparations and sets sending on
+func StartSendingCellsTo(convPath : NodePath) -> void:
 	var conv = get_node_or_null(convPath)
+	#print("Conv got path:" + convPath)
 	if(conv):
 		refToNextConv = conv
 		isSending = true
@@ -29,26 +31,45 @@ func SetSendCellsTo(convPath : NodePath) -> void:
 		push_error("Conveyor_ERROR: can not get next conv in the chain")
 
 
-# 
-func ReceiveCell() -> void:
-	
-	pass
+# Method for setting starting valus for cell, moving to _phys... doesn't seem to work
+func ReceiveCell(newcell : PathFollow2D) -> void:
+	if(get_child_count() == 1):
+		refToFirstCell = newcell
+	connect("StartCells", newcell, "s_StartCell")		# connecting signal from conv
+	connect("StopCells", newcell, "s_StopCell")			# connecting signal from conv
+	newcell.unit_offset = 0
+	newcell.isMoving = true
 
 
 func _physics_process(delta: float) -> void:
-	if(isSending):
-		pass
-	elif(refToFirstCell and !isFull and refToFirstCell.unit_offset >= 1):
+	if(isSending and isFull and !refToNextConv.isFull):
+		remove_child(refToFirstCell)
+		disconnect("StartCells", refToFirstCell, "s_StartCell")
+		disconnect("StopCells", refToFirstCell, "s_StopCell")
+		refToNextConv.add_child(refToFirstCell)
+		refToNextConv.call("ReceiveCell", refToFirstCell)
+		if(get_child_count() != 0):
+			refToFirstCell = get_child(0)				# new first cell
+			isFull = false
+			emit_signal("StartCells")
+		else:
+			refToFirstCell = null
+			isFull = false
+		
+	elif(!isFull and refToFirstCell and refToFirstCell.unit_offset >= 1):
 		#print("First cell is in the end!")
 		isFull = true
 		emit_signal("StopCells")
 
 
-# Method adds one cell to conveyor
+# Method adds one cell to the start of conveyor
 func AddCell() -> void:
 	if(!isFull):
 		var ref = ConvCell.instance()
 		add_child(ref)
+		# disconnect first, if necessary
+		connect("StartCells", ref, "s_StartCell")		# connecting signal from conv
+		connect("StopCells", ref, "s_StopCell")			# connecting signal from conv
 		if(get_child_count() == 1):
 			refToFirstCell = ref
 			#print(refToFirstCell.unit_offset)

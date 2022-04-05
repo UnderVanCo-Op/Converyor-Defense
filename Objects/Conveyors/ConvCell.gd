@@ -10,7 +10,8 @@ func _ready() -> void:
 	var ref = cannon.instance()
 	ref.building = false
 	add_child(ref)
-	get_parent().connect("StopCells", self, "s_StopCell")	# connecting signal from parent conv
+	#get_parent().connect("StopCells", self, "s_StopCell")	# connecting signal from parent conv
+	#get_parent().connect("StartCells", self, "s_StartCell")	# connecting signal from parent conv
 	
 
 func _physics_process(delta: float) -> void:
@@ -20,6 +21,12 @@ func _physics_process(delta: float) -> void:
 		#emit_signal("ReachedEnd")
 		#queue_free()
 
+#func ChangeSignals(newParent : NodePath):
+#	disconnect("StopCells")
+#	pass
+
 func s_StopCell() -> void:		# signal income from Conveyor.gd
 	isMoving = false
 
+func s_StartCell() -> void:		# signal income from Conveyor.gd
+	isMoving = true

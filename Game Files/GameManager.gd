@@ -82,10 +82,10 @@ func DeMarkPoint() -> void:
 		else:
 			if(isStartPoint):
 				point.outConv -= 1
-				print("Point out has been decreased to 1")
+				#print("Point out has been decreased to 1")
 				if(point.outConv == 0 and point.incConv == 0):
 					point.isUsed = false
-					print("Point also has been marked as not used")
+					#print("Point also has been marked as not used")
 			else:
 				push_error("GM_DeMarkPoint_ERROR: Trying to decrease end point, wtf?")
 	else:
@@ -101,10 +101,10 @@ func MarkPoint() -> void:
 		
 		if(isStartPoint):
 			point.outConv += 1
-			print("Point out has been increased to 1")
+			#print("Point out has been increased to 1")
 		else:
 			point.incConv += 1
-			print("Point inc has been increased to 1")
+			#print("Point inc has been increased to 1")
 	else:
 		push_error("GM_ERROR: can not get point to mark")		# Game Manager Error
 
@@ -158,7 +158,7 @@ func s_ConvBuild(PathToPoint, isUsed, _Pntposition := Vector2.ZERO) -> void:	# s
 		
 		convBuildRef.EndPpos = _Pntposition			# setting end point in conv
 		convBuildRef.curve.add_point(_Pntposition)
-		if(CheckForIncConv()):
+		if(CheckForNearByConv()):
 			pass
 		else:
 			convBuildRef.FullWithCells()			# start filling of conveyor
@@ -169,16 +169,21 @@ func s_ConvBuild(PathToPoint, isUsed, _Pntposition := Vector2.ZERO) -> void:	# s
 
 
 # 
-func CheckForIncConv() -> bool:
+func CheckForNearByConv() -> bool:
 	if(convBuildRef):
 		for c in conv_list:
-			if(convBuildRef.StartPpos == c.EndPpos):
+			if(convBuildRef.StartPpos == c.EndPpos):		# if our conv is a continuation for other
 				print("inc conv has been identified, info:", c)
+				c.StartSendingCellsTo(convBuildRef.get_path())
 				
-				return true			# to redone in connector system, cur finding only 1 conv
+				return true					# to redone in connector system, cur finding only 1 conv
+			if(convBuildRef.EndPpos == c.StartPpos):		# if our conv is a start for other conv
+				print("out conv has been identified, info:", c)
+				
+				return false
 		return false				# 
 	else:
-		push_error("GM_CheckForIncConv_ERROR: can not find convBuildRef")
+		push_error("GM_CheckForNearByConv_ERROR: can not find convBuildRef")
 		return false
 
 
