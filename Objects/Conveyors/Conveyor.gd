@@ -8,7 +8,7 @@ var EndPpos := Vector2.ZERO		# stores Vector2 position of a end Point
 var isFull := false				# shows if the conveyor is fulled with cells
 var refToNextConv = null		# stores ref to the next conv in chains
 var isSending := false			# shows if conv is sending cells somewhere to next conv
-#var isContinue := false			# shows if the conveyor has a start in the end of the other conv
+var isContinue := false			# shows if the conveyor has a start in the end of the other conv
 
 signal StopCells()				# signal is emitted when cells are need to be stopped
 signal StartCells()				# signal is emitted when cells are need to be started
@@ -25,6 +25,7 @@ func StartSendingCellsTo(convPath : NodePath) -> void:
 	var conv = get_node_or_null(convPath)
 	#print("Conv got path:" + convPath)
 	if(conv):
+		conv.isContinue = true
 		refToNextConv = conv
 		isSending = true
 	else:
@@ -48,13 +49,15 @@ func _physics_process(delta: float) -> void:
 		disconnect("StopCells", refToFirstCell, "s_StopCell")
 		refToNextConv.add_child(refToFirstCell)
 		refToNextConv.call("ReceiveCell", refToFirstCell)
+		isFull = false
+		if(!isContinue):
+			#yield(get_tree().create_timer(0.3333333333), "timeout")
+			AddCell()
 		if(get_child_count() != 0):
 			refToFirstCell = get_child(0)				# new first cell
-			isFull = false
 			emit_signal("StartCells")
 		else:
 			refToFirstCell = null
-			isFull = false
 		
 	elif(!isFull and refToFirstCell and refToFirstCell.unit_offset >= 1):
 		#print("First cell is in the end!")

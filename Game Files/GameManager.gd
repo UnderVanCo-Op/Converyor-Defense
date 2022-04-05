@@ -158,10 +158,7 @@ func s_ConvBuild(PathToPoint, isUsed, _Pntposition := Vector2.ZERO) -> void:	# s
 		
 		convBuildRef.EndPpos = _Pntposition			# setting end point in conv
 		convBuildRef.curve.add_point(_Pntposition)
-		if(CheckForNearByConv()):
-			pass
-		else:
-			convBuildRef.FullWithCells()			# start filling of conveyor
+		CheckForNearByConv()
 		
 		convBuildRef = null							# deleting reference as a precaution
 		isStartConv = true
@@ -169,22 +166,23 @@ func s_ConvBuild(PathToPoint, isUsed, _Pntposition := Vector2.ZERO) -> void:	# s
 
 
 # 
-func CheckForNearByConv() -> bool:
+func CheckForNearByConv() -> void:
+	var switcher := false
 	if(convBuildRef):
 		for c in conv_list:
 			if(convBuildRef.StartPpos == c.EndPpos):		# if our conv is a continuation for other
 				print("inc conv has been identified, info:", c)
 				c.StartSendingCellsTo(convBuildRef.get_path())
-				
-				return true					# to redone in connector system, cur finding only 1 conv
+				switcher = true
+				continue
 			if(convBuildRef.EndPpos == c.StartPpos):		# if our conv is a start for other conv
 				print("out conv has been identified, info:", c)
-				
-				return false
-		return false				# 
+				convBuildRef.StartSendingCellsTo(c.get_path())
+		if(!switcher):
+			convBuildRef.FullWithCells()
+	
 	else:
 		push_error("GM_CheckForNearByConv_ERROR: can not find convBuildRef")
-		return false
 
 
 # Method for dealing with signal from Build Cannon button
