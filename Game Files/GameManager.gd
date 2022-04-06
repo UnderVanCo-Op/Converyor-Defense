@@ -2,18 +2,18 @@ extends Node2D
 #This is GameManager.gd
 
 var cannon = preload("res://Objects/Cannons/Cannon.tscn")
-var conv = preload("res://Objects/Conveyors/Conveyor.tscn")		# new version
+var conv = preload("res://Objects/Conveyors/Conveyor.tscn")
 
 #var instance = null
-var convBuildRef = null 			# ref to new v of conveyour building
-var cannonBuildRef = null			# ref to cannon in b-ing stage, mb unj-ly
-var gui = null						# gui reference
-var lastPointPath : NodePath = ""	# Path to the last Point used (for cancelling)
-var isStartPoint := false			# additional parametr for Point (for cancelling)
-var isStartConv := true				# if there was a start of a conveyor (switcher btw start/end)
-var isFocusedOnSmth := false		# if we are already interacting with smth
+var convBuildRef = null 			# ref to new v of conveyour building	(conv)
+var cannonBuildRef = null			# ref to cannon in b-ing stage, mb unj-ly	(cannon)
+var gui = null						# gui reference	(GUI)
+var lastPointPath : NodePath = ""	# Path to the last Point used (point, for cancelling)
+var isStartPoint := false			# additional parameter for Point (point, for cancelling)
+var isStartConv := true				# if there was a start of a conveyor (conv switcher btw start/end)
+var isFocusedOnSmth := false		# if we are already interacting with smth	(focus)
 
-var conv_list := []					# list of all conv objects
+var conv_list := []					# list of all conv nodes-objects
 var money := 250
 
 
@@ -44,6 +44,9 @@ func signalConnector() -> void:
 	gui.connect("press_build", self, "s_Towerbuild()")		# signal connection
 	gui.connect("cancel_conv", self, "s_Cancel")			# signal connection
 
+func FindStartConv() -> void:
+	
+	pass
 
 # Print all conveyors in conv_list
 func PrintConvList() -> void:
@@ -116,8 +119,8 @@ func s_ConvBuild(PathToPoint, isUsed, _Pntposition := Vector2.ZERO) -> void:	# s
 	if(isStartConv and !isFocusedOnSmth):					# START POINT
 		print("Start of new conveyor")
 		
-		lastPointPath = PathToPoint		#
-		isStartPoint = true				#
+		lastPointPath = PathToPoint		# upd to path to point
+		isStartPoint = true				# 
 		MarkPoint()						# marking point
 		
 		convBuildRef = conv.instance()
@@ -165,7 +168,7 @@ func s_ConvBuild(PathToPoint, isUsed, _Pntposition := Vector2.ZERO) -> void:	# s
 		isFocusedOnSmth = false
 
 
-# 
+# Checks for a near by conveyours by end and start
 func CheckForNearByConv() -> void:
 	var switcher := false
 	if(convBuildRef):
