@@ -177,12 +177,16 @@ func CheckForNearByConv() -> void:
 				print("inc conv has been identified, info:", c)
 				c.StartSendingCellsTo(convBuildRef.get_path())
 				switcher = true
-				continue
+				continue									# bcs convs cant be identical
 			if(convBuildRef.EndPpos == c.StartPpos):		# if our conv is a start for other conv
 				print("out conv has been identified, info:", c)
 				convBuildRef.StartSendingCellsTo(c.get_path())
-		if(!switcher):
+		if(!switcher or convBuildRef.isStartOfChain):
+			convBuildRef.isStartOfChain = true
+			print("now stretching conv granted start")
 			convBuildRef.FullWithCells()
+			if(convBuildRef.refToNextConv):					# if our conv has the continuation
+				convBuildRef.refToNextConv.isStartOfChain = false	# switching the start off just in case
 	
 	else:
 		push_error("GM_CheckForNearByConv_ERROR: can not find convBuildRef")

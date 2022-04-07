@@ -9,6 +9,7 @@ var isFull := false				# shows if the conveyor is fulled with cells
 var refToNextConv = null		# stores ref to the next conv in chains
 var isSending := false			# shows if conv is sending cells somewhere to next conv
 var isContinue := false			# shows if the conveyor has a start in the end of the other conv
+var isStartOfChain := false	# shows if the conv is the start for the chain of conv
 
 signal StopCells()				# signal is emitted when cells are need to be stopped
 signal StartCells()				# signal is emitted when cells are need to be started
