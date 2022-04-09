@@ -229,9 +229,12 @@ func ChangeStartOfAChain() -> void:
 			break
 	if(end_conv == start_conv):			# if start == end
 		push_warning("GM_ChangeStart..._WARNING: End conv and start conv are the same (loop)!")
+		yield(get_tree().create_timer(0.333), "timeout")	# waiting for end conv to get free (but random)
+		start_conv.FullWithCells()		# spawn new cells in the new start
 		return
 	# PART 3
 	end_conv.isStartOfChain = false		# switch off start
+#	yield(get_tree().create_timer(0.333), "timeout")
 	start_conv.FullWithCells()		# spawn new cells in the new start
 	
 	

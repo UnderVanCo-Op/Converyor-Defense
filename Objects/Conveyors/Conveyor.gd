@@ -30,7 +30,7 @@ func StartSendingCellsTo(convPath : NodePath) -> void:
 		conv.isContinue = true
 		refToNextConv = conv
 		isSending = true
-		refToNextConv.refToPrevConv = self			# 2 side list
+		refToNextConv.refToPrevConv = self			# 2-linked list
 	else:
 		push_error("Conveyor_ERROR: can not get next conv in the chain")
 
@@ -91,6 +91,7 @@ func FullWithCells() -> void:		# mb add some bool to ensure spawning or getting 
 		push_error("Conveyor_ERROR: 0 points in curve for conveyor!")
 		return
 	#print(curve.get_baked_length())
+	print("isFull: " + str(isFull))
 	while(!isFull):
 		AddCell()											# 7 cells if addcell is pre yield, otherwise 8
 		yield(get_tree().create_timer(0.333), "timeout")	# 
