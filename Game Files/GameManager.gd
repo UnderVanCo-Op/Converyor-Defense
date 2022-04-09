@@ -44,9 +44,6 @@ func signalConnector() -> void:
 	gui.connect("press_build", self, "s_Towerbuild()")		# signal connection
 	gui.connect("cancel_conv", self, "s_Cancel")			# signal connection
 
-func FindStartConv() -> void:
-	
-	pass
 
 # Print all conveyors in conv_list
 func PrintConvList() -> void:
@@ -130,7 +127,7 @@ func s_ConvBuild(PathToPoint, isUsed, _Pntposition := Vector2.ZERO) -> void:	# s
 		convBuildRef.curve.add_point(_Pntposition)			# add start point
 		convBuildRef.StartPpos = _Pntposition				# setting start point in conv
 		conv_list.append(convBuildRef)						# adding to the list
-		PrintConvList()										# print list of conv-s
+#		PrintConvList()										# print list of conv-s
 		
 		isFocusedOnSmth = true
 		isStartConv = false									# carefull
@@ -176,21 +173,69 @@ func CheckForNearByConv() -> void:
 			if(convBuildRef.StartPpos == c.EndPpos):		# if our conv is a continuation for other
 				print("inc conv has been identified, info:", c)
 				c.StartSendingCellsTo(convBuildRef.get_path())
-				switcher = true
+				switcher = true								# continuation trigger
 				continue									# bcs convs cant be identical
 			if(convBuildRef.EndPpos == c.StartPpos):		# if our conv is a start for other conv
 				print("out conv has been identified, info:", c)
 				convBuildRef.StartSendingCellsTo(c.get_path())
-		if(!switcher or convBuildRef.isStartOfChain):
+		if(switcher):		# conv is a continuation
+			convBuildRef.isStartOfChain = false
+			print("going to change start")
+			ChangeStartOfAChain()
+		elif(!switcher):		# if conv is not a continuation (moving start of a chain)
+#			convBuildRef.isStartOfChain = true	# now this stroke is not necessary since i've changed default value to true
 			convBuildRef.isStartOfChain = true
-			print("now stretching conv granted start")
+			print("marked as start")
 			convBuildRef.FullWithCells()
-			if(convBuildRef.refToNextConv):					# if our conv has the continuation
-				convBuildRef.refToNextConv.isStartOfChain = false	# switching the start off just in case
+#			if(convBuildRef.refToNextConv):					# if our conv has the continuation
+#				convBuildRef.refToNextConv.isStartOfChain = false	# switching the start off just in case
+#		elif(convBuildRef.isStartOfChain):
+#			print("elif worked")
+#			convBuildRef.FullWithCells()
+			
 	
 	else:
-		push_error("GM_CheckForNearByConv_ERROR: can not find convBuildRef")
+		push_error("GM_CheckForNear..._ERROR: can not find convBuildRef")
 
+
+# 
+func ChangeStartOfAChain() -> void:
+	
+	if(not (convBuildRef.refToPrevConv and convBuildRef.refToNextConv)):
+		push_warning("GM_ChangeStart..._WARNING: not enough ref-s to change start")
+		return
+	# PART 1
+	var start_conv = convBuildRef
+	while (start_conv):					# going to start of the chain from building conv
+		print("while iter")
+		if(start_conv.isStartOfChain):	# not going to work in 1 iter, bcs building conv is a continuation
+			break						# found start
+		if(start_conv.refToPrevConv):	# if prev conv exists
+			print("reached if")
+			start_conv = start_conv.refToPrevConv
+		else:
+			break
+	if(!start_conv.isStartOfChain):
+		push_error("GM_ChangeStart..._ERROR: First conv in chain doesn't have isStartOfChain on!")
+		return
+	# PART 2
+	var end_conv = convBuildRef
+	while(end_conv):					# going to the end of the chain from building conv
+		if(end_conv.isStartOfChain):
+			break						# found end
+		if(end_conv.refToNextConv):		# if next conv exists
+			end_conv = end_conv.refToNextConv
+		else:
+			break
+	if(end_conv == start_conv):			# if start == end
+		push_warning("GM_ChangeStart..._WARNING: End conv and start conv are the same (loop)!")
+		return
+	# PART 3
+	end_conv.isStartOfChain = false		# switch off start
+	start_conv.FullWithCells()		# spawn new cells in the new start
+	
+	
+	
 
 # Method for dealing with signal from Build Cannon button
 func s_Towerbuild() -> void:				# signal income from GUI.gd

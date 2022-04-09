@@ -3,13 +3,14 @@ extends Path2D
 
 var ConvCell := preload("res://Objects/Conveyors/ConvCell.tscn")
 var refToFirstCell = null		# stores reference to first cell in conv
+var refToNextConv = null		# stores ref to the next conv in chains
+var refToPrevConv = null		# stores ref to the previous conv in chain
 var StartPpos := Vector2.ZERO	# stores Vector2 position of a start Point
 var EndPpos := Vector2.ZERO		# stores Vector2 position of a end Point
 var isFull := false				# shows if the conveyor is fulled with cells
-var refToNextConv = null		# stores ref to the next conv in chains
 var isSending := false			# shows if conv is sending cells somewhere to next conv
 var isContinue := false			# shows if the conveyor has a start in the end of the other conv
-var isStartOfChain := false	# shows if the conv is the start for the chain of conv
+var isStartOfChain := true		# shows if the conv is the start for the chain of conv
 
 signal StopCells()				# signal is emitted when cells are need to be stopped
 signal StartCells()				# signal is emitted when cells are need to be started
@@ -29,6 +30,7 @@ func StartSendingCellsTo(convPath : NodePath) -> void:
 		conv.isContinue = true
 		refToNextConv = conv
 		isSending = true
+		refToNextConv.refToPrevConv = self			# 2 side list
 	else:
 		push_error("Conveyor_ERROR: can not get next conv in the chain")
 
@@ -39,16 +41,16 @@ func ReceiveCell(newcell : PathFollow2D) -> void:
 		refToFirstCell = newcell
 	connect("StartCells", newcell, "s_StartCell")		# connecting signal from conv
 	connect("StopCells", newcell, "s_StopCell")			# connecting signal from conv
-	newcell.unit_offset = 0
-	newcell.isMoving = true
+	newcell.unit_offset = 0		# start parameters
+	newcell.isMoving = true		# start parameters
 
 
 func _physics_process(delta: float) -> void:
-	if(isSending and isFull and !refToNextConv.isFull):
-		remove_child(refToFirstCell)
+	if(isSending and isFull and !refToNextConv.isFull):		# if conv issending to the next one, if full and next is not
+		remove_child(refToFirstCell)						# changing parents
 		disconnect("StartCells", refToFirstCell, "s_StartCell")
 		disconnect("StopCells", refToFirstCell, "s_StopCell")
-		refToNextConv.add_child(refToFirstCell)
+		refToNextConv.add_child(refToFirstCell)				# changing parents
 		refToNextConv.call("ReceiveCell", refToFirstCell)
 		isFull = false
 		if(!isContinue):
@@ -90,5 +92,5 @@ func FullWithCells() -> void:		# mb add some bool to ensure spawning or getting 
 		return
 	#print(curve.get_baked_length())
 	while(!isFull):
-		AddCell()												# 7 cells if addcell is pre yield, otherwise 8
-		yield(get_tree().create_timer(0.3333333333), "timeout")	# 0.3333... needs for fixing disctance btw
+		AddCell()											# 7 cells if addcell is pre yield, otherwise 8
+		yield(get_tree().create_timer(0.333), "timeout")	# 
