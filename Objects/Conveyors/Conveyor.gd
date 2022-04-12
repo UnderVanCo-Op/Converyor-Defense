@@ -3,14 +3,9 @@ extends Path2D
 
 var ConvCell := preload("res://Objects/Conveyors/ConvCell.tscn")
 var refToFirstCell = null		# stores reference to first cell in conv
-var refToNextConv = null		# stores ref to the next conv in chains
-var refToPrevConv = null		# stores ref to the previous conv in chain
-var StartPpos := Vector2.ZERO	# stores Vector2 position of a start Point
-var EndPpos := Vector2.ZERO		# stores Vector2 position of a end Point
+var refToPoint = null			# stores ref to point-parent 
 var isFull := false				# shows if the conveyor is fulled with cells
 var isSending := false			# shows if conv is sending cells somewhere to next conv
-var isContinue := false			# shows if the conveyor has a start in the end of the other conv
-var isStartOfChain := true		# shows if the conv is the start for the chain of conv
 
 signal StopCells()				# signal is emitted when cells are need to be stopped
 signal StartCells()				# signal is emitted when cells are need to be started
@@ -27,12 +22,18 @@ func StartSendingCellsTo(convPath : NodePath) -> void:
 	var conv = get_node_or_null(convPath)
 	#print("Conv got path:" + convPath)
 	if(conv):
-		conv.isContinue = true
-		refToNextConv = conv
+#		conv.isContinue = true
+#		refToNextConv = conv
 		isSending = true
-		refToNextConv.refToPrevConv = self			# 2-linked list
+#		refToNextConv.refToPrevConv = self			# 2-linked list
 	else:
 		push_error("Conveyor_ERROR: can not get next conv in the chain")
+
+
+# Unused for now
+func StopSendingCells() -> void:
+	isSending = false
+	pass
 
 
 # Method for setting starting valus for cell, moving to _phys... doesn't seem to work
@@ -46,26 +47,29 @@ func ReceiveCell(newcell : PathFollow2D) -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if(isSending and isFull and !refToNextConv.isFull):		# if conv issending to the next one, if full and next is not
+	if(!isFull and refToFirstCell and refToFirstCell.unit_offset >= 1):
+		#print("First cell is in the end!")
+		isFull = true
+		emit_signal("StopCells")
+
+#
+func SendCell() -> void:
+	if(isSending and isFull):		# if conv is sending to the next one and full
 		remove_child(refToFirstCell)						# changing parents
 		disconnect("StartCells", refToFirstCell, "s_StartCell")
 		disconnect("StopCells", refToFirstCell, "s_StopCell")
-		refToNextConv.add_child(refToFirstCell)				# changing parents
-		refToNextConv.call("ReceiveCell", refToFirstCell)
+#		refToNextConv.add_child(refToFirstCell)				# changing parents
+#		refToNextConv.call("ReceiveCell", refToFirstCell)
 		isFull = false
-		if(!isContinue):
+#		if(!isContinue):
 			#yield(get_tree().create_timer(0.3333333333), "timeout")
-			AddCell()
+#			AddCell()
 		if(get_child_count() != 0):
 			refToFirstCell = get_child(0)				# new first cell
 			emit_signal("StartCells")
 		else:
 			refToFirstCell = null
 		
-	elif(!isFull and refToFirstCell and refToFirstCell.unit_offset >= 1):
-		#print("First cell is in the end!")
-		isFull = true
-		emit_signal("StopCells")
 
 
 # Method adds one cell to the start of conveyor
