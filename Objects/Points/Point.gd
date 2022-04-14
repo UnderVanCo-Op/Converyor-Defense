@@ -27,7 +27,7 @@ func AddOutConv(conv) -> void:
 
 
 #
-func ReceiveSpawnRequest(count : int = -1, conv = null) -> void:
+func ReceiveSpawnRequest(conv, count : int = -1) -> void:
 	# Checks
 	if(!isSpawnPoint and inc_convs.size() == 0):
 		push_error("Point_ERROR: ReceiveReq can not be executed since no incoming conv are connected and not spawnpoint!")

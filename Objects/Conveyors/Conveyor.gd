@@ -23,15 +23,17 @@ func CountCapacity() -> int:
 		push_error("Conveyor_CountC_ERROR: 1 or 0 points in curve is not enough!")
 		return -1
 	var c = ConvCell.instance()
-	var rect : Vector2 = c.get_node("Sprite").region_rect.size
+	var sprite = c.get_node("Sprite")
+	var _rect : Vector2 = sprite.region_rect.size
+	var _scale : Vector2 = sprite.scale
 	c.queue_free()
 #	print(str(rect))s
 #	print(curve.get_bake_interval())
 #	curve.set_bake_interval(4000)
 	var Cleng : float = curve.get_baked_length()
-	var _capacity : int =  int(Cleng / rect.x)
+	var _capacity : int =  int(Cleng / (_rect.x * _scale.x))
 #	print(str(Cleng))
-#	print("\nLength: ",Cleng,", capacity: ",_capacity)
+	print("\nLength: ", Cleng, ", capacity: ", _capacity, "x: ", _rect.x * _scale.x)
 	capacity = _capacity
 	return _capacity
 

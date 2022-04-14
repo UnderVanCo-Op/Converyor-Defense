@@ -175,7 +175,7 @@ func s_ConvBuild(refToPoint, isUsed, _Pntposition := Vector2.ZERO) -> void:	# si
 # 
 func RequestSpawn(_count : int = -1) -> void:
 #	Point = BadPoint.instance()
-	Point.ReceiveSpawnRequest(_count, convBuildRef)
+	Point.ReceiveSpawnRequest(convBuildRef, _count)
 
 ## Checks for a near by conveyours by end and start
 #func CheckForNearByConv() -> void:
