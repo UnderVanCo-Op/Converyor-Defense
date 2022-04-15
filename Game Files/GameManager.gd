@@ -2,23 +2,22 @@ extends Node2D
 #This is GameManager.gd
 
 var cannon = preload("res://Objects/Cannons/Cannon.tscn")
-var conv = preload("res://Objects/Conveyors/Conveyor.tscn")		# new version
+var conv = preload("res://Objects/Conveyors/Conveyor.tscn")
+var BadPoint = preload("res://Objects/Points/Point.tscn")		# is used for auto-complete :)
 
 #var instance = null
-var convBuildRef = null 			# ref to new v of conveyour building
-var cannonBuildRef = null			# ref to cannon in b-ing stage, mb unj-ly
-var gui = null						# gui reference
-var lastPointPath : NodePath = ""	# Path to the last Point used (for cancelling)
-var isStartPoint := false			# additional parametr for Point (for cancelling)
-var isStartConv := true				# if there was a start of a conveyor (switcher btw start/end)
-var isFocusedOnSmth := false		# if we are already interacting with smth
+var convBuildRef  = null 			# ref to new v of conveyour building	(conv)
+var cannonBuildRef = null			# ref to cannon in b-ing stage, mb unj-ly	(cannon)
+var gui = null						# gui reference	(GUI)
+var Point = null					#  (point, for cancelling)
+var isStartConv := true				# if there was a start of a conveyor (conv switcher btw start/end)
+var isFocusedOnSmth := false		# if we are already interacting with smth	(focus)
 
-var conv_list := []					# list of all conv objects
 var money := 250
 
 
 func _ready() -> void:
-	conv_list.clear()
+#	conv_list.clear()
 	signalConnector()
 	gui.call("updateMoney", money)				# calling to GUI.gd
 
@@ -45,21 +44,14 @@ func signalConnector() -> void:
 	gui.connect("cancel_conv", self, "s_Cancel")			# signal connection
 
 
-# Print all conveyors in conv_list
-func PrintConvList() -> void:
-	print("Conv list:")
-	for c in conv_list:
-		print(c)
-
-
 # Method for dealing with signal from gui to cancel building (RMB)
 func s_Cancel() -> void:				# signal from GUI.gd (RMB)
 	if(isFocusedOnSmth):
 		if(!isStartConv):
 			print("\nCanceling conveyor")
-			conv_list.erase(convBuildRef)	# delete conv from list
-			PrintConvList()					# print active conv-s
-			DeMarkPoint() 
+#			conv_list.erase(convBuildRef)	# delete conv from list
+#			PrintConvList()					# print active conv-s
+			DeArmPoint() 
 			isStartConv = true
 			isFocusedOnSmth = false
 			convBuildRef.queue_free()
@@ -73,116 +65,102 @@ func s_Cancel() -> void:				# signal from GUI.gd (RMB)
 		push_warning("WARNING: Nothing to cancel")
 
 
-# Gets Point by NodePath and demarks it (inside), also set Used to 0 if no other conv are connected
-func DeMarkPoint() -> void:
-	var point = get_node_or_null(lastPointPath)
-	if(point):
-		if(!point.isUsed):				# first use of this point
-			push_error("GM_DeMarkPoint_ERROR: Can't demark point bcs it's unused")
-		else:
-			if(isStartPoint):
-				point.outConv -= 1
-				#print("Point out has been decreased to 1")
-				if(point.outConv == 0 and point.incConv == 0):
-					point.isUsed = false
-					#print("Point also has been marked as not used")
-			else:
-				push_error("GM_DeMarkPoint_ERROR: Trying to decrease end point, wtf?")
+# Demarks Point (inside), also sets Used to 0 if no other conv are connected and delete ref to conv
+func DeArmPoint() -> void:
+	print("DeArm starting...")
+	if(!Point.isUsed):				# first use of this point
+		push_error("GM_DeArmPoint_ERROR: Can't demark point bcs it's unused")
 	else:
-		push_error("GM_DeMarkPoint_ERROR: can not get point to mark")		# Game Manager Error
+		if(!isStartConv):
+			Point.out_convs.erase(convBuildRef)		# delete new ref in the list
+			print("disarmed Point")
+			#print("Point out has been decreased to 1")
+			if(Point.inc_convs.size() == 0 and Point.inc_convs.size() == 0):
+				Point.isUsed = false
+				#print("Point also has been marked as not used")
+		else:
+			push_error("GM_DeArmPoint_ERROR: isStartConv is true, wtf?")
 
 
-# Gets Point by NodePath and marks it (inside) as Used, and Start or End of some Conveyor
-func MarkPoint() -> void:
-	var point = get_node_or_null(lastPointPath)
-	if(point):
-		if(!point.isUsed):				# first use of this point
-			point.isUsed = true
-		
-		if(isStartPoint):
-			point.outConv += 1
-			#print("Point out has been increased to 1")
-		else:
-			point.incConv += 1
-			#print("Point inc has been increased to 1")
+# Marks point as Used, and also adds ref to conv, must be called after convBuildRef is set properly.
+func ArmPoint(_point : StaticBody2D, _isStartConv : bool) -> void:
+	if(!_point.isUsed):				# first use of this point
+		_point.isUsed = true
+	
+	if(_isStartConv):
+		_point.AddOutConv(convBuildRef)
+		#print("Point out has been increased to 1")
 	else:
-		push_error("GM_ERROR: can not get point to mark")		# Game Manager Error
+		_point.AddIncConv(convBuildRef)
+		#print("Point inc has been increased to 1")
+	print("armed point")
 
 
 # Method for dealing with signal from Point (click on Point)
-func s_ConvBuild(PathToPoint, isUsed, _Pntposition := Vector2.ZERO) -> void:	# singal income from Point.gd
+func s_ConvBuild(refToPoint : StaticBody2D, isUsed : bool, _Pntposition : Vector2) -> void:	# singal income from Point.gd
 	
-	print("\nsignal received, pos: " + str(_Pntposition) + ", isUsed: " + str(isUsed) + ", Pointpath: " + str(PathToPoint))
+	print("\nsignal received, pos: " + str(_Pntposition) + ", isUsed: " + str(isUsed) + ", Pointpath: " + str(refToPoint))
+	
+	if(refToPoint):
+		pass
+	else:
+		push_error("GM_ERROR: Point is NULL!")		# Game Manager Error
+		return
+		
 	if(isStartConv and !isFocusedOnSmth):					# START POINT
+		
 		print("Start of new conveyor")
-		
-		lastPointPath = PathToPoint		#
-		isStartPoint = true				#
-		MarkPoint()						# marking point
-		
+		# Conveyor
 		convBuildRef = conv.instance()
 		get_parent().get_node("Conveyors").add_child(convBuildRef)
 		convBuildRef.position = Vector2.ZERO				# clearing pos
 		convBuildRef.curve.clear_points()					# clearing points just in case
 		convBuildRef.curve.add_point(_Pntposition)			# add start point
-		convBuildRef.StartPpos = _Pntposition				# setting start point in conv
-		conv_list.append(convBuildRef)						# adding to the list
-		PrintConvList()										# print list of conv-s
+		convBuildRef.Point = refToPoint						# ref to start point
 		
+		# Points
+		Point = refToPoint					# upd the point		
+		
+		# General
 		isFocusedOnSmth = true
-		isStartConv = false									# carefull
-
+		isStartConv = false					# carefull
+	
 	elif(!isStartConv and isFocusedOnSmth):					# END POINT
-		if(lastPointPath == PathToPoint):					# checking for conv to itself
+		
+		if(Point == refToPoint):					# checking for conv to itself
 			push_warning("GM_ERROR: Can not stretch conv to itself (for now)")
 			s_Cancel()
 			return
-		
-		if(isUsed):											# Point has been used
-			for c in conv_list:
-				# if conv are identical
-				if(convBuildRef.StartPpos == c.StartPpos and _Pntposition == c.EndPpos):
-					push_warning("GM_WARNING: can not stretch identical conveyor!")
-					s_Cancel()
-					return
-				# if conv are inverted identical
-				if(convBuildRef.StartPpos == c.EndPpos and _Pntposition == c.StartPpos):
-					push_warning("GM_WARNING: can not stretch identical reversed conveyor!")
-					s_Cancel()
-					return
-		
+
 		print("End of new conveyor")
-		lastPointPath = PathToPoint
-		isStartPoint = false
-		MarkPoint()
-		
-		convBuildRef.EndPpos = _Pntposition			# setting end point in conv
+		# Conveyor
 		convBuildRef.curve.add_point(_Pntposition)
-		CheckForNearByConv()
+		convBuildRef.endPoint = refToPoint		# ref to end point
+		convBuildRef.isBuilding = false
+		convBuildRef.CountCapacity()
+
+		# Points
+		ArmPoint(Point, true)				# Set up start point
+#		Point = refToPoint					# upd the point	(not necessarily now)	
+		ArmPoint(refToPoint, false)			# marking end point, must be before isStartConv setting
+		Point.TryMoveCell()					# Set up connections in start point
+		RequestSpawn(convBuildRef.capacity)	# requesting spawn from start point
 		
-		convBuildRef = null							# deleting reference as a precaution
-		isStartConv = true
+		# General
 		isFocusedOnSmth = false
+		isStartConv = true
+		convBuildRef = null					# deleting reference as a precaution
+		Point = null						# also
 
 
-# 
-func CheckForNearByConv() -> void:
-	var switcher := false
-	if(convBuildRef):
-		for c in conv_list:
-			if(convBuildRef.StartPpos == c.EndPpos):		# if our conv is a continuation for other
-				print("inc conv has been identified, info:", c)
-				c.StartSendingCellsTo(convBuildRef.get_path())
-				switcher = true
-				continue
-			if(convBuildRef.EndPpos == c.StartPpos):		# if our conv is a start for other conv
-				print("out conv has been identified, info:", c)
-				convBuildRef.StartSendingCellsTo(c.get_path())
-		if(!switcher):
-			convBuildRef.FullWithCells()
-	
-	else:
-		push_error("GM_CheckForNearByConv_ERROR: can not find convBuildRef")
+# convBuildRef dependent
+func RequestSpawn(_count : int) -> void:
+#	Point = BadPoint.instance()
+	print("GM: req for spawning ", _count, " cells")
+	if(_count < 1):
+		push_error("GM_RequestS_ERROR: Can not send req with less than 1 cells to spawn!")
+		return
+	convBuildRef.Point.ReceiveSpawnRequest(_count, convBuildRef)	# get the ref to start point by conv
 
 
 # Method for dealing with signal from Build Cannon button

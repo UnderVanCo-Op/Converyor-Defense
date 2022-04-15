@@ -7,23 +7,26 @@ var isMoving := true	# if the cell is in movement
 #var isOccupied := false
 
 func _ready() -> void:
+	# Cannon
 	var ref = cannon.instance()
 	ref.building = false
 	add_child(ref)
+	# Highlighting on spawn
+	$Sprite.scale = Vector2(1,1)						# for highlighting spawn
+	yield(get_tree().create_timer(0.333), "timeout")	# 
+	$Sprite.scale = Vector2(0.5,0.5)					# 
+	
 	#get_parent().connect("StopCells", self, "s_StopCell")	# connecting signal from parent conv
 	#get_parent().connect("StartCells", self, "s_StartCell")	# connecting signal from parent conv
 	
 
-func _physics_process(delta: float) -> void:
+func _physics_process(_delta: float) -> void:
 	if(isMoving):
 		offset += speed
 	#if(unit_offset >= 1):
 		#emit_signal("ReachedEnd")
 		#queue_free()
 
-#func ChangeSignals(newParent : NodePath):
-#	disconnect("StopCells")
-#	pass
 
 func s_StopCell() -> void:		# signal income from Conveyor.gd
 	isMoving = false
