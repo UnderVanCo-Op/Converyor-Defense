@@ -20,7 +20,7 @@ func _ready() -> void:
 	#get_parent().connect("StartCells", self, "s_StartCell")	# connecting signal from parent conv
 	
 
-func _physics_process(delta: float) -> void:
+func _physics_process(_delta: float) -> void:
 	if(isMoving):
 		offset += speed
 	#if(unit_offset >= 1):

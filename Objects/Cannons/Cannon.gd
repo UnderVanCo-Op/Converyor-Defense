@@ -36,7 +36,7 @@ func FinishB() -> void:
 	GM.call("tower_built")			# calling to GM
 	
 
-func _physics_process(delta: float) -> void:
+func _physics_process(_delta: float) -> void:
 	if not building:
 		if enemies:
 			#print("enemies not null")

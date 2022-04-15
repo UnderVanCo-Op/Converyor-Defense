@@ -116,20 +116,17 @@ func s_ConvBuild(refToPoint : StaticBody2D, isUsed : bool, _Pntposition : Vector
 		convBuildRef.position = Vector2.ZERO				# clearing pos
 		convBuildRef.curve.clear_points()					# clearing points just in case
 		convBuildRef.curve.add_point(_Pntposition)			# add start point
-		convBuildRef.Point = refToPoint
-#		convBuildRef.StartPpos = _Pntposition				# setting start point in conv
-#		conv_list.append(convBuildRef)						# adding to the list
-#		PrintConvList()										# print list of conv-s
+		convBuildRef.Point = refToPoint						# ref to start point
 		
 		# Points
 		Point = refToPoint					# upd the point		
-									# marking point, must be before isStartConv setting
 		
 		# General
 		isFocusedOnSmth = true
 		isStartConv = false					# carefull
 	
 	elif(!isStartConv and isFocusedOnSmth):					# END POINT
+		
 		if(Point == refToPoint):					# checking for conv to itself
 			push_warning("GM_ERROR: Can not stretch conv to itself (for now)")
 			s_Cancel()
@@ -137,18 +134,18 @@ func s_ConvBuild(refToPoint : StaticBody2D, isUsed : bool, _Pntposition : Vector
 
 		print("End of new conveyor")
 		# Conveyor
-#		convBuildRef.EndPpos = _Pntposition			# setting end point in conv
 		convBuildRef.curve.add_point(_Pntposition)
+		convBuildRef.endPoint = refToPoint		# ref to end point
 		convBuildRef.isBuilding = false
-#		convBuildRef = conv.instance()
-#		CheckForNearByConv()
+		convBuildRef.CountCapacity()
 
 		# Points
-		ArmPoint(Point, true)
-		Point = refToPoint					# upd the point	(not necessarily now)	
-		ArmPoint(refToPoint, false)			# marking point, must be before isStartConv setting
+		ArmPoint(Point, true)				# Set up start point
+#		Point = refToPoint					# upd the point	(not necessarily now)	
+		ArmPoint(refToPoint, false)			# marking end point, must be before isStartConv setting
+		Point.TryMoveCell()					# Set up connections in start point
+		RequestSpawn(convBuildRef.capacity)	# requesting spawn from start point
 		
-		RequestSpawn(convBuildRef.CountCapacity())	# requesting spawn from start point
 		# General
 		isFocusedOnSmth = false
 		isStartConv = true
@@ -156,7 +153,7 @@ func s_ConvBuild(refToPoint : StaticBody2D, isUsed : bool, _Pntposition : Vector
 		Point = null						# also
 
 
-# 
+# convBuildRef dependent
 func RequestSpawn(_count : int) -> void:
 #	Point = BadPoint.instance()
 	print("GM: req for spawning ", _count, " cells")

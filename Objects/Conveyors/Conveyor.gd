@@ -2,24 +2,37 @@ extends Path2D
 # This is Conveyor.gd
 
 var ConvCell := preload("res://Objects/Conveyors/ConvCell.tscn")
-var Point = null			# stores ref to point-parent (not used currently)
-#var endPoint = null				# 
-var capacity := -1				# stores number of cells, that conv can have
-var isFull := false				# shows if the conveyor is fulled with cells
-#var isMoving := false			#
-var isBuilding := true			# shows if the conv is in building stage
-#var FirstCell = null			# ref to first cell in conv
-#var isSending := false			# shows if conv is sending cells somewhere to next conv
+var Point : StaticBody2D = null		# stores ref to point-parent (not used currently)
+var endPoint = null				# 
+var capacity := -1					# stores number of cells, that conv can have
+var isFull := false					# shows if the conveyor is fulled with cells
+#var isMoving := false				#
+var isBuilding := true				# shows if the conv is in building stage
+var FirstCell : PathFollow2D = null	# ref to first cell in conv
+#var isSending := false				# shows if conv is sending cells somewhere to next conv
 
-signal StopCells()				# signal is emitted when cells are need to be stopped
-signal StartCells()				# signal is emitted when cells are need to be started
-#signal UpdateFirstCell()		# emit when ref to  1 cell is changed
+signal StopCells()					# signal is emitted when cells are need to be stopped
+signal StartCells()					# signal is emitted when cells are need to be started
+#signal UpdateFirstCell()			# emit when ref to  1 cell is changed
 
-#func ActivatePhysics() -> void:
-#	set_physics_process(true)
+func ActivatePhysics() -> void:
+	set_physics_process(true)
+
+func DeactivatePhysics() -> void:
+	set_physics_process(false)
+
+func _physics_process(_delta: float) -> void:
+	
+	if(FirstCell and FirstCell.unit_offset == 1):
+		if(!endPoint.TryMoveCell()):				# if cell was not moved, than stop checking (until some point, connected with out conv says we need to start again
+			StopCells()
+			DeactivatePhysics()
+	
 #
-#func DeactivatePhysics() -> void:
-#	set_physics_process(false)
+#	if(!isFull):
+#		#print("First cell is in the end!")
+#		isFull = true
+#		emit_signal("StopCells")
 
 func StopCells() -> void:
 	emit_signal("StopCells")
@@ -62,18 +75,28 @@ func CheckIfCapacityIsOver() -> bool:
 		return true
 
 
-# Method for setting starting valus for cell, moving to _phys... doesn't seem to work
+# Method for setting starting valus for incoming cell, unit_offset doesn't seem to work outside the conv
 func ReceiveCell(newcell : PathFollow2D) -> bool:
 	if(isFull):
 		push_error("Conv_ReceiveC_ERROR: Can not receive cell, since conv is full")
 		return false
+# warning-ignore:return_value_discarded
 	connect("StartCells", newcell, "s_StartCell")		# connecting signal from conv
+# warning-ignore:return_value_discarded
 	connect("StopCells", newcell, "s_StopCell")			# connecting signal from conv
 	newcell.unit_offset = 0				# start parameters
 	newcell.isMoving = true				# start parameters
 	CheckIfCapacityIsOver()
-#	CheckFirstCell(newcell)
+	UpdateFirstCell()			# everytime cell move on to this conv
 	return true
+
+
+# Must be called everytime the action with adding/deleting cell is in place
+func UpdateFirstCell() -> void:
+	if(get_child_count() == 0):	# check
+		push_warning("Conv_UpdateFirstC_WARNING: Can not update first cell bcs conv is empty")
+		return
+	FirstCell = get_child(0)	# update ref to first cell
 
 
 # Method checks for some errors, then waits until conv is free and finally spawn cell with count specified in param
@@ -82,7 +105,7 @@ func SpawnCells(count : int) -> void:
 	if(curve.get_point_count() < 2):
 		push_error("Conv_SpawnC_ERROR: 1 or 0 points in curve is not enough!")
 		return
-	print("spawning " + str(count) + " cells...")
+	print("Conv: spawning " + str(count) + " cells...")
 	
 	# General
 	for c in count:
@@ -96,7 +119,7 @@ func SpawnCells(count : int) -> void:
 		AddCell()
 	if(CheckIfCapacityIsOver()):
 		StopCells()
-		print("Spawned and stopped!")
+		print("Conv: Spawned and stopped!")
 
 
 # Method waits until timer, for now. Will be waiting for free for some time until error, in the future
@@ -111,10 +134,11 @@ func AddCell() -> void:
 	var ref = ConvCell.instance()
 	add_child(ref)
 	# disconnect first, if necessary
+# warning-ignore:return_value_discarded
 	connect("StartCells", ref, "s_StartCell")		# connecting signal from conv
+# warning-ignore:return_value_discarded
 	connect("StopCells", ref, "s_StopCell")			# connecting signal from conv
-#	CheckFirstCell(ref)
-
+	UpdateFirstCell()		# everytime cell adds
 
 
 # Must be called after child added. Method updates ref to firstcell
@@ -137,14 +161,6 @@ func AddCell() -> void:
 ##		refToNextConv.refToPrevConv = self			# 2-linked list
 #	else:
 #		push_error("Conv_StartS_ERROR: can not get next conv in the chain")
-
-
-#func _physics_process(delta: float) -> void:
-#	if()
-#	if(!isFull):
-#		#print("First cell is in the end!")
-#		isFull = true
-#		emit_signal("StopCells")
 
 #
 ## Method fulls Conveyor with cells while first cell is not in the end
