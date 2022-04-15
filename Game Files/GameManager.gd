@@ -76,18 +76,19 @@ func s_Cancel() -> void:				# signal from GUI.gd (RMB)
 
 # Demarks Point (inside), also sets Used to 0 if no other conv are connected and delete ref to conv
 func DeArmPoint() -> void:
+	print("DeArm starting...")
 	if(!Point.isUsed):				# first use of this point
 		push_error("GM_DeArmPoint_ERROR: Can't demark point bcs it's unused")
 	else:
-		if(isStartConv):
-			Point.outConv -= 1
+		if(!isStartConv):
 			Point.out_convs.erase(convBuildRef)		# delete new ref in the list
+			print("disarmed Point")
 			#print("Point out has been decreased to 1")
-			if(Point.outConv == 0 and Point.incConv == 0):
+			if(Point.inc_convs.size() == 0 and Point.inc_convs.size() == 0):
 				Point.isUsed = false
 				#print("Point also has been marked as not used")
 		else:
-			push_error("GM_DeArmPoint_ERROR: Trying to decrease end point, wtf?")
+			push_error("GM_DeArmPoint_ERROR: isStartConv is true, wtf?")
 
 
 # Marks Point (inside) as Used, and also adds ref to conv, must be called after convBuildRef is set properly
@@ -101,6 +102,7 @@ func ArmPoint() -> void:
 	else:
 		Point.AddIncConv(convBuildRef)
 		#print("Point inc has been increased to 1")
+	print("armed point")
 
 
 # Method for dealing with signal from Point (click on Point)
