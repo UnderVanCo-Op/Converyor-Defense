@@ -158,13 +158,15 @@ func s_ConvBuild(refToPoint, isUsed, _Pntposition := Vector2.ZERO) -> void:	# si
 		# Conveyor
 #		convBuildRef.EndPpos = _Pntposition			# setting end point in conv
 		convBuildRef.curve.add_point(_Pntposition)
+		convBuildRef.isBuilding = false
 #		convBuildRef = conv.instance()
 #		CheckForNearByConv()
 
 		# Points
-		RequestSpawn(convBuildRef.CountCapacity())	# requesting spawn from start point
 		Point = refToPoint							# upd the point		
 		ArmPoint()									# marking point, must be before isStartConv setting
+		
+		RequestSpawn(convBuildRef.CountCapacity())	# requesting spawn from start point
 		# General
 		isFocusedOnSmth = false
 		isStartConv = true
@@ -175,7 +177,11 @@ func s_ConvBuild(refToPoint, isUsed, _Pntposition := Vector2.ZERO) -> void:	# si
 # 
 func RequestSpawn(_count : int = -1) -> void:
 #	Point = BadPoint.instance()
-	Point.ReceiveSpawnRequest(convBuildRef, _count)
+	print("req for spawning ", _count, " cells")
+	if(_count < 1):
+		push_error("GM_RequestS_ERROR: Can not send req with 1 or less cells to spawn!")
+		return
+	convBuildRef.Point.ReceiveSpawnRequest(_count, convBuildRef)	# get the ref to start point by conv
 
 ## Checks for a near by conveyours by end and start
 #func CheckForNearByConv() -> void:
