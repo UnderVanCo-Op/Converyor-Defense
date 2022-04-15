@@ -4,9 +4,9 @@ extends StaticBody2D
 signal ConvBuilding(reftoNode, isUsed, Pntposition)
 var isUsed := false			# for speed of checking
 var isSpawnPoint := true	# shows if this is the start point of a chain
-var inc_convs := []			# list-array for inc conveyors
-var out_convs := []			# list-array for inc conveyors
-#var cells := []				# list-array for cells inside
+var inc_convs := []			# list-arrays for inc conveyors. All the conv inside these 2 lists must
+var out_convs := []			# be (and are) ready to use
+
 
 func _on_TextureButton_pressed() -> void:
 	#emit_signal("ConvBuilding", get_node("TextureButton").rect_global_position)
@@ -14,23 +14,27 @@ func _on_TextureButton_pressed() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	
 #	TryMoveCell()
 	pass
 
-func CheckSpawn() -> void:
-	if(inc_convs.size() != 0):
-		isSpawnPoint = false			# this breaks a circle spawn
-	pass
+#func CheckSpawn() -> void:
+#	if(inc_convs.size() != 0):
+#		isSpawnPoint = false			# this breaks a circle spawn
+#	pass
 
 
 func AddIncConv(conv) -> void:
 	isSpawnPoint = false				# this breaks a circle spawn
-	inc_convs.append(conv)		# new ref to list
+	inc_convs.append(conv)				# new ref to list
+#	connect("UpdateFirstCell", ref, "s_StartCell")
 	pass
 
 func AddOutConv(conv) -> void:
 	out_convs.append(conv)		# new ref to list
 	pass
+
+
 
 
 # 
@@ -60,18 +64,6 @@ func TryMoveCell() -> void:
 			return
 
 
-## Send cell to the out conv
-#func SendCell(targetConv = out_convs[0]) -> void:
-#	if(!cells[0]):
-#		print("Point_Nothing to send, first add smth")
-#		return
-#	if(!targetConv):
-#		push_error("Point_SendC_ERROR: No out conveyor for target!")
-#		return
-#	if(!targetConv.ReceiveCell(cells[0])):		# cell was not added for some reason in conv (mb full)
-#
-#		pass
-
 # 
 func ReceiveSpawnRequest(count : int, conv = out_convs[0]) -> void:
 	# Checks
@@ -89,6 +81,18 @@ func ReceiveSpawnRequest(count : int, conv = out_convs[0]) -> void:
 #		print(inc_convs[0].Point.global_position)
 		inc_convs[0].Point.ReceiveSpawnRequest(count)	# move on to the prev conv and Point
 
+
+## Send cell to the out conv
+#func SendCell(targetConv = out_convs[0]) -> void:
+#	if(!cells[0]):
+#		print("Point_Nothing to send, first add smth")
+#		return
+#	if(!targetConv):
+#		push_error("Point_SendC_ERROR: No out conveyor for target!")
+#		return
+#	if(!targetConv.ReceiveCell(cells[0])):		# cell was not added for some reason in conv (mb full)
+#
+#		pass
 
 ## 
 #func SpawnCells(conv) -> void:

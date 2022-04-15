@@ -13,8 +13,6 @@ var Point = null					#  (point, for cancelling)
 var isStartConv := true				# if there was a start of a conveyor (conv switcher btw start/end)
 var isFocusedOnSmth := false		# if we are already interacting with smth	(focus)
 
-
-#var conv_list := []					# list of all conv nodes-objects
 var money := 250
 
 
@@ -44,13 +42,6 @@ func signalConnector() -> void:
 	gui = $"../GUI"											# привязка к GUI
 	gui.connect("press_build", self, "s_Towerbuild()")		# signal connection
 	gui.connect("cancel_conv", self, "s_Cancel")			# signal connection
-
-
-## Print all conveyors in conv_list
-#func PrintConvList() -> void:
-#	print("Conv list:")
-#	for c in conv_list:
-#		print(c)
 
 
 # Method for dealing with signal from gui to cancel building (RMB)
@@ -91,22 +82,22 @@ func DeArmPoint() -> void:
 			push_error("GM_DeArmPoint_ERROR: isStartConv is true, wtf?")
 
 
-# Marks Point (inside) as Used, and also adds ref to conv, must be called after convBuildRef is set properly
-func ArmPoint() -> void:
-	if(!Point.isUsed):				# first use of this point
-		Point.isUsed = true
+# Marks point as Used, and also adds ref to conv, must be called after convBuildRef is set properly.
+func ArmPoint(_point : StaticBody2D, _isStartConv : bool) -> void:
+	if(!_point.isUsed):				# first use of this point
+		_point.isUsed = true
 	
-	if(isStartConv):
-		Point.AddOutConv(convBuildRef)
+	if(_isStartConv):
+		_point.AddOutConv(convBuildRef)
 		#print("Point out has been increased to 1")
 	else:
-		Point.AddIncConv(convBuildRef)
+		_point.AddIncConv(convBuildRef)
 		#print("Point inc has been increased to 1")
 	print("armed point")
 
 
 # Method for dealing with signal from Point (click on Point)
-func s_ConvBuild(refToPoint, isUsed, _Pntposition := Vector2.ZERO) -> void:	# singal income from Point.gd
+func s_ConvBuild(refToPoint : StaticBody2D, isUsed : bool, _Pntposition : Vector2) -> void:	# singal income from Point.gd
 	
 	print("\nsignal received, pos: " + str(_Pntposition) + ", isUsed: " + str(isUsed) + ", Pointpath: " + str(refToPoint))
 	
@@ -132,7 +123,7 @@ func s_ConvBuild(refToPoint, isUsed, _Pntposition := Vector2.ZERO) -> void:	# si
 		
 		# Points
 		Point = refToPoint					# upd the point		
-		ArmPoint()							# marking point, must be before isStartConv setting
+									# marking point, must be before isStartConv setting
 		
 		# General
 		isFocusedOnSmth = true
@@ -143,19 +134,7 @@ func s_ConvBuild(refToPoint, isUsed, _Pntposition := Vector2.ZERO) -> void:	# si
 			push_warning("GM_ERROR: Can not stretch conv to itself (for now)")
 			s_Cancel()
 			return
-#		if(isUsed):											# Point has been used
-#			pass
-#			for c in conv_list:
-#				# if conv are identical
-#				if(convBuildRef.StartPpos == c.StartPpos and _Pntposition == c.EndPpos):
-#					push_warning("GM_WARNING: can not stretch identical conveyor!")
-#					s_Cancel()
-#					return
-#				# if conv are inverted identical
-#				if(convBuildRef.StartPpos == c.EndPpos and _Pntposition == c.StartPpos):
-#					push_warning("GM_WARNING: can not stretch identical reversed conveyor!")
-#					s_Cancel()
-#					return
+
 		print("End of new conveyor")
 		# Conveyor
 #		convBuildRef.EndPpos = _Pntposition			# setting end point in conv
@@ -165,8 +144,9 @@ func s_ConvBuild(refToPoint, isUsed, _Pntposition := Vector2.ZERO) -> void:	# si
 #		CheckForNearByConv()
 
 		# Points
-		Point = refToPoint							# upd the point		
-		ArmPoint()									# marking point, must be before isStartConv setting
+		ArmPoint(Point, true)
+		Point = refToPoint					# upd the point	(not necessarily now)	
+		ArmPoint(refToPoint, false)			# marking point, must be before isStartConv setting
 		
 		RequestSpawn(convBuildRef.CountCapacity())	# requesting spawn from start point
 		# General
@@ -177,33 +157,13 @@ func s_ConvBuild(refToPoint, isUsed, _Pntposition := Vector2.ZERO) -> void:	# si
 
 
 # 
-func RequestSpawn(_count : int = -1) -> void:
+func RequestSpawn(_count : int) -> void:
 #	Point = BadPoint.instance()
-	print("req for spawning ", _count, " cells")
+	print("GM: req for spawning ", _count, " cells")
 	if(_count < 1):
-		push_error("GM_RequestS_ERROR: Can not send req with 1 or less cells to spawn!")
+		push_error("GM_RequestS_ERROR: Can not send req with less than 1 cells to spawn!")
 		return
 	convBuildRef.Point.ReceiveSpawnRequest(_count, convBuildRef)	# get the ref to start point by conv
-
-## Checks for a near by conveyours by end and start
-#func CheckForNearByConv() -> void:
-#	var switcher := false
-#	if(convBuildRef):
-#		for c in conv_list:
-#			if(convBuildRef.StartPpos == c.EndPpos):		# if our conv is a continuation for other
-#				print("inc conv has been identified, info:", c)
-#				c.StartSendingCellsTo(convBuildRef.get_path())
-#				switcher = true								# continuation trigger
-#				continue									# bcs convs cant be identical
-#			if(convBuildRef.EndPpos == c.StartPpos):		# if our conv is a start for other conv
-#				print("out conv has been identified, info:", c)
-#				convBuildRef.StartSendingCellsTo(c.get_path())
-#		if(switcher):		# conv is a continuation
-#			print("going to change start")
-#		elif(!switcher):		# if conv is not a continuation (moving start of a chain)
-#			convBuildRef.FullWithCells()
-#	else:
-#		push_error("GM_CheckForNear..._ERROR: can not find convBuildRef")
 
 
 # Method for dealing with signal from Build Cannon button

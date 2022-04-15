@@ -2,17 +2,18 @@ extends Path2D
 # This is Conveyor.gd
 
 var ConvCell := preload("res://Objects/Conveyors/ConvCell.tscn")
-var Point = null				# stores ref to point-parent 
+var Point = null			# stores ref to point-parent (not used currently)
+#var endPoint = null				# 
 var capacity := -1				# stores number of cells, that conv can have
 var isFull := false				# shows if the conveyor is fulled with cells
-var isMoving := false			#
+#var isMoving := false			#
 var isBuilding := true			# shows if the conv is in building stage
-var FirstCell = null			# ref to first cell in conv
+#var FirstCell = null			# ref to first cell in conv
 #var isSending := false			# shows if conv is sending cells somewhere to next conv
 
 signal StopCells()				# signal is emitted when cells are need to be stopped
 signal StartCells()				# signal is emitted when cells are need to be started
-signal UpdateFirstCell()		# emit when ref to  1 cell is changed
+#signal UpdateFirstCell()		# emit when ref to  1 cell is changed
 
 #func ActivatePhysics() -> void:
 #	set_physics_process(true)
@@ -42,12 +43,12 @@ func CountCapacity() -> int:
 	var Cleng : float = curve.get_baked_length()
 	var _capacity : int =  int(Cleng / (_rect.x * _scale.x))
 #	print(str(Cleng))
-	print("\nLength: ", Cleng, ", capacity: ", _capacity, "x: ", _rect.x * _scale.x)
+	print("\nLength: ", Cleng, ", capacity: ", _capacity, " x: ", _rect.x * _scale.x)
 	capacity = _capacity
 	return _capacity
 
 
-# Checks if the number of cells exceed limits or is max
+# Checks if the number of cells exceed limits or is max, must be done everytime op with moving/spawning cell is done
 func CheckIfCapacityIsOver() -> bool:
 	if(get_child_count() == capacity):
 		isFull = true
@@ -70,34 +71,20 @@ func ReceiveCell(newcell : PathFollow2D) -> bool:
 	connect("StopCells", newcell, "s_StopCell")			# connecting signal from conv
 	newcell.unit_offset = 0				# start parameters
 	newcell.isMoving = true				# start parameters
-	CheckFirstCell(newcell)
+	CheckIfCapacityIsOver()
+#	CheckFirstCell(newcell)
 	return true
-
-#func SendCell() -> void:
-##	if(isSending and isFull):		# if conv is sending to the next one and full
-#	if(isFull):
-#		remove_child(refToFirstCell)						# changing parents
-#		disconnect("StartCells", refToFirstCell, "s_StartCell")
-#		disconnect("StopCells", refToFirstCell, "s_StopCell")
-##		refToNextConv.add_child(refToFirstCell)				# changing parents
-##		refToNextConv.call("ReceiveCell", refToFirstCell)
-#		isFull = false
-##		if(!isContinue):
-#			#yield(get_tree().create_timer(0.3333333333), "timeout")
-##			AddCell()
-#		if(get_child_count() != 0):
-#			refToFirstCell = get_child(0)				# new first cell
-#			emit_signal("StartCells")
-#		else:
-#			refToFirstCell = null
 
 
 # Method checks for some errors, then waits until conv is free and finally spawn cell with count specified in param
 func SpawnCells(count : int) -> void:
-	print("spawning " + str(count) + " cells")
+	# Check
 	if(curve.get_point_count() < 2):
 		push_error("Conv_SpawnC_ERROR: 1 or 0 points in curve is not enough!")
 		return
+	print("spawning " + str(count) + " cells...")
+	
+	# General
 	for c in count:
 		yield(WaitUntilFree(), "completed")
 		if(CheckIfCapacityIsOver()):				# 
@@ -108,7 +95,7 @@ func SpawnCells(count : int) -> void:
 				return
 		AddCell()
 	if(CheckIfCapacityIsOver()):
-		emit_signal("StopCells")
+		StopCells()
 		print("Spawned and stopped!")
 
 
@@ -119,22 +106,24 @@ func WaitUntilFree() -> void:
 	pass
 
 
-# Method adds one cell immediately to the start of conveyor
+# Method adds one cell immediately to the start of conveyor without checks
 func AddCell() -> void:
 	var ref = ConvCell.instance()
 	add_child(ref)
 	# disconnect first, if necessary
 	connect("StartCells", ref, "s_StartCell")		# connecting signal from conv
 	connect("StopCells", ref, "s_StopCell")			# connecting signal from conv
-	CheckFirstCell(ref)
+#	CheckFirstCell(ref)
+
 
 
 # Must be called after child added. Method updates ref to firstcell
-func CheckFirstCell(cell) -> void:
-	if(get_child_count() == 1):
-		FirstCell = cell
-		emit_signal("UpdateFirstCell", FirstCell)
-	pass
+#func CheckFirstCell(cell : PathFollow2D) -> void:
+#	if(get_child_count() == 1):
+#		FirstCell = cell
+#		emit_signal("UpdateFirstCell", FirstCell)
+#	pass
+
 
 # Method does all the starting preparations and sets sending on
 #func StartSendingCellsTo(convPath : NodePath) -> void:
@@ -148,9 +137,6 @@ func CheckFirstCell(cell) -> void:
 ##		refToNextConv.refToPrevConv = self			# 2-linked list
 #	else:
 #		push_error("Conv_StartS_ERROR: can not get next conv in the chain")
-
-
-
 
 
 #func _physics_process(delta: float) -> void:
@@ -171,3 +157,22 @@ func CheckFirstCell(cell) -> void:
 #	while(!isFull):
 #		AddCell()											# 7 cells if addcell is pre yield, otherwise 8
 #		yield(get_tree().create_timer(0.333), "timeout")	# 
+
+
+#func SendCell() -> void:
+##	if(isSending and isFull):		# if conv is sending to the next one and full
+#	if(isFull):
+#		remove_child(refToFirstCell)						# changing parents
+#		disconnect("StartCells", refToFirstCell, "s_StartCell")
+#		disconnect("StopCells", refToFirstCell, "s_StopCell")
+##		refToNextConv.add_child(refToFirstCell)				# changing parents
+##		refToNextConv.call("ReceiveCell", refToFirstCell)
+#		isFull = false
+##		if(!isContinue):
+#			#yield(get_tree().create_timer(0.3333333333), "timeout")
+##			AddCell()
+#		if(get_child_count() != 0):
+#			refToFirstCell = get_child(0)				# new first cell
+#			emit_signal("StartCells")
+#		else:
+#			refToFirstCell = null
