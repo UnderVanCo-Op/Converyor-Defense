@@ -64,32 +64,6 @@ func TryMoveCell() -> bool:
 	inc_convs[0].StartCells()			# start cells (emit signal) in inc conv bcs it is now freed
 	return true
 
-## 
-#func TryMoveCell() -> void:
-#	# Checks
-#	if(!isUsed or !out_convs or !inc_convs):
-#		return
-#	if(out_convs[0].isFull or out_convs[0].isBuilding):			# to be heavied in the future
-#		for c in inc_convs:				# stop all inc conv, need to add stop in their prev too
-#			c.call("StopCells")
-#	else:								# General
-#		if(inc_convs[0].isFull):
-#			print("Point is moving cell...")
-#			var cell = inc_convs[0].get_child(0)
-#
-#			inc_convs[0].remove_child(cell)
-#			inc_convs[0].disconnect("StartCells", cell, "s_StartCell")
-#			inc_convs[0].disconnect("StopCells", cell, "s_StopCell")
-#
-#			out_convs[0].add_child(cell)
-#			out_convs[0].ReceiveCell(cell)
-##			out_convs[0].add_child(cell)
-##			out_convs[0].connect("StartCells", cell, "s_StartCell")
-##			out_convs[0].connect("StopCells", cell, "s_StopCell")	
-#		else:
-#			print("Point_MoveC_WANRING: inc conv 0 is not full, returning...")
-#			return
-
 
 # 
 func ReceiveSpawnRequest(count : int, conv = out_convs[0]) -> void:
@@ -103,6 +77,8 @@ func ReceiveSpawnRequest(count : int, conv = out_convs[0]) -> void:
 	# General
 	if(isSpawnPoint):
 		# add check for cycle works, mb TryMoveCell()
+		conv.StartCells()
+		conv.ActivatePhysics()
 		conv.SpawnCells(count)
 	else:
 		print("Point: Moving request to the prev Point!")

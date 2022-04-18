@@ -2,18 +2,23 @@ extends Path2D
 # This is Conveyor.gd
 
 var ConvCell := preload("res://Objects/Conveyors/ConvCell.tscn")
-var Point : StaticBody2D = null		# stores ref to point-parent (not used currently)
-var endPoint = null				# 
-var capacity := -1					# stores number of cells, that conv can have
-var isFull := false					# shows if the conveyor is fulled with cells
-#var isMoving := false				#
-var isBuilding := true				# shows if the conv is in building stage
-var FirstCell : PathFollow2D = null	# ref to first cell in conv
-#var isSending := false				# shows if conv is sending cells somewhere to next conv
+var Point : StaticBody2D = null			# stores ref to point-parent (not used currently)
+var endPoint : StaticBody2D = null		# stores ref to point-next (used in phys_proc)
+var capacity := -1						# stores number of cells, that conv can have
+var isFull := false						# shows if the conveyor is fulled with cells
+#var isMoving := false					#
+var isBuilding := true					# shows if the conv is in building stage
+var FirstCell : PathFollow2D = null		# ref to first cell in conv
+var CellOnSpawn : PathFollow2D = null 	#
+var isSpawning := false					#
+#var isSending := false					# shows if conv is sending cells somewhere to next conv
+const SPAWN_FREE_DST := 200				#
+var cellInQ := 0						#
 
-signal StopCells()					# signal is emitted when cells are need to be stopped
-signal StartCells()					# signal is emitted when cells are need to be started
-#signal UpdateFirstCell()			# emit when ref to  1 cell is changed
+signal StopCells()			# signal is emitted when cells are need to be stopped
+signal StartCells()			# signal is emitted when cells are need to be started
+#signal SpawnFreed()			#
+#signal UpdateFirstCell()	# emit when ref to  1 cell is changed
 
 func ActivatePhysics() -> void:
 	set_physics_process(true)
@@ -27,18 +32,18 @@ func _physics_process(_delta: float) -> void:
 		if(!endPoint.TryMoveCell()):				# if cell was not moved, than stop checking (until some point, connected with out conv says we need to start again
 			StopCells()
 			DeactivatePhysics()
+	if(isSpawning and CellOnSpawn and CellOnSpawn.offset == SPAWN_FREE_DST):
+		SpawnQ()
+		
 	
-#
-#	if(!isFull):
-#		#print("First cell is in the end!")
-#		isFull = true
-#		emit_signal("StopCells")
+
 
 func StopCells() -> void:
 	emit_signal("StopCells")
 	
 func StartCells() -> void:
 	emit_signal("StartCells")
+
 
 # Calculates and sets capacity, without gap and separation, to be redone in future
 func CountCapacity() -> int:
@@ -61,16 +66,16 @@ func CountCapacity() -> int:
 	return _capacity
 
 
-# Checks if the number of cells exceed limits or is max, must be done everytime op with moving/spawning cell is done
+# Checks if the number of cells exceed capacity + 1, should be done everytime op with moving/spawning cell is done
 func CheckIfCapacityIsOver() -> bool:
-	if(get_child_count() == capacity):
+	if(get_child_count() > capacity + 1):	# +1 bcs there are border-conditions when moving cells
+		push_error("Conv_CRITICAL_ERROR: there are more than max cells on" + str(self) + "conveyor !!!")
 		isFull = true
 		return true
 	elif(get_child_count() < capacity):
 		isFull = false
 		return false
-	else:
-		push_error("Conv_CRITICAL_ERROR: there are more than max cells on" + str(self) + "conveyor !!!")
+	else:					# ==capacity + 1 and ==capacity
 		isFull = true
 		return true
 
@@ -99,6 +104,34 @@ func UpdateFirstCell() -> void:
 	FirstCell = get_child(0)	# update ref to first cell
 
 
+# Helper-Function of SpawnCells
+func SpawnQ() -> void:
+	# Checks
+	if(!isSpawning):
+		push_error("Conv_SpawnQ_ERROR: tried to SpawnQ without isSpawning flag, returning...")
+		return
+	if(cellInQ <= 0):		# change to == in the future
+		push_error("Conv_SpawnQ_ERROR: tried to SpawnQ without cells in q, returning...")
+		return
+	
+	# General
+	print("SpawnQ is working now...")
+	var newcell = AddCell()		# spawn
+	CellOnSpawn = newcell		# update ref
+	
+	cellInQ -= 1
+	if(cellInQ <= 0):		# change to == in the future
+		isSpawning = false
+
+
+# Method waits until timer, for now. Will be waiting for free for some time until error, in the future
+func WaitUntilFree() -> void:
+#	yield(get_tree().create_timer(0.3333), "timeout")		# only for the test
+#	yield(_physics_process(1), "SpawnFreed")
+#	yield(isFull, false)
+	pass
+
+
 # Method checks for some errors, then waits until conv is free and finally spawn cell with count specified in param
 func SpawnCells(count : int) -> void:
 	# Check
@@ -108,29 +141,54 @@ func SpawnCells(count : int) -> void:
 	print("Conv: spawning " + str(count) + " cells...")
 	
 	# General
-	for c in count:
-		yield(WaitUntilFree(), "completed")
-		if(CheckIfCapacityIsOver()):				# 
-			push_warning("Conv_SpawnC_WARNING: Conv is full after timer! Trying to fix...")
-			yield(WaitUntilFree(), "completed")
-			if(CheckIfCapacityIsOver()):
-				push_error("Conv_SpawnC_ERROR: Conv is full after double timer! Returning")
-				return
-		AddCell()
-	if(CheckIfCapacityIsOver()):
-		StopCells()
-		print("Conv: Spawned and stopped!")
-
-
-# Method waits until timer, for now. Will be waiting for free for some time until error, in the future
-func WaitUntilFree() -> void:
-	yield(get_tree().create_timer(0.3333), "timeout")		# only for the test
-#	yield(isFull, false)
-	pass
+	isSpawning = true
+	if(get_child_count() == 0):		# mb if not firstcell
+		CellOnSpawn = AddCell()		# update cellonspawn
+#		CellOnSpawn = FirstCell		# update cellonspawn
+	
+	cellInQ += count
+#	SpawnQ()
+	#	for c in count:
+#		yield(WaitUntilFree(), "completed")
+#		AddCell()
+	
+	
+#		if(CheckIfCapacityIsOver()):				# first cell is worked separately
+#		push_warning("Conv_SpawnC_WARNING: Conv is full! Trying to fix...")
+#		yield(WaitUntilFree(), "completed")
+#		if(CheckIfCapacityIsOver()):
+#			push_error("Conv_SpawnC_ERROR: Conv is full after timer! Returning")
+#			return
+#		else:
+#			AddCell()
+#	else:
+#		AddCell()
+#	yield(WaitUntilFree(), "completed")
+	
+#	for c in count:							# other cells
+#		if(CheckIfCapacityIsOver()):			# 
+#			push_warning("Conv_SpawnC_WARNING: Conv is full! Trying to fix...")
+#			yield(WaitUntilFree(), "completed")
+#			if(CheckIfCapacityIsOver()):
+#				push_error("Conv_SpawnC_ERROR: Conv is full after timer! Returning")
+#				return
+#			else:
+#				AddCell()
+#		else:
+#			pass
+##			
+#		yield(WaitUntilFree(), "completed")
+#		AddCell()
+	
+#	yield(WaitUntilFree(), "completed")	
+	
+#	if(CheckIfCapacityIsOver()):
+#		StopCells()
+#		print("Conv: Spawned and stopped!")
 
 
 # Method adds one cell immediately to the start of conveyor without checks
-func AddCell() -> void:
+func AddCell() -> PathFollow2D:
 	var ref = ConvCell.instance()
 	add_child(ref)
 	# disconnect first, if necessary
@@ -139,7 +197,7 @@ func AddCell() -> void:
 # warning-ignore:return_value_discarded
 	connect("StopCells", ref, "s_StopCell")			# connecting signal from conv
 	UpdateFirstCell()		# everytime cell adds
-
+	return ref
 
 # Must be called after child added. Method updates ref to firstcell
 #func CheckFirstCell(cell : PathFollow2D) -> void:
