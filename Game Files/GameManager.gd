@@ -51,7 +51,7 @@ func s_Cancel() -> void:				# signal from GUI.gd (RMB)
 			print("\nCanceling conveyor")
 #			conv_list.erase(convBuildRef)	# delete conv from list
 #			PrintConvList()					# print active conv-s
-			DeArmPoint() 
+#			DeArmPoint() 
 			isStartConv = true
 			isFocusedOnSmth = false
 			convBuildRef.queue_free()
@@ -124,21 +124,21 @@ func s_ConvBuild(refToPoint : StaticBody2D, isUsed : bool, _Pntposition : Vector
 		# General
 		isFocusedOnSmth = true
 		isStartConv = false					# carefull
-	
+		
 	elif(!isStartConv and isFocusedOnSmth):					# END POINT
 		
 		if(Point == refToPoint):					# checking for conv to itself
 			push_warning("GM_ERROR: Can not stretch conv to itself (for now)")
 			s_Cancel()
 			return
-
+		
 		print("End of new conveyor")
 		# Conveyor
 		convBuildRef.curve.add_point(_Pntposition)
 		convBuildRef.endPoint = refToPoint		# ref to end point
 		convBuildRef.isBuilding = false
 		convBuildRef.CountCapacity()
-
+		
 		# Points
 		ArmPoint(Point, true)				# Set up start point
 #		Point = refToPoint					# upd the point	(not necessarily now)	

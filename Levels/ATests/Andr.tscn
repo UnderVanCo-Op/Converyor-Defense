@@ -36,6 +36,9 @@ position = Vector2( 408, 43 )
 [node name="Point4" parent="Points" instance=ExtResource( 4 )]
 position = Vector2( 1059, 59 )
 
+[node name="Point5" parent="Points" instance=ExtResource( 4 )]
+position = Vector2( 1401, 29 )
+
 [node name="Bullets" type="Node2D" parent="."]
 
 [node name="Factories" type="Node2D" parent="."]
