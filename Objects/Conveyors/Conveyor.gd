@@ -69,13 +69,6 @@ func CountCapacity() -> int:
 	var Cleng := curve.get_baked_length()
 	
 	StartOffset = POINT_OFFSET + WantedOffset
-#	if(StartOffset >= Cleng):
-#		push_error("Conv_CountCap_ERROR: Start offset is greater that curve length! Removing wanted offset...")
-#		StartOffset = POINT_OFFSET
-#		if(StartOffset >= Cleng):
-#			push_error("Conv_CountCap_ERROR: Start offset is greater that curve length even after fix! Returning...")
-#			StartOffset = -1
-#			return
 	SpawnFreeOffset = StartOffset + SPAWN_FREE_DST * 2
 	if(SpawnFreeOffset >= Cleng):
 		push_error("Conv_CountCap_ERROR: SpawnFree offset is greater that curve length! Removing wanted offset from both SpawnFree and Start offsets...")
@@ -86,11 +79,13 @@ func CountCapacity() -> int:
 			SpawnFreeOffset = -1
 			StartOffset = -1
 			return -1
-	QuitOffset = Cleng - StartOffset		# simmetry
+#	QuitOffset = Cleng - StartOffset		# simmetry
 	
 	var _capacity : int =  int((Cleng - StartOffset - StartOffset) / (SPAWN_FREE_DST))	# for now, it is Cleng - 2 * StartOffset, actually
 #	print(str(Cleng))
+	QuitOffset = StartOffset + _capacity * SPAWN_FREE_DST
 	print("\nCleng: ", Cleng, " Chislitel: ", Cleng - StartOffset - StartOffset, " capacity: ", _capacity, " x: ", _rect.x * _scale.x, " StartOffset: ", StartOffset, " SpawnFreeOffset: ", SpawnFreeOffset, " QuitOffset: ", QuitOffset, " SPAWN_FREE_DST: ", SPAWN_FREE_DST)
+	
 	capacity = _capacity
 	return _capacity
 
@@ -142,8 +137,8 @@ func SpawnQ() -> void:
 		return
 	if(cellInQ <= 0):		# change to == in the future
 		push_error("Conv_SpawnQ_ERROR: tried to SpawnQ without cells in q, returning...")
-		if(CellOnSpawn.offset >= SpawnFreeOffset):
-			CellOnSpawn = null
+#		if(CellOnSpawn.offset >= SpawnFreeOffset):
+#			CellOnSpawn = null
 		isSpawning = false
 		return
 	
@@ -155,14 +150,6 @@ func SpawnQ() -> void:
 	cellInQ -= 1
 	if(cellInQ <= 0):		# change to == in the future
 		isSpawning = false
-
-
-# Method waits until timer, for now. Will be waiting for free for some time until error, in the future
-func WaitUntilFree() -> void:
-#	yield(get_tree().create_timer(0.3333), "timeout")		# only for the test
-#	yield(_physics_process(1), "SpawnFreed")
-#	yield(isFull, false)
-	pass
 
 
 # Method checks for some errors, then waits until conv is free and finally spawn cell with count specified in param
@@ -183,44 +170,6 @@ func SpawnCells(count : int) -> void:
 	cellInQ += count
 	if(cellInQ == 0):
 		isSpawning = false
-#	SpawnQ()
-	#	for c in count:
-#		yield(WaitUntilFree(), "completed")
-#		AddCell()
-	
-	
-#		if(CheckIfCapacityIsOver()):				# first cell is worked separately
-#		push_warning("Conv_SpawnC_WARNING: Conv is full! Trying to fix...")
-#		yield(WaitUntilFree(), "completed")
-#		if(CheckIfCapacityIsOver()):
-#			push_error("Conv_SpawnC_ERROR: Conv is full after timer! Returning")
-#			return
-#		else:
-#			AddCell()
-#	else:
-#		AddCell()
-#	yield(WaitUntilFree(), "completed")
-	
-#	for c in count:							# other cells
-#		if(CheckIfCapacityIsOver()):			# 
-#			push_warning("Conv_SpawnC_WARNING: Conv is full! Trying to fix...")
-#			yield(WaitUntilFree(), "completed")
-#			if(CheckIfCapacityIsOver()):
-#				push_error("Conv_SpawnC_ERROR: Conv is full after timer! Returning")
-#				return
-#			else:
-#				AddCell()
-#		else:
-#			pass
-##			
-#		yield(WaitUntilFree(), "completed")
-#		AddCell()
-	
-#	yield(WaitUntilFree(), "completed")	
-	
-#	if(CheckIfCapacityIsOver()):
-#		StopCells()
-#		print("Conv: Spawned and stopped!")
 
 
 # Method adds one cell immediately to the start of conveyor without checks
@@ -235,55 +184,3 @@ func AddCell() -> PathFollow2D:
 	connect("StopCells", ref, "s_StopCell")			# connecting signal from conv
 	UpdateFirstCell()		# everytime cell adds
 	return ref
-
-# Must be called after child added. Method updates ref to firstcell
-#func CheckFirstCell(cell : PathFollow2D) -> void:
-#	if(get_child_count() == 1):
-#		FirstCell = cell
-#		emit_signal("UpdateFirstCell", FirstCell)
-#	pass
-
-
-# Method does all the starting preparations and sets sending on
-#func StartSendingCellsTo(convPath : NodePath) -> void:
-#	var conv = get_node_or_null(convPath)
-#	#print("Conv got path:" + convPath)
-#	if(conv):
-#		pass
-##		conv.isContinue = true
-##		refToNextConv = conv
-##		isSending = true
-##		refToNextConv.refToPrevConv = self			# 2-linked list
-#	else:
-#		push_error("Conv_StartS_ERROR: can not get next conv in the chain")
-
-#
-## Method fulls Conveyor with cells while first cell is not in the end
-#func FullWithCells() -> void:		# mb add some bool to ensure spawning or getting an error
-#	if(curve.get_point_count() == 0):
-#		push_error("Conveyor_ERROR: 0 points in curve for conveyor!")
-#		return
-#	#print(curve.get_baked_length())
-#	print("isFull: " + str(isFull))
-#	while(!isFull):
-#		AddCell()											# 7 cells if addcell is pre yield, otherwise 8
-#		yield(get_tree().create_timer(0.333), "timeout")	# 
-
-
-#func SendCell() -> void:
-##	if(isSending and isFull):		# if conv is sending to the next one and full
-#	if(isFull):
-#		remove_child(refToFirstCell)						# changing parents
-#		disconnect("StartCells", refToFirstCell, "s_StartCell")
-#		disconnect("StopCells", refToFirstCell, "s_StopCell")
-##		refToNextConv.add_child(refToFirstCell)				# changing parents
-##		refToNextConv.call("ReceiveCell", refToFirstCell)
-#		isFull = false
-##		if(!isContinue):
-#			#yield(get_tree().create_timer(0.3333333333), "timeout")
-##			AddCell()
-#		if(get_child_count() != 0):
-#			refToFirstCell = get_child(0)				# new first cell
-#			emit_signal("StartCells")
-#		else:
-#			refToFirstCell = null
