@@ -13,12 +13,12 @@ var CellOnSpawn : PathFollow2D = null 	#
 var isSpawning := false					#
 var cellInQ := 0						#
 #var isSending := false					# shows if conv is sending cells somewhere to next conv
-const SPAWN_FREE_DST := 90				# wanted distance btw cells
-var SpawnFreeOffset : float = -1		# gets calc in CountCap method
+const FREE_DST := 110					# wanted distance btw pivot of near cells
+var SpawnFreeOffset : int = -1		# gets calc in CountCap method
 const POINT_OFFSET := 200				# basic offset to not overlap Point (around 230)
 export var WantedOffset : float = 0	# adds to Points offset
 var StartOffset : float = -1			# gets calc in CountCap method
-var QuitOffset : float = -1				# gets calc in CountCap method
+var QuitOffset : int = -1				# gets calc in CountCap method
 
 signal StopCells()			# signal is emitted when cells are need to be stopped
 signal StartCells()			# signal is emitted when cells are need to be started
@@ -32,11 +32,11 @@ func DeactivatePhysics() -> void:
 	set_physics_process(false)
 
 func _physics_process(_delta: float) -> void:
-#	if(FirstCell and FirstCell.offset >= QuitOffset):
-#		print("offset worked")
-#		if(!endPoint.TryMoveCell()):				# if cell was not moved, than stop checking (until some point, connected with out conv says we need to start again
-#			StopCells()
-#			DeactivatePhysics()
+	if(FirstCell and FirstCell.offset >= QuitOffset):
+		print("offset worked")
+		if(!endPoint.TryMoveCell()):				# if cell was not moved, than stop checking (until some point, connected with out conv says we need to start again
+			StopCells()
+			DeactivatePhysics()
 	pass
 		
 func _ready() -> void:
@@ -44,18 +44,13 @@ func _ready() -> void:
 	pass
 
 
+# Method is only needed for fixing dst btw cells, which turns out to be inaccurate bcs of cells doing += speed 1 more phys tick more, than needed
 func PrePhysProc() -> void:
 #	print("prephys")
-	if(isSpawning and CellOnSpawn and CellOnSpawn.offset == SpawnFreeOffset):
+	if(isSpawning and CellOnSpawn and CellOnSpawn.offset >= SpawnFreeOffset):
 		SpawnQ()
 	pass
 
-
-#func CheckLength(checkL : float) -> void:
-#	if(checkL >= curve.get_baked_length()):
-#		push_error("Conv_CheckL_ERROR: checking val is greater than curve length!")
-#		return
-#	pass
 
 func StopCells() -> void:
 	emit_signal("StopCells")
@@ -78,8 +73,8 @@ func CountCapacity() -> int:
 	var Cleng := curve.get_baked_length()
 	
 	StartOffset = POINT_OFFSET + WantedOffset
-	SpawnFreeOffset = StartOffset + SPAWN_FREE_DST * 2
-	if(SpawnFreeOffset >= Cleng):
+	SpawnFreeOffset = StartOffset + FREE_DST
+	if(SpawnFreeOffset >= Cleng):		# Check
 		push_error("Conv_CountCap_ERROR: SpawnFree offset is greater that curve length! Removing wanted offset from both SpawnFree and Start offsets...")
 		SpawnFreeOffset -= WantedOffset
 		StartOffset -= WantedOffset
@@ -88,12 +83,28 @@ func CountCapacity() -> int:
 			SpawnFreeOffset = -1
 			StartOffset = -1
 			return -1
-#	QuitOffset = Cleng - StartOffset		# simmetry
 	
-	var _capacity : int =  int((Cleng - StartOffset - StartOffset) / (SPAWN_FREE_DST))	# for now, it is Cleng - 2 * StartOffset, actually
-#	print(str(Cleng))
-	QuitOffset = StartOffset + _capacity * SPAWN_FREE_DST
-	print("\nCleng: ", Cleng, " Chislitel: ", Cleng - StartOffset - StartOffset, " capacity: ", _capacity, " x: ", _rect.x * _scale.x, " StartOffset: ", StartOffset, " SpawnFreeOffset: ", SpawnFreeOffset, " QuitOffset: ", QuitOffset, " SPAWN_FREE_DST: ", SPAWN_FREE_DST)
+	var _capacity : int =  int((Cleng - StartOffset - StartOffset) / (FREE_DST))	# for now
+	_capacity += 1		# bcs FREE_DST is only distance btw cells
+#	if(_capacity == 0):
+#		push_error("Conv_CountCap_ERROR: Capacity is 0!!! Returning")
+#		capacity = _capacity
+#		return _capacity
+#	if(_capacity == 1):
+#		QuitOffset = StartOffset + FREE_DST 
+#	else:
+	QuitOffset = StartOffset + (_capacity - 1 ) * (FREE_DST)
+	QuitOffset += (10 - QuitOffset % 10)
+	SpawnFreeOffset -= (SpawnFreeOffset % 10)
+#	QuitOffset = stepify(QuitOffset, 10)
+	if(QuitOffset >= Cleng):		# Check
+		push_error("Conv_CountCap_ERROR: QuitOffset is greater that curve length! Setting default value...")
+		print("QuitOffset: ", QuitOffset)
+		QuitOffset = Cleng - StartOffset
+	if(StartOffset == QuitOffset):
+		push_warning("Conv_CountCap_WARNING: StartOffset = QuitOffset, so there will be no movement on conveyor!")
+#	QuitOffset = 560
+	print("\nCleng: ", Cleng, " Chislitel: ", Cleng - StartOffset - StartOffset, " capacity: ", _capacity, " x: ", _rect.x * _scale.x, " StartOffset: ", StartOffset, " SpawnFreeOffset: ", SpawnFreeOffset, " QuitOffset: ", QuitOffset, " FREE_DST: ", FREE_DST)
 	
 	capacity = _capacity
 	return _capacity
