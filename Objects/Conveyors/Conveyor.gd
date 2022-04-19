@@ -11,9 +11,14 @@ var isBuilding := true					# shows if the conv is in building stage
 var FirstCell : PathFollow2D = null		# ref to first cell in conv
 var CellOnSpawn : PathFollow2D = null 	#
 var isSpawning := false					#
-#var isSending := false					# shows if conv is sending cells somewhere to next conv
-const SPAWN_FREE_DST := 200				#
 var cellInQ := 0						#
+#var isSending := false					# shows if conv is sending cells somewhere to next conv
+const SPAWN_FREE_DST := 90				# wanted distance btw cells
+var SpawnFreeOffset : float = -1		# gets calc in CountCap method
+const POINT_OFFSET := 200				# basic offset to not overlap Point (around 230)
+export var WantedOffset : float = 0	# adds to Points offset
+var StartOffset : float = -1			# gets calc in CountCap method
+var QuitOffset : float = -1				# gets calc in CountCap method
 
 signal StopCells()			# signal is emitted when cells are need to be stopped
 signal StartCells()			# signal is emitted when cells are need to be started
@@ -27,16 +32,21 @@ func DeactivatePhysics() -> void:
 	set_physics_process(false)
 
 func _physics_process(_delta: float) -> void:
-	
-	if(FirstCell and FirstCell.unit_offset == 1):
+	pass
+	if(FirstCell and FirstCell.offset >= QuitOffset):
+		print("offset worked")
 		if(!endPoint.TryMoveCell()):				# if cell was not moved, than stop checking (until some point, connected with out conv says we need to start again
 			StopCells()
 			DeactivatePhysics()
-	if(isSpawning and CellOnSpawn and CellOnSpawn.offset == SPAWN_FREE_DST):
+	if(isSpawning and CellOnSpawn and CellOnSpawn.offset == SpawnFreeOffset):
 		SpawnQ()
 		
 	
-
+#func CheckLength(checkL : float) -> void:
+#	if(checkL >= curve.get_baked_length()):
+#		push_error("Conv_CheckL_ERROR: checking val is greater than curve length!")
+#		return
+#	pass
 
 func StopCells() -> void:
 	emit_signal("StopCells")
@@ -55,13 +65,32 @@ func CountCapacity() -> int:
 	var _rect : Vector2 = sprite.region_rect.size
 	var _scale : Vector2 = sprite.scale
 	c.queue_free()
-#	print(str(rect))s
-#	print(curve.get_bake_interval())
-#	curve.set_bake_interval(4000)
-	var Cleng : float = curve.get_baked_length()
-	var _capacity : int =  int(Cleng / (_rect.x * _scale.x))
+	
+	var Cleng := curve.get_baked_length()
+	
+	StartOffset = POINT_OFFSET + WantedOffset
+#	if(StartOffset >= Cleng):
+#		push_error("Conv_CountCap_ERROR: Start offset is greater that curve length! Removing wanted offset...")
+#		StartOffset = POINT_OFFSET
+#		if(StartOffset >= Cleng):
+#			push_error("Conv_CountCap_ERROR: Start offset is greater that curve length even after fix! Returning...")
+#			StartOffset = -1
+#			return
+	SpawnFreeOffset = StartOffset + SPAWN_FREE_DST * 2
+	if(SpawnFreeOffset >= Cleng):
+		push_error("Conv_CountCap_ERROR: SpawnFree offset is greater that curve length! Removing wanted offset from both SpawnFree and Start offsets...")
+		SpawnFreeOffset -= WantedOffset
+		StartOffset -= WantedOffset
+		if(SpawnFreeOffset >= Cleng):	# StartOffset is smaller than spawn one, so we dont need to check
+			push_error("Conv_CountCap_ERROR: SpawnFree offset is greater that curve length even after fix! Returning...")
+			SpawnFreeOffset = -1
+			StartOffset = -1
+			return -1
+	QuitOffset = Cleng - StartOffset		# simmetry
+	
+	var _capacity : int =  int((Cleng - StartOffset - StartOffset) / (SPAWN_FREE_DST))	# for now, it is Cleng - 2 * StartOffset, actually
 #	print(str(Cleng))
-	print("\nLength: ", Cleng, ", capacity: ", _capacity, " x: ", _rect.x * _scale.x)
+	print("\nCleng: ", Cleng, " Chislitel: ", Cleng - StartOffset - StartOffset, " capacity: ", _capacity, " x: ", _rect.x * _scale.x, " StartOffset: ", StartOffset, " SpawnFreeOffset: ", SpawnFreeOffset, " QuitOffset: ", QuitOffset, " SPAWN_FREE_DST: ", SPAWN_FREE_DST)
 	capacity = _capacity
 	return _capacity
 
@@ -89,7 +118,8 @@ func ReceiveCell(newcell : PathFollow2D) -> bool:
 	connect("StartCells", newcell, "s_StartCell")		# connecting signal from conv
 # warning-ignore:return_value_discarded
 	connect("StopCells", newcell, "s_StopCell")			# connecting signal from conv
-	newcell.unit_offset = 0				# start parameters
+#	newcell.unit_offset = 0				# start parameters
+	newcell.offset = StartOffset
 	newcell.isMoving = true				# start parameters
 	CheckIfCapacityIsOver()
 	UpdateFirstCell()			# everytime cell move on to this conv
@@ -112,6 +142,9 @@ func SpawnQ() -> void:
 		return
 	if(cellInQ <= 0):		# change to == in the future
 		push_error("Conv_SpawnQ_ERROR: tried to SpawnQ without cells in q, returning...")
+		if(CellOnSpawn.offset >= SpawnFreeOffset):
+			CellOnSpawn = null
+		isSpawning = false
 		return
 	
 	# General
@@ -144,9 +177,12 @@ func SpawnCells(count : int) -> void:
 	isSpawning = true
 	if(get_child_count() == 0):		# mb if not firstcell
 		CellOnSpawn = AddCell()		# update cellonspawn
+		cellInQ -= 1
 #		CellOnSpawn = FirstCell		# update cellonspawn
 	
 	cellInQ += count
+	if(cellInQ == 0):
+		isSpawning = false
 #	SpawnQ()
 	#	for c in count:
 #		yield(WaitUntilFree(), "completed")
@@ -191,6 +227,7 @@ func SpawnCells(count : int) -> void:
 func AddCell() -> PathFollow2D:
 	var ref = ConvCell.instance()
 	add_child(ref)
+	ref.offset = StartOffset
 	# disconnect first, if necessary
 # warning-ignore:return_value_discarded
 	connect("StartCells", ref, "s_StartCell")		# connecting signal from conv
