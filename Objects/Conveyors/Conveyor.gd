@@ -32,16 +32,25 @@ func DeactivatePhysics() -> void:
 	set_physics_process(false)
 
 func _physics_process(_delta: float) -> void:
+#	if(FirstCell and FirstCell.offset >= QuitOffset):
+#		print("offset worked")
+#		if(!endPoint.TryMoveCell()):				# if cell was not moved, than stop checking (until some point, connected with out conv says we need to start again
+#			StopCells()
+#			DeactivatePhysics()
 	pass
-	if(FirstCell and FirstCell.offset >= QuitOffset):
-		print("offset worked")
-		if(!endPoint.TryMoveCell()):				# if cell was not moved, than stop checking (until some point, connected with out conv says we need to start again
-			StopCells()
-			DeactivatePhysics()
+		
+func _ready() -> void:
+	get_tree().connect("physics_frame", self, "PrePhysProc")
+	pass
+
+
+func PrePhysProc() -> void:
+#	print("prephys")
 	if(isSpawning and CellOnSpawn and CellOnSpawn.offset == SpawnFreeOffset):
 		SpawnQ()
-		
-	
+	pass
+
+
 #func CheckLength(checkL : float) -> void:
 #	if(checkL >= curve.get_baked_length()):
 #		push_error("Conv_CheckL_ERROR: checking val is greater than curve length!")
@@ -150,6 +159,8 @@ func SpawnQ() -> void:
 	cellInQ -= 1
 	if(cellInQ <= 0):		# change to == in the future
 		isSpawning = false
+		StopCells()
+#		DeactivatePhysics()
 
 
 # Method checks for some errors, then waits until conv is free and finally spawn cell with count specified in param
