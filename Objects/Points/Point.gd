@@ -6,6 +6,7 @@ var isUsed := false			# for speed of checking
 var isSpawnPoint := true	# shows if this is the start point of a chain
 var inc_convs := []			# list-arrays for inc conveyors. All the conv inside these 2 lists must
 var out_convs := []			# be (and are) ready to use
+var isFactoryP := false		#
 #var first_cells := []		# list-array for keeping track of a every first cell in all inc conv
 
 
@@ -67,12 +68,16 @@ func TryMoveCell() -> bool:
 	
 	out_convs[0].add_child(cell)
 #	out_convs[0].call_deferred("ReceiveCell", cell)
+#	if(isFactoryP):
+#		out_convs[0].ReceiveCell(cell, 10)		# set up cell in new conv +updatefirstcell
+#	else:
 	out_convs[0].ReceiveCell(cell)		# set up cell in new conv +updatefirstcell
-	if(out_convs[0].isMoving):			# move cell if conv is moving
-	# if conv has space, then we move. If it has not, than its likely its full and we dont need to start cells. This can be redone in future, buy asking Point if there is a free way out. And this if is gonna work only for the last cell (which will be first in conv sequence and last child in smth like get_child_nodes)
-		cell.isMoving = true
-	else:
-		cell.isMoving = false
+#	if(out_convs[0].isMoving):			# move cell if conv is moving
+#	# if conv has space, then we move. If it has not, than its likely its full and we dont need to start cells. This can be redone in future, buy asking Point if there is a free way out. And this if is gonna work only for the last cell (which will be first in conv sequence and last child in smth like get_child_nodes)
+#		cell.isMoving = true
+#	else:
+#		cell.isMoving = false		# For now, all this logic is done in ReceiveCell()
+	
 	
 	inc_convs[0].ActivatePhysics()		# activate check in phys_proc
 	inc_convs[0].StartCells()			# start cells (emit signal) in inc conv bcs it is now freed
@@ -99,24 +104,3 @@ func ReceiveSpawnRequest(count : int, conv = out_convs[0]) -> void:
 		print("Point: Moving request to the prev Point!")
 #		print(inc_convs[0].Point.global_position)
 		inc_convs[0].Point.ReceiveSpawnRequest(count)	# move on to the prev conv and Point
-
-
-## Send cell to the out conv
-#func SendCell(targetConv = out_convs[0]) -> void:
-#	if(!cells[0]):
-#		print("Point_Nothing to send, first add smth")
-#		return
-#	if(!targetConv):
-#		push_error("Point_SendC_ERROR: No out conveyor for target!")
-#		return
-#	if(!targetConv.ReceiveCell(cells[0])):		# cell was not added for some reason in conv (mb full)
-#
-#		pass
-
-## 
-#func SpawnCells(conv) -> void:
-#	# Check
-#	if(!isSpawnPoint):
-#		push_error("Point_ERROR: Can not spawn cells in not SpawnPoint!")
-#		return
-#	# 

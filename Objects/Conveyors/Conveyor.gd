@@ -36,7 +36,7 @@ func _physics_process(_delta: float) -> void:
 		print("offset worked")
 		if(!endPoint.call("TryMoveCell")):				# if cell was not moved, than stop checking (until some point, connected with out conv says we need to start again
 			StopCells()
-			DeactivatePhysics()
+			DeactivatePhysics()	 #commented bcs the request to move cell is soming late if we deactivate physics process, at least for now
 	pass
 		
 func _ready() -> void:
@@ -140,35 +140,29 @@ func CheckIfSpawnIsFree() -> bool:
 		return true
 
 # Method for setting starting valus for incoming cell, unit_offset doesn't seem to work outside the conv
-func ReceiveCell(newcell : PathFollow2D) -> bool:
+func ReceiveCell(newcell : PathFollow2D, addtnlOffset := 0) -> bool:
 	if(isFull):
 		push_error("Conv_ReceiveC_ERROR: Can not receive cell, since conv is full")
 		return false
-#	if(CellOnSpawn.offset < SpawnFreeOffset):		# wont be useful in Point, since we delete cell first
-#		push_error("Conv_ReceiveC_ERROR: Can not receive cell, since there is a cell on spawn")
-#		return false
-	if(get_child_count() == 1):		# if more, they should be moving already
-		StartCells()
-		
 # warning-ignore:return_value_discarded
 	connect("StartCells", newcell, "s_StartCell")		# connecting signal from conv
 # warning-ignore:return_value_discarded
 	connect("StopCells", newcell, "s_StopCell")			# connecting signal from conv
-#	newcell.unit_offset = 0				# start parameters
 	newcell.offset = StartOffset
-#	newcell.isMoving = true				# start parameters
 	if(isMoving):				# start parameters
 		newcell.isMoving = true
 	else:
 		newcell.isMoving = false
-		
-#	newcell.set_physics_process(true)
 	
 	if(get_child_count() != 1 and get_child_count() != capacity):	# 1 bcs cell is already spawned from Point, capacity to exclude last cell bcs conv is going to be stopped and last cell is gonna overlap the next cell bcs of down (else) fix
 		newcell.offset += 10
+		if(addtnlOffset != 0):
+			newcell.offset += addtnlOffset
 	
 	CellOnSpawn = newcell
 #	newcell._physics_process(0)
+	if(get_child_count() == 1):		# if more, they should be moving already
+		StartCells()
 	CheckIfCapacityIsOver()
 	UpdateFirstCell()			# everytime cell move on to this conv
 	return true

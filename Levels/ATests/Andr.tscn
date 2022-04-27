@@ -24,19 +24,19 @@ curve = SubResource( 1 )
 
 [node name="Points" type="Node2D" parent="."]
 
-[node name="Point" parent="Points" instance=ExtResource( 4 )]
+[node name="Point1LD" parent="Points" instance=ExtResource( 4 )]
 position = Vector2( 177, 572 )
 
-[node name="Point2" parent="Points" instance=ExtResource( 4 )]
+[node name="Point2CD" parent="Points" instance=ExtResource( 4 )]
 position = Vector2( 910, 565 )
 
-[node name="Point3" parent="Points" instance=ExtResource( 4 )]
+[node name="Point3LU" parent="Points" instance=ExtResource( 4 )]
 position = Vector2( 408, 43 )
 
-[node name="Point4" parent="Points" instance=ExtResource( 4 )]
+[node name="Point4CU" parent="Points" instance=ExtResource( 4 )]
 position = Vector2( 1059, 59 )
 
-[node name="Point5" parent="Points" instance=ExtResource( 4 )]
+[node name="Point5RU" parent="Points" instance=ExtResource( 4 )]
 position = Vector2( 1401, 29 )
 
 [node name="Bullets" type="Node2D" parent="."]
