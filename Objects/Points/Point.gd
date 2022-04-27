@@ -15,17 +15,6 @@ func _on_TextureButton_pressed() -> void:
 	emit_signal("ConvBuilding", self, isUsed, get_node("Position2D").global_position)
 
 
-#func _physics_process(delta: float) -> void:
-#
-##	TryMoveCell()
-#	pass
-
-#func CheckSpawn() -> void:
-#	if(inc_convs.size() != 0):
-#		isSpawnPoint = false			# this breaks a circle spawn
-#	pass
-
-
 func AddIncConv(conv) -> void:
 	isSpawnPoint = false				# this breaks a circle spawn
 	inc_convs.append(conv)				# new ref to list

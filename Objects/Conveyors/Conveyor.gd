@@ -32,7 +32,9 @@ func DeactivatePhysics() -> void:
 	set_physics_process(false)
 
 func _physics_process(_delta: float) -> void:
-	if(FirstCell and FirstCell.offset >= QuitOffset):
+	if(isSpawning and CellOnSpawn and CellOnSpawn.offset >= SpawnFreeOffset - 10):
+		SpawnQ()
+	if(FirstCell and FirstCell.offset >= QuitOffset ):
 		print("offset worked")
 		if(!endPoint.call("TryMoveCell")):				# if cell was not moved, than stop checking (until some point, connected with out conv says we need to start again
 			StopCells()
@@ -47,8 +49,7 @@ func _ready() -> void:
 # Method is only needed for fixing dst btw cells, which turns out to be inaccurate bcs of cells doing += speed 1 more phys tick more, than needed
 func PrePhysProc() -> void:
 #	print("prephys")
-	if(isSpawning and CellOnSpawn and CellOnSpawn.offset >= SpawnFreeOffset):
-		SpawnQ()
+	
 	pass
 
 
@@ -195,9 +196,10 @@ func SpawnQ() -> void:
 	CellOnSpawn = newcell		# update ref
 	
 	cellInQ -= 1
-	if(cellInQ <= 0):		# change to == in the future
-		isSpawning = false
-		StopCells()
+# 	downlying code stop cells, but now we need wait for 1 more tick
+#	if(cellInQ <= 0):		# change to == in the future
+#		isSpawning = false
+#		StopCells()
 #		DeactivatePhysics()
 
 
