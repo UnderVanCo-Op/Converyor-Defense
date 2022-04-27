@@ -6,7 +6,7 @@ var Point : StaticBody2D = null			# stores ref to point-parent (not used current
 var endPoint : StaticBody2D = null		# stores ref to point-next (used in phys_proc)
 var capacity := -1						# stores number of cells, that conv can have
 var isFull := false						# shows if the conveyor is fulled with cells
-#var isMoving := false					#
+var isMoving := false					#
 var isBuilding := true					# shows if the conv is in building stage
 var FirstCell : PathFollow2D = null		# ref to first cell in conv
 var CellOnSpawn : PathFollow2D = null 	# Practically, this is the last cell in conv
@@ -54,10 +54,12 @@ func PrePhysProc() -> void:
 
 func StopCells() -> void:
 	print("Stopping cells on a conv ", self)
+	isMoving = false
 	emit_signal("StopCells")
 	
 func StartCells() -> void:
 	print("Starting cells on a conv ", self)
+	isMoving = true
 	emit_signal("StartCells")
 
 
@@ -117,7 +119,7 @@ func CountCapacity() -> int:
 
 # Checks if the number of cells exceed capacity + 1, should be done everytime operation with moving/spawning cell is done
 func CheckIfCapacityIsOver() -> bool:
-	if(get_child_count() > capacity + 1):	# +1 bcs there are border-conditions when moving cells
+	if(get_child_count() > capacity):	# +1 bcs there are border-conditions when moving cells
 		push_error("Conv_CRITICAL_ERROR: there are more than max cells on" + str(self) + "conveyor !!!")
 		isFull = true
 		return true
@@ -145,19 +147,27 @@ func ReceiveCell(newcell : PathFollow2D) -> bool:
 #	if(CellOnSpawn.offset < SpawnFreeOffset):		# wont be useful in Point, since we delete cell first
 #		push_error("Conv_ReceiveC_ERROR: Can not receive cell, since there is a cell on spawn")
 #		return false
-	
+	if(get_child_count() == 1):		# if more, they should be moving already
+		StartCells()
+		
 # warning-ignore:return_value_discarded
 	connect("StartCells", newcell, "s_StartCell")		# connecting signal from conv
 # warning-ignore:return_value_discarded
 	connect("StopCells", newcell, "s_StopCell")			# connecting signal from conv
 #	newcell.unit_offset = 0				# start parameters
 	newcell.offset = StartOffset
-	newcell.isMoving = true				# start parameters
-	newcell.set_physics_process(true)
-	if(get_child_count() <= 1 or get_child_count() == capacity):	# both 0 and 1 bcs cell is already spawned from Point, capacity to exclude last cell bcs conv is going to be stopped and last cell is gonna overlap the next cell bcs of down (else) fix
-		CellOnSpawn = newcell
+#	newcell.isMoving = true				# start parameters
+	if(isMoving):				# start parameters
+		newcell.isMoving = true
 	else:
+		newcell.isMoving = false
+		
+#	newcell.set_physics_process(true)
+	
+	if(get_child_count() != 1 and get_child_count() != capacity):	# 1 bcs cell is already spawned from Point, capacity to exclude last cell bcs conv is going to be stopped and last cell is gonna overlap the next cell bcs of down (else) fix
 		newcell.offset += 10
+	
+	CellOnSpawn = newcell
 #	newcell._physics_process(0)
 	CheckIfCapacityIsOver()
 	UpdateFirstCell()			# everytime cell move on to this conv
