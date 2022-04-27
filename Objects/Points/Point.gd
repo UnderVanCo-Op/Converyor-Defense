@@ -46,7 +46,10 @@ func TryMoveCell() -> bool:
 		push_warning("Point_ConnC_WARNING: Out conv is full or is building, returning")
 		return false
 	if(inc_convs[0].isBuilding or !inc_convs[0].CheckIfCapacityIsOver()):
-		push_warning("Point_ConnC_WARNING: Inc conv is not full, returning")
+		push_warning("Point_ConnC_WARNING: Inc conv is not full or is building, returning")
+		return false
+	if(!out_convs[0].CheckIfSpawnIsFree()):
+		push_warning("Point_ConnC_WARNING: Ouc conv spawn is not free, returning")
 		return false
 	
 	print("Point is moving cell...")
@@ -58,6 +61,7 @@ func TryMoveCell() -> bool:
 	inc_convs[0].UpdateFirstCell()		# update first cell in the inc conv
 	
 	out_convs[0].add_child(cell)
+#	out_convs[0].call_deferred("ReceiveCell", cell)
 	out_convs[0].ReceiveCell(cell)		# set up cell in new conv +updatefirstcell
 
 	inc_convs[0].ActivatePhysics()		# activate check in phys_proc

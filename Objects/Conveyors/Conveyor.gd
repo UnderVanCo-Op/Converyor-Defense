@@ -9,14 +9,14 @@ var isFull := false						# shows if the conveyor is fulled with cells
 #var isMoving := false					#
 var isBuilding := true					# shows if the conv is in building stage
 var FirstCell : PathFollow2D = null		# ref to first cell in conv
-var CellOnSpawn : PathFollow2D = null 	#
-var isSpawning := false					#
-var cellInQ := 0						#
+var CellOnSpawn : PathFollow2D = null 	# Practically, this is the last cell in conv
+var isSpawning := false					# shows if the conv is spawning cells
+var cellInQ := 0						# cells, that are enqueued in this conv
 #var isSending := false					# shows if conv is sending cells somewhere to next conv
 const FREE_DST := 110					# wanted distance btw pivot of near cells
-var SpawnFreeOffset : int = -1		# gets calc in CountCap method
+var SpawnFreeOffset : int = -1			# gets calc in CountCap method
 const POINT_OFFSET := 200				# basic offset to not overlap Point (around 230)
-export var WantedOffset : float = 0	# adds to Points offset
+export var WantedOffset : float = 0		# adds to Points offset (can be set from Editor mb)
 var StartOffset : float = -1			# gets calc in CountCap method
 var QuitOffset : int = -1				# gets calc in CountCap method
 
@@ -34,7 +34,7 @@ func DeactivatePhysics() -> void:
 func _physics_process(_delta: float) -> void:
 	if(FirstCell and FirstCell.offset >= QuitOffset):
 		print("offset worked")
-		if(!endPoint.TryMoveCell()):				# if cell was not moved, than stop checking (until some point, connected with out conv says we need to start again
+		if(!endPoint.call("TryMoveCell")):				# if cell was not moved, than stop checking (until some point, connected with out conv says we need to start again
 			StopCells()
 			DeactivatePhysics()
 	pass
@@ -53,9 +53,11 @@ func PrePhysProc() -> void:
 
 
 func StopCells() -> void:
+	print("Stopping cells on a conv ", self)
 	emit_signal("StopCells")
 	
 func StartCells() -> void:
+	print("Starting cells on a conv ", self)
 	emit_signal("StartCells")
 
 
@@ -64,15 +66,15 @@ func CountCapacity() -> int:
 	if(curve.get_point_count() < 2):
 		push_error("Conveyor_CountC_ERROR: 1 or 0 points in curve is not enough!")
 		return -1
-	var c = ConvCell.instance()
+	var c = ConvCell.instance()		# adding instance for getting sizes
 	var sprite = c.get_node("Sprite")
 	var _rect : Vector2 = sprite.region_rect.size
 	var _scale : Vector2 = sprite.scale
 	c.queue_free()
 	
-	var Cleng := curve.get_baked_length()
+	var Cleng := curve.get_baked_length()		# get length of the curve
 	
-	StartOffset = POINT_OFFSET + WantedOffset
+	StartOffset = POINT_OFFSET + WantedOffset	# WantedOffset = 0 for default
 	SpawnFreeOffset = StartOffset + FREE_DST
 	if(SpawnFreeOffset >= Cleng):		# Check
 		push_error("Conv_CountCap_ERROR: SpawnFree offset is greater that curve length! Removing wanted offset from both SpawnFree and Start offsets...")
@@ -94,7 +96,10 @@ func CountCapacity() -> int:
 #		QuitOffset = StartOffset + FREE_DST 
 #	else:
 	QuitOffset = StartOffset + (_capacity - 1 ) * (FREE_DST)
-	QuitOffset += (10 - QuitOffset % 10)
+	print("QuitOffset before ceiling: ", QuitOffset)
+	var temp := QuitOffset % 10
+	if(temp != 0):
+		QuitOffset += (10 - QuitOffset % 10)						# ceil to 10
 	SpawnFreeOffset -= (SpawnFreeOffset % 10)
 #	QuitOffset = stepify(QuitOffset, 10)
 	if(QuitOffset >= Cleng):		# Check
@@ -110,7 +115,7 @@ func CountCapacity() -> int:
 	return _capacity
 
 
-# Checks if the number of cells exceed capacity + 1, should be done everytime op with moving/spawning cell is done
+# Checks if the number of cells exceed capacity + 1, should be done everytime operation with moving/spawning cell is done
 func CheckIfCapacityIsOver() -> bool:
 	if(get_child_count() > capacity + 1):	# +1 bcs there are border-conditions when moving cells
 		push_error("Conv_CRITICAL_ERROR: there are more than max cells on" + str(self) + "conveyor !!!")
@@ -124,11 +129,23 @@ func CheckIfCapacityIsOver() -> bool:
 		return true
 
 
+func CheckIfSpawnIsFree() -> bool:
+	if(get_child_count() == 0):
+		return true
+	if(CellOnSpawn.offset < SpawnFreeOffset):		# CellOnSpawn always exists if child count != 0
+		return false
+	else:
+		return true
+
 # Method for setting starting valus for incoming cell, unit_offset doesn't seem to work outside the conv
 func ReceiveCell(newcell : PathFollow2D) -> bool:
 	if(isFull):
 		push_error("Conv_ReceiveC_ERROR: Can not receive cell, since conv is full")
 		return false
+#	if(CellOnSpawn.offset < SpawnFreeOffset):		# wont be useful in Point, since we delete cell first
+#		push_error("Conv_ReceiveC_ERROR: Can not receive cell, since there is a cell on spawn")
+#		return false
+	
 # warning-ignore:return_value_discarded
 	connect("StartCells", newcell, "s_StartCell")		# connecting signal from conv
 # warning-ignore:return_value_discarded
@@ -136,6 +153,12 @@ func ReceiveCell(newcell : PathFollow2D) -> bool:
 #	newcell.unit_offset = 0				# start parameters
 	newcell.offset = StartOffset
 	newcell.isMoving = true				# start parameters
+	newcell.set_physics_process(true)
+	if(get_child_count() <= 1 or get_child_count() == capacity):	# both 0 and 1 bcs cell is already spawned from Point, capacity to exclude last cell bcs conv is going to be stopped and last cell is gonna overlap the next cell bcs of down (else) fix
+		CellOnSpawn = newcell
+	else:
+		newcell.offset += 10
+#	newcell._physics_process(0)
 	CheckIfCapacityIsOver()
 	UpdateFirstCell()			# everytime cell move on to this conv
 	return true
@@ -149,7 +172,7 @@ func UpdateFirstCell() -> void:
 	FirstCell = get_child(0)	# update ref to first cell
 
 
-# Helper-Function of SpawnCells
+# Main function of spawn
 func SpawnQ() -> void:
 	# Checks
 	if(!isSpawning):
