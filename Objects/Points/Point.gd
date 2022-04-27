@@ -6,23 +6,13 @@ var isUsed := false			# for speed of checking
 var isSpawnPoint := true	# shows if this is the start point of a chain
 var inc_convs := []			# list-arrays for inc conveyors. All the conv inside these 2 lists must
 var out_convs := []			# be (and are) ready to use
+var isFactoryP := false		#
 #var first_cells := []		# list-array for keeping track of a every first cell in all inc conv
 
 
 func _on_TextureButton_pressed() -> void:
 	#emit_signal("ConvBuilding", get_node("TextureButton").rect_global_position)
 	emit_signal("ConvBuilding", self, isUsed, get_node("Position2D").global_position)
-
-
-#func _physics_process(delta: float) -> void:
-#
-##	TryMoveCell()
-#	pass
-
-#func CheckSpawn() -> void:
-#	if(inc_convs.size() != 0):
-#		isSpawnPoint = false			# this breaks a circle spawn
-#	pass
 
 
 func AddIncConv(conv) -> void:
@@ -45,8 +35,15 @@ func TryMoveCell() -> bool:
 	if(out_convs[0].isBuilding or out_convs[0].CheckIfCapacityIsOver()):	# to be heavied in the future
 		push_warning("Point_ConnC_WARNING: Out conv is full or is building, returning")
 		return false
-	if(inc_convs[0].isBuilding or !inc_convs[0].CheckIfCapacityIsOver()):
-		push_warning("Point_ConnC_WARNING: Inc conv is not full, returning")
+#	if(inc_convs[0].isBuilding or !inc_convs[0].CheckIfCapacityIsOver()):
+#		push_warning("Point_ConnC_WARNING: Inc conv is not full or is building, returning")
+#		return false
+# (1+1+1 system) if we check inc conv for capacity, it is not full bcs cell from first conv is not already on the second conv (self, which we are talking about) bcs physics gets called from top to bottom in the noe hierarchy
+	if(inc_convs[0].isBuilding):
+		push_warning("Point_ConnC_WARNING: Inc conv is not full or is building, returning")
+		return false
+	if(!out_convs[0].CheckIfSpawnIsFree()):
+		push_warning("Point_ConnC_WARNING: Out conv spawn is not free, returning")
 		return false
 	
 	print("Point is moving cell...")
@@ -55,13 +52,25 @@ func TryMoveCell() -> bool:
 	inc_convs[0].remove_child(cell)
 	inc_convs[0].disconnect("StartCells", cell, "s_StartCell")
 	inc_convs[0].disconnect("StopCells", cell, "s_StopCell")
-	inc_convs[0].UpdateFirstCell()		# update first cell in the inc conv
+	inc_convs[0].UpdateFirstCell()			# update first cell in the inc conv
+	inc_convs[0].CheckIfCapacityIsOver()	# set isFull properly
 	
 	out_convs[0].add_child(cell)
+#	out_convs[0].call_deferred("ReceiveCell", cell)
+#	if(isFactoryP):
+#		out_convs[0].ReceiveCell(cell, 10)		# set up cell in new conv +updatefirstcell
+#	else:
 	out_convs[0].ReceiveCell(cell)		# set up cell in new conv +updatefirstcell
-
+#	if(out_convs[0].isMoving):			# move cell if conv is moving
+#	# if conv has space, then we move. If it has not, than its likely its full and we dont need to start cells. This can be redone in future, buy asking Point if there is a free way out. And this if is gonna work only for the last cell (which will be first in conv sequence and last child in smth like get_child_nodes)
+#		cell.isMoving = true
+#	else:
+#		cell.isMoving = false		# For now, all this logic is done in ReceiveCell()
+	
+	
 	inc_convs[0].ActivatePhysics()		# activate check in phys_proc
 	inc_convs[0].StartCells()			# start cells (emit signal) in inc conv bcs it is now freed
+	inc_convs[0].Point.TryMoveCell()	# recursivly call moving to the prev Point. Might break loop)
 	return true
 
 
@@ -84,24 +93,3 @@ func ReceiveSpawnRequest(count : int, conv = out_convs[0]) -> void:
 		print("Point: Moving request to the prev Point!")
 #		print(inc_convs[0].Point.global_position)
 		inc_convs[0].Point.ReceiveSpawnRequest(count)	# move on to the prev conv and Point
-
-
-## Send cell to the out conv
-#func SendCell(targetConv = out_convs[0]) -> void:
-#	if(!cells[0]):
-#		print("Point_Nothing to send, first add smth")
-#		return
-#	if(!targetConv):
-#		push_error("Point_SendC_ERROR: No out conveyor for target!")
-#		return
-#	if(!targetConv.ReceiveCell(cells[0])):		# cell was not added for some reason in conv (mb full)
-#
-#		pass
-
-## 
-#func SpawnCells(conv) -> void:
-#	# Check
-#	if(!isSpawnPoint):
-#		push_error("Point_ERROR: Can not spawn cells in not SpawnPoint!")
-#		return
-#	# 

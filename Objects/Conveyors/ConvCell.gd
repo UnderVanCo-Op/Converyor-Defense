@@ -12,10 +12,9 @@ func _ready() -> void:
 	ref.building = false
 	add_child(ref)
 	# Highlighting on spawn
-	$Sprite.scale = Vector2(1,1)						# for highlighting spawn
+	$Sprite.scale *= 2						# for highlighting spawn
 	yield(get_tree().create_timer(0.333), "timeout")	# 
 	$Sprite.scale = Vector2(0.3,0.3)					# 
-	
 	#get_parent().connect("StopCells", self, "s_StopCell")	# connecting signal from parent conv
 	#get_parent().connect("StartCells", self, "s_StartCell")	# connecting signal from parent conv
 	
