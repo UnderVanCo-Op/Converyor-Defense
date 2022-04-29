@@ -35,7 +35,7 @@ func _physics_process(_delta: float) -> void:
 	if(isSpawning and CellOnSpawn and CellOnSpawn.offset >= SpawnFreeOffset - 10):
 		SpawnQ()
 	if(FirstCell and FirstCell.offset >= QuitOffset ):
-		print("offset worked")
+		print("Conv firstcell is in the end!")
 		if(!endPoint.call("TryMoveCell")):				# if cell was not moved, than stop checking (until some point, connected with out conv says we need to start again
 			StopCells()
 			DeactivatePhysics()	 #commented bcs the request to move cell is soming late if we deactivate physics process, at least for now
@@ -155,7 +155,8 @@ func ReceiveCell(newcell : PathFollow2D, addtnlOffset := 0) -> bool:
 	else:
 		newcell.isMoving = false
 	
-	if(get_child_count() != 1 and get_child_count() != capacity):	# 1 bcs cell is already spawned from Point, capacity to exclude last cell bcs conv is going to be stopped and last cell is gonna overlap the next cell bcs of down (else) fix
+	var childsC = get_child_count()
+	if(((childsC == 1 and endPoint.out_convs) or childsC != 1) and childsC != capacity):	# 1 bcs cell is already spawned from Point, capacity to exclude last cell bcs conv is going to be stopped and last cell is gonna overlap the next cell bcs of down (else) fix
 		newcell.offset += 10
 		if(addtnlOffset != 0):
 			newcell.offset += addtnlOffset
