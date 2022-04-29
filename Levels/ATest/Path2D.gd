@@ -1,7 +1,7 @@
 extends Path2D
 
 var timer=0
-var spawnTime=5 
+var spawnTime=1
 
 var follower=preload("res://Objects/Enemies/Enemy.tscn") 
 
