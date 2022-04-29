@@ -12,6 +12,7 @@ var gui = null						# gui reference	(GUI)
 var Point = null					#  (point, for cancelling)
 var isStartConv := true				# if there was a start of a conveyor (conv switcher btw start/end)
 var isFocusedOnSmth := false		# if we are already interacting with smth	(focus)
+var endsPlist := []
 
 var money := 250
 
@@ -21,6 +22,9 @@ func _ready() -> void:
 	signalConnector()
 	gui.call("updateMoney", money)				# calling to GUI.gd
 
+func _physics_process(delta: float) -> void:
+	for p in endsPlist:
+		p.CheckQuitInChain()
 
 # Method is responsible for finding and connecting signals to THIS script
 func signalConnector() -> void:
@@ -147,6 +151,9 @@ func s_ConvBuild(refToPoint : StaticBody2D, isUsed : bool, _Pntposition : Vector
 		RequestSpawn(convBuildRef.capacity)	# requesting spawn from start point
 		
 		# General
+		if(!refToPoint.out_convs):			# if no outcoming convs in end point
+			endsPlist.append(refToPoint)	# add point to list of end points of chains
+		
 		isFocusedOnSmth = false
 		isStartConv = true
 		convBuildRef = null					# deleting reference as a precaution

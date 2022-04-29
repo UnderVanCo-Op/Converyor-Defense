@@ -7,6 +7,7 @@ var endPoint : StaticBody2D = null		# stores ref to point-next (used in phys_pro
 var capacity := -1						# stores number of cells, that conv can have
 var isFull := false						# shows if the conveyor is fulled with cells
 var isMoving := false					#
+var isReady := false					# fulled and stopped
 var isBuilding := true					# shows if the conv is in building stage
 var FirstCell : PathFollow2D = null		# ref to first cell in conv
 var CellOnSpawn : PathFollow2D = null 	# Practically, this is the last cell in conv
@@ -26,6 +27,7 @@ signal StartCells()			# signal is emitted when cells are need to be started
 #signal UpdateFirstCell()	# emit when ref to  1 cell is changed
 
 func ActivatePhysics() -> void:
+	isReady = false
 	set_physics_process(true)
 
 func DeactivatePhysics() -> void:
@@ -34,23 +36,32 @@ func DeactivatePhysics() -> void:
 func _physics_process(_delta: float) -> void:
 	if(isSpawning and CellOnSpawn and CellOnSpawn.offset >= SpawnFreeOffset - 10):
 		SpawnQ()
+#	CheckQuitOffset()	# now it is called from GM through Point
+
+func CheckQuitOffset() -> void:
 	if(FirstCell and FirstCell.offset >= QuitOffset ):
-		print("offset worked")
+#		if(endPoint.out_convs):			# recursivly going into deep to the end of all chain to ensure order ot cells moving, from end to start
+#			endPoint.out_convs[0].CheckQuitOffset()
+		print("Conv firstcell is in the end!")
 		if(!endPoint.call("TryMoveCell")):				# if cell was not moved, than stop checking (until some point, connected with out conv says we need to start again
 			StopCells()
 			DeactivatePhysics()	 #commented bcs the request to move cell is soming late if we deactivate physics process, at least for now
+			isReady = true
+		else:
+			isReady = false
 	pass
-		
+
+
 func _ready() -> void:
-	get_tree().connect("physics_frame", self, "PrePhysProc")
+#	get_tree().connect("physics_frame", self, "PrePhysProc")
 	pass
 
 
 # Method is only needed for fixing dst btw cells, which turns out to be inaccurate bcs of cells doing += speed 1 more phys tick more, than needed
-func PrePhysProc() -> void:
-#	print("prephys")
-	
-	pass
+#func PrePhysProc() -> void:
+##	print("prephys")
+#
+#	pass
 
 
 func StopCells() -> void:
@@ -60,6 +71,7 @@ func StopCells() -> void:
 	
 func StartCells() -> void:
 	print("Starting cells on a conv ", self)
+	isReady = false
 	isMoving = true
 	emit_signal("StartCells")
 
@@ -155,7 +167,8 @@ func ReceiveCell(newcell : PathFollow2D, addtnlOffset := 0) -> bool:
 	else:
 		newcell.isMoving = false
 	
-	if(get_child_count() != 1 and get_child_count() != capacity):	# 1 bcs cell is already spawned from Point, capacity to exclude last cell bcs conv is going to be stopped and last cell is gonna overlap the next cell bcs of down (else) fix
+	var childsC = get_child_count()
+	if(((childsC == 1 and endPoint.out_convs) or childsC != 1) and childsC != capacity):	# 1 bcs cell is already spawned from Point, capacity to exclude last cell bcs conv is going to be stopped and last cell is gonna overlap the next cell bcs of down (else) fix
 		newcell.offset += 10
 		if(addtnlOffset != 0):
 			newcell.offset += addtnlOffset
