@@ -26,6 +26,12 @@ func AddOutConv(conv) -> void:
 	pass
 
 
+# Gets called from GM every physics frame in every end point of a chain
+func CheckQuitInChain() -> void:
+	if(!inc_convs[0].isReady):		# if not fulled and stopped
+		inc_convs[0].CheckQuitOffset()
+
+
 # Methods tries to move cell to the next conv, update ref to first cell, and start inc conv
 func TryMoveCell() -> bool:
 	print("Try to move cell method reached")

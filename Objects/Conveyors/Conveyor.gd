@@ -7,6 +7,7 @@ var endPoint : StaticBody2D = null		# stores ref to point-next (used in phys_pro
 var capacity := -1						# stores number of cells, that conv can have
 var isFull := false						# shows if the conveyor is fulled with cells
 var isMoving := false					#
+var isReady := false
 var isBuilding := true					# shows if the conv is in building stage
 var FirstCell : PathFollow2D = null		# ref to first cell in conv
 var CellOnSpawn : PathFollow2D = null 	# Practically, this is the last cell in conv
@@ -34,13 +35,20 @@ func DeactivatePhysics() -> void:
 func _physics_process(_delta: float) -> void:
 	if(isSpawning and CellOnSpawn and CellOnSpawn.offset >= SpawnFreeOffset - 10):
 		SpawnQ()
+#	CheckQuitOffset()	# now it is called from GM through Point
+
+func CheckQuitOffset() -> void:
 	if(FirstCell and FirstCell.offset >= QuitOffset ):
+		if(endPoint.out_convs):			# recursivly going into deep to the end of all chain to ensure order ot cells moving, from end to start
+			endPoint.out_convs[0].CheckQuitOffset()
 		print("Conv firstcell is in the end!")
 		if(!endPoint.call("TryMoveCell")):				# if cell was not moved, than stop checking (until some point, connected with out conv says we need to start again
 			StopCells()
 			DeactivatePhysics()	 #commented bcs the request to move cell is soming late if we deactivate physics process, at least for now
+			isReady = true
 	pass
-		
+
+
 func _ready() -> void:
 	get_tree().connect("physics_frame", self, "PrePhysProc")
 	pass
