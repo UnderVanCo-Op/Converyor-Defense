@@ -52,14 +52,14 @@ func _physics_process(_delta: float) -> void:
 #	pass
 
 func CheckQuitOffset() -> void:
-	if(FirstCell and FirstCell.offset >= QuitOffset):
+	if(FirstCell and FirstCell.offset >= QuitOffset - 10):
 #		if(endPoint.out_convs):			# recursivly going into deep to the end of all chain to ensure order ot cells moving, from end to start
 #			endPoint.out_convs[0].CheckQuitOffset()
 		print("Conv firstcell is in the end!")
 		isReady = true
-		StopCells()
+		call_deferred("StopCells")
 		if(!isSpawning):
-			DeactivatePhysics()
+			call_deferred("DeactivatePhysics")
 		
 #		if(!endPoint.call("TryMoveCell")):				# if cell was not moved, than stop checking (until some point, connected with out conv says we need to start again
 #			StopCells()
@@ -69,6 +69,7 @@ func CheckQuitOffset() -> void:
 #		else:
 #			isReady = false
 	else:
+		ActivatePhysics()
 		isReady = false
 
 
@@ -148,7 +149,7 @@ func CheckIfCapacityIsOver() -> bool:
 func CheckIfSpawnIsFree() -> bool:
 	if(get_child_count() == 0):
 		return true
-	if(CellOnSpawn.offset < SpawnFreeOffset):		# CellOnSpawn always exists if child count != 0
+	if(CellOnSpawn.offset < SpawnFreeOffset - 10):		# CellOnSpawn always exists if child count != 0
 		return false
 	else:
 		return true
@@ -209,6 +210,10 @@ func SpawnQ() -> void:
 	CellOnSpawn = newcell		# update ref
 	
 	cellInQ -= 1
+	if(get_child_count() >= capacity):
+		isFull = true
+	if(cellInQ == 0):
+		isSpawning = false
 
 
 # Method checks for some errors, then waits until conv is free and finally spawn cell with count specified in param

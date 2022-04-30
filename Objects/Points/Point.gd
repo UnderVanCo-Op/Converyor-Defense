@@ -80,7 +80,9 @@ func TryMoveCell() -> bool:
 	
 	
 #	inc_convs[0].ActivatePhysics()		# activate check in phys_proc
-	inc_convs[0].StartCells()			# start cells (emit signal) in inc conv bcs it is now freed
+	inc_convs[0].StartCells()
+	inc_convs[0].isReady = false			# start cells (emit signal) in inc conv bcs it is now freed
+	inc_convs[0].ActivatePhysics()
 #	inc_convs[0].Point.TryMoveCell()	# recursivly call moving to the prev Point. Might break loop)
 	return true
 
