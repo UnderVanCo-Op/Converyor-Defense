@@ -7,7 +7,7 @@ var isShowed := false
 
 
 func _ready() -> void:
-	$Point.isFactoryP = true
+#	$Point.isFactoryP = true
 	objMenu.hide()
 	isShowed = false
 	var t = get_node_or_null("ObjectMenu")					# привязка к Кнопкам внутри менюхи

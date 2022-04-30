@@ -33,35 +33,44 @@ func ActivatePhysics() -> void:
 func DeactivatePhysics() -> void:
 	set_physics_process(false)
 
-func _physics_process(_delta: float) -> void:
-	if(isSpawning and CellOnSpawn and CellOnSpawn.offset >= SpawnFreeOffset - 10):
-		SpawnQ()
-#	CheckQuitOffset()	# now it is called from GM through Point
-
-func CheckQuitOffset() -> void:
-	if(FirstCell and FirstCell.offset >= QuitOffset ):
-#		if(endPoint.out_convs):			# recursivly going into deep to the end of all chain to ensure order ot cells moving, from end to start
-#			endPoint.out_convs[0].CheckQuitOffset()
-		print("Conv firstcell is in the end!")
-		if(!endPoint.call("TryMoveCell")):				# if cell was not moved, than stop checking (until some point, connected with out conv says we need to start again
-			StopCells()
-			DeactivatePhysics()	 #commented bcs the request to move cell is soming late if we deactivate physics process, at least for now
-			isReady = true
-		else:
-			isReady = false
-	pass
-
-
 func _ready() -> void:
 #	get_tree().connect("physics_frame", self, "PrePhysProc")
 	pass
 
+func _physics_process(_delta: float) -> void:
+	if(isSpawning and CellOnSpawn and CellOnSpawn.offset >= SpawnFreeOffset - 10):
+		call_deferred("SpawnQ")
+#	if(Point.isSpawnPoint):
+	if(!isReady):
+		CheckQuitOffset()	# now it is called from GM through Point
+	pass
 
 # Method is only needed for fixing dst btw cells, which turns out to be inaccurate bcs of cells doing += speed 1 more phys tick more, than needed
 #func PrePhysProc() -> void:
 ##	print("prephys")
 #
 #	pass
+
+func CheckQuitOffset() -> void:
+	if(FirstCell and FirstCell.offset >= QuitOffset - 10):
+#		if(endPoint.out_convs):			# recursivly going into deep to the end of all chain to ensure order ot cells moving, from end to start
+#			endPoint.out_convs[0].CheckQuitOffset()
+		print("Conv firstcell is in the end!")
+		isReady = true
+		call_deferred("StopCells")
+		if(!isSpawning):
+			call_deferred("DeactivatePhysics")
+		
+#		if(!endPoint.call("TryMoveCell")):				# if cell was not moved, than stop checking (until some point, connected with out conv says we need to start again
+#			StopCells()
+##			DeactivatePhysics()	 #commented bcs the request to move cell is soming late if we deactivate physics process, at least for now
+#			isReady = true
+#			endPoint.call_deferred("TryMoveCell")	# dont need to stop, bcs already stopped
+#		else:
+#			isReady = false
+	else:
+		ActivatePhysics()
+		isReady = false
 
 
 func StopCells() -> void:
@@ -103,13 +112,6 @@ func CountCapacity() -> int:
 	
 	var _capacity : int =  int((Cleng - StartOffset - StartOffset) / (FREE_DST))	# for now
 	_capacity += 1		# bcs FREE_DST is only distance btw cells
-#	if(_capacity == 0):
-#		push_error("Conv_CountCap_ERROR: Capacity is 0!!! Returning")
-#		capacity = _capacity
-#		return _capacity
-#	if(_capacity == 1):
-#		QuitOffset = StartOffset + FREE_DST 
-#	else:
 	QuitOffset = StartOffset + (_capacity - 1 ) * (FREE_DST)
 	print("QuitOffset before ceiling: ", QuitOffset)
 	var temp := QuitOffset % 10
@@ -147,7 +149,7 @@ func CheckIfCapacityIsOver() -> bool:
 func CheckIfSpawnIsFree() -> bool:
 	if(get_child_count() == 0):
 		return true
-	if(CellOnSpawn.offset < SpawnFreeOffset):		# CellOnSpawn always exists if child count != 0
+	if(CellOnSpawn.offset < SpawnFreeOffset - 10):		# CellOnSpawn always exists if child count != 0
 		return false
 	else:
 		return true
@@ -167,11 +169,12 @@ func ReceiveCell(newcell : PathFollow2D, addtnlOffset := 0) -> bool:
 	else:
 		newcell.isMoving = false
 	
-	var childsC = get_child_count()
-	if(((childsC == 1 and endPoint.out_convs) or childsC != 1) and childsC != capacity):	# 1 bcs cell is already spawned from Point, capacity to exclude last cell bcs conv is going to be stopped and last cell is gonna overlap the next cell bcs of down (else) fix
-		newcell.offset += 10
-		if(addtnlOffset != 0):
-			newcell.offset += addtnlOffset
+	# FIX
+#	var childsC = get_child_count()
+#	if(((childsC == 1 and endPoint.out_convs) or childsC != 1) and childsC != capacity):	# 1 bcs cell is already spawned from Point, capacity to exclude last cell bcs conv is going to be stopped and last cell is gonna overlap the next cell bcs of down (else) fix
+#		newcell.offset += 10
+#		if(addtnlOffset != 0):
+#			newcell.offset += addtnlOffset
 	
 	CellOnSpawn = newcell
 #	newcell._physics_process(0)
@@ -198,8 +201,6 @@ func SpawnQ() -> void:
 		return
 	if(cellInQ <= 0):		# change to == in the future
 		push_error("Conv_SpawnQ_ERROR: tried to SpawnQ without cells in q, returning...")
-#		if(CellOnSpawn.offset >= SpawnFreeOffset):
-#			CellOnSpawn = null
 		isSpawning = false
 		return
 	
@@ -209,11 +210,10 @@ func SpawnQ() -> void:
 	CellOnSpawn = newcell		# update ref
 	
 	cellInQ -= 1
-# 	downlying code stop cells, but now we need wait for 1 more tick
-#	if(cellInQ <= 0):		# change to == in the future
-#		isSpawning = false
-#		StopCells()
-#		DeactivatePhysics()
+	if(get_child_count() >= capacity):
+		isFull = true
+	if(cellInQ == 0):
+		isSpawning = false
 
 
 # Method checks for some errors, then waits until conv is free and finally spawn cell with count specified in param
@@ -229,7 +229,6 @@ func SpawnCells(count : int) -> void:
 	if(get_child_count() == 0):		# mb if not firstcell
 		CellOnSpawn = AddCell()		# update cellonspawn
 		cellInQ -= 1
-#		CellOnSpawn = FirstCell		# update cellonspawn
 	
 	cellInQ += count
 	if(cellInQ == 0):
