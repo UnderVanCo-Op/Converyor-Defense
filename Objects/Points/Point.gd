@@ -6,14 +6,13 @@ var isUsed := false			# for speed of checking
 var isSpawnPoint := true	# shows if this is the start point of a chain
 var inc_convs := []			# list-arrays for inc conveyors. All the conv inside these 2 lists must
 var out_convs := []			# be (and are) ready to use
-var isFactoryP := false		#
+
 #var first_cells := []		# list-array for keeping track of a every first cell in all inc conv
 
 
 func _on_TextureButton_pressed() -> void:
 	#emit_signal("ConvBuilding", get_node("TextureButton").rect_global_position)
 	emit_signal("ConvBuilding", self, isUsed, get_node("Position2D").global_position)
-
 
 func AddIncConv(conv) -> void:
 	isSpawnPoint = false				# this breaks a circle spawn
@@ -31,6 +30,12 @@ func CheckQuitInChain() -> void:
 	if(!inc_convs[0].isReady):		# if not fulled and stopped
 		inc_convs[0].CheckQuitOffset()
 
+# warning-ignore:unused_argument
+func _physics_process(delta: float) -> void:
+	if(inc_convs and inc_convs[0].isReady and out_convs and !out_convs[0].isReady):
+		TryMoveCell()
+#		if(out_convs[0].isReady)
+	pass
 
 # Methods tries to move cell to the next conv, update ref to first cell, and start inc conv
 func TryMoveCell() -> bool:
@@ -66,7 +71,7 @@ func TryMoveCell() -> bool:
 #	if(isFactoryP):
 #		out_convs[0].ReceiveCell(cell, 10)		# set up cell in new conv +updatefirstcell
 #	else:
-	out_convs[0].ReceiveCell(cell)		# set up cell in new conv +updatefirstcell
+	out_convs[0].call_deferred("ReceiveCell",cell)		# set up cell in new conv +updatefirstcell
 #	if(out_convs[0].isMoving):			# move cell if conv is moving
 #	# if conv has space, then we move. If it has not, than its likely its full and we dont need to start cells. This can be redone in future, buy asking Point if there is a free way out. And this if is gonna work only for the last cell (which will be first in conv sequence and last child in smth like get_child_nodes)
 #		cell.isMoving = true
@@ -74,13 +79,13 @@ func TryMoveCell() -> bool:
 #		cell.isMoving = false		# For now, all this logic is done in ReceiveCell()
 	
 	
-	inc_convs[0].ActivatePhysics()		# activate check in phys_proc
+#	inc_convs[0].ActivatePhysics()		# activate check in phys_proc
 	inc_convs[0].StartCells()			# start cells (emit signal) in inc conv bcs it is now freed
-	inc_convs[0].Point.TryMoveCell()	# recursivly call moving to the prev Point. Might break loop)
+#	inc_convs[0].Point.TryMoveCell()	# recursivly call moving to the prev Point. Might break loop)
 	return true
 
 
-# 
+# Recursive function for moving request to the start of a chain
 func ReceiveSpawnRequest(count : int, conv = out_convs[0]) -> void:
 	# Checks
 	if(!isSpawnPoint and inc_convs.size() == 0):		# mb add another, antonymus check

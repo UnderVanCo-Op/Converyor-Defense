@@ -5,14 +5,13 @@ var cannon = preload("res://Objects/Cannons/Cannon.tscn")
 var conv = preload("res://Objects/Conveyors/Conveyor.tscn")
 var BadPoint = preload("res://Objects/Points/Point.tscn")		# is used for auto-complete :)
 
-#var instance = null
 var convBuildRef  = null 			# ref to new v of conveyour building	(conv)
 var cannonBuildRef = null			# ref to cannon in b-ing stage, mb unj-ly	(cannon)
 var gui = null						# gui reference	(GUI)
 var Point = null					#  (point, for cancelling)
 var isStartConv := true				# if there was a start of a conveyor (conv switcher btw start/end)
 var isFocusedOnSmth := false		# if we are already interacting with smth	(focus)
-var endsPlist := []
+#var endsPlist := []
 
 var money := 250
 
@@ -22,9 +21,9 @@ func _ready() -> void:
 	signalConnector()
 	gui.call("updateMoney", money)				# calling to GUI.gd
 
-func _physics_process(delta: float) -> void:
-	for p in endsPlist:
-		p.CheckQuitInChain()
+#func _physics_process(delta: float) -> void:
+#	for p in endsPlist:
+#		p.CheckQuitInChain()
 
 # Method is responsible for finding and connecting signals to THIS script
 func signalConnector() -> void:
@@ -88,7 +87,7 @@ func DeArmPoint() -> void:
 
 # Marks point as Used, and also adds ref to conv, must be called after convBuildRef is set properly.
 func ArmPoint(_point : StaticBody2D, _isStartConv : bool) -> void:
-	if(!_point.isUsed):				# first use of this point
+	if(!_point.isUsed):			# first use of this point
 		_point.isUsed = true
 	
 	if(_isStartConv):
@@ -138,21 +137,22 @@ func s_ConvBuild(refToPoint : StaticBody2D, isUsed : bool, _Pntposition : Vector
 		
 		print("End of new conveyor")
 		# Conveyor
-		convBuildRef.curve.add_point(_Pntposition)
-		convBuildRef.endPoint = refToPoint		# ref to end point
-		convBuildRef.isBuilding = false
-		convBuildRef.CountCapacity()
+		convBuildRef.curve.add_point(_Pntposition)	#
+		convBuildRef.endPoint = refToPoint			# ref to end point
+		convBuildRef.isBuilding = false				#
+		convBuildRef.CountCapacity()				#
 		
 		# Points
 		ArmPoint(Point, true)				# Set up start point
 #		Point = refToPoint					# upd the point	(not necessarily now)	
 		ArmPoint(refToPoint, false)			# marking end point, must be before isStartConv setting
-		Point.TryMoveCell()					# Set up connections in start point
+#		Point.TryMoveCell()					# Set up connections in start point
 		RequestSpawn(convBuildRef.capacity)	# requesting spawn from start point
 		
 		# General
-		if(!refToPoint.out_convs):			# if no outcoming convs in end point
-			endsPlist.append(refToPoint)	# add point to list of end points of chains
+#		if(endsPlist.has(Point) or !refToPoint.out_convs):	# if start point is in list and no outcoming convs in end point
+#			endsPlist.erase(Point)			# delete start point from list
+#			endsPlist.append(refToPoint)	# add point to list of end points of chains
 		
 		isFocusedOnSmth = false
 		isStartConv = true
