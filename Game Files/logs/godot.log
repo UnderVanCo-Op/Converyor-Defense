@@ -1,0 +1,18 @@
+Godot Engine v3.4.4.stable.official.419e713a2 - https://godotengine.org
+OpenGL ES 3.0 Renderer: NVIDIA GeForce GTX 1060 6GB/PCIe/SSE2
+OpenGL ES Batching: ON
+ 
+Project is missing: C:\Program Files (x86)\Steam\steamapps\common\Godot Engine/demos/2d/sdf_font/project.godot
+Project is missing: C:\Program Files (x86)\Steam\steamapps\common\Godot Engine/demos/gui/translation/font/project.godot
+Project is missing: C:\Program Files (x86)\Steam\steamapps\common\Godot Engine/demos/misc/android_iap/project.godot
+Project is missing: C:\Program Files (x86)\Steam\steamapps\common\Godot Engine/demos/misc/instancing/project.godot
+Project is missing: C:\Program Files (x86)\Steam\steamapps\common\Godot Engine/demos/misc/multitouch_cubes/project.godot
+Project is missing: C:\Program Files (x86)\Steam\steamapps\common\Godot Engine/demos/misc/multitouch_view/project.godot
+Project is missing: C:\Program Files (x86)\Steam\steamapps\common\Godot Engine/demos/misc/regex/project.godot
+Project is missing: C:\Program Files (x86)\Steam\steamapps\common\Godot Engine/demos/misc/sensors/project.godot
+Project is missing: C:\Program Files (x86)\Steam\steamapps\common\Godot Engine/demos/misc/tween/project.godot
+Project is missing: C:/Users/AntonG/Desktop/dota/project.godot
+Project is missing: C:/Users/AntonG/Desktop/test game/project.godot
+Project is missing: C:/Users/AntonG/Desktop/Godot3_dodge-3.2/project.godot
+ERROR: Condition "default_certs != nullptr" is true.
+   at: load_default_certificates (modules/mbedtls/crypto_mbedtls.cpp:314) - Condition "default_certs != nullptr" is true.
