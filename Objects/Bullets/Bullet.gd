@@ -1,6 +1,6 @@
 extends Area2D
 
-var speed = 3
+var speed = 8
 var lookV = Vector2.ZERO
 var target = null
 
@@ -11,7 +11,7 @@ func _ready() -> void:
 	else:
 		queue_free()
 
-func _physics_process(delta: float) -> void:
+func _physics_process(_delta: float) -> void:
 	global_position += Vector2.ZERO.move_toward(lookV, speed)
 
 func _on_VisibilityNotifier2D_screen_exited() -> void:
