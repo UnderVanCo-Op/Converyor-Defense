@@ -3,15 +3,21 @@ extends StaticBody2D
 
 signal ConvBuilding(reftoNode, isUsed, Pntposition)
 var isUsed := false			# for speed of checking
-var isSpawnPoint := true	# shows if this is the start point of a chain
+var isSpawnPoint := true setget setter_isSpP	# shows if this is the start point of a chain
 var inc_convs := []			# list-arrays for inc conveyors. All the conv inside these 2 lists must
 var out_convs := []			# be (and are) ready to use
+
+func setter_isSpP(new_val : bool) -> void:
+	print("WOROAWROAWROARWOAORW", new_val)
+	isSpawnPoint = new_val
+	pass
 
 func _on_TextureButton_pressed() -> void:
 	emit_signal("ConvBuilding", self, isUsed, get_node("Position2D").global_position)
 
 func AddIncConv(conv) -> void:
-	isSpawnPoint = false				# this breaks a circle spawn
+	call_deferred("set", "isSpawnPoint", false)
+#	isSpawnPoint = false				# this breaks a circle spawn
 	inc_convs.append(conv)				# new ref to list
 	pass
 
