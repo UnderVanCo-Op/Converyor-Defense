@@ -60,7 +60,7 @@ func TryMoveCell() -> bool:
 
 
 # Recursive function for moving request to the start of a chain
-func ReceiveSpawnRequest(count : int, conv = out_convs[0]) -> void:
+func ReceiveSpawnRequest(count : int, conv) -> void:
 	# Checks
 	if(!isSpawnPoint and inc_convs.size() == 0):		# mb add another, antonymus check
 		push_error("Point_ERROR: ReceiveReq can not be executed since no incoming conv are connected and not spawnpoint!")
@@ -76,4 +76,5 @@ func ReceiveSpawnRequest(count : int, conv = out_convs[0]) -> void:
 		conv.SpawnCells(count)
 	else:
 		print("Point: Moving request to the prev Point!")
-		inc_convs[0].Point.ReceiveSpawnRequest(count)	# move on to the prev conv and Point
+		inc_convs[0].Point.ReceiveSpawnRequest(count, inc_convs[0])	# move on to the prev conv and Point
+		# inc convs[0] should be replaced with smart choice of a path-system
