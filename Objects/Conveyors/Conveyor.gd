@@ -23,8 +23,6 @@ var QuitOffset : int = -1				# gets calc in CountCap method
 
 signal StopCells()			# signal is emitted when cells are need to be stopped
 signal StartCells()			# signal is emitted when cells are need to be started
-#signal SpawnFreed()			#
-#signal UpdateFirstCell()	# emit when ref to  1 cell is changed
 
 func ActivatePhysics() -> void:
 	isReady = false
@@ -33,41 +31,21 @@ func ActivatePhysics() -> void:
 func DeactivatePhysics() -> void:
 	set_physics_process(false)
 
-func _ready() -> void:
-#	get_tree().connect("physics_frame", self, "PrePhysProc")
-	pass
-
 func _physics_process(_delta: float) -> void:
 	if(isSpawning and CellOnSpawn and CellOnSpawn.offset >= SpawnFreeOffset - 10):
 		call_deferred("SpawnQ")
-#	if(Point.isSpawnPoint):
 	if(!isReady):
 		CheckQuitOffset()	# now it is called from GM through Point
 	pass
 
-# Method is only needed for fixing dst btw cells, which turns out to be inaccurate bcs of cells doing += speed 1 more phys tick more, than needed
-#func PrePhysProc() -> void:
-##	print("prephys")
-#
-#	pass
 
 func CheckQuitOffset() -> void:
 	if(FirstCell and FirstCell.offset >= QuitOffset - 10):
-#		if(endPoint.out_convs):			# recursivly going into deep to the end of all chain to ensure order ot cells moving, from end to start
-#			endPoint.out_convs[0].CheckQuitOffset()
 		print("Conv firstcell is in the end!")
 		isReady = true
 		call_deferred("StopCells")
 		if(!isSpawning):
 			call_deferred("DeactivatePhysics")
-		
-#		if(!endPoint.call("TryMoveCell")):				# if cell was not moved, than stop checking (until some point, connected with out conv says we need to start again
-#			StopCells()
-##			DeactivatePhysics()	 #commented bcs the request to move cell is soming late if we deactivate physics process, at least for now
-#			isReady = true
-#			endPoint.call_deferred("TryMoveCell")	# dont need to stop, bcs already stopped
-#		else:
-#			isReady = false
 	else:
 		ActivatePhysics()
 		isReady = false
@@ -118,14 +96,12 @@ func CountCapacity() -> int:
 	if(temp != 0):
 		QuitOffset += (10 - QuitOffset % 10)						# ceil to 10
 	SpawnFreeOffset -= (SpawnFreeOffset % 10)
-#	QuitOffset = stepify(QuitOffset, 10)
 	if(QuitOffset >= Cleng):		# Check
 		push_error("Conv_CountCap_ERROR: QuitOffset is greater that curve length! Setting default value...")
 		print("QuitOffset: ", QuitOffset)
 		QuitOffset = Cleng - StartOffset
 	if(StartOffset == QuitOffset):
 		push_warning("Conv_CountCap_WARNING: StartOffset = QuitOffset, so there will be no movement on conveyor!")
-#	QuitOffset = 560
 	print("\nCleng: ", Cleng, " Chislitel: ", Cleng - StartOffset - StartOffset, " capacity: ", _capacity, " x: ", _rect.x * _scale.x, " StartOffset: ", StartOffset, " SpawnFreeOffset: ", SpawnFreeOffset, " QuitOffset: ", QuitOffset, " FREE_DST: ", FREE_DST)
 	
 	capacity = _capacity
@@ -169,15 +145,7 @@ func ReceiveCell(newcell : PathFollow2D, addtnlOffset := 0) -> bool:
 	else:
 		newcell.isMoving = false
 	
-	# FIX
-#	var childsC = get_child_count()
-#	if(((childsC == 1 and endPoint.out_convs) or childsC != 1) and childsC != capacity):	# 1 bcs cell is already spawned from Point, capacity to exclude last cell bcs conv is going to be stopped and last cell is gonna overlap the next cell bcs of down (else) fix
-#		newcell.offset += 10
-#		if(addtnlOffset != 0):
-#			newcell.offset += addtnlOffset
-	
 	CellOnSpawn = newcell
-#	newcell._physics_process(0)
 	if(get_child_count() == 1):		# if more, they should be moving already
 		StartCells()
 	CheckIfCapacityIsOver()

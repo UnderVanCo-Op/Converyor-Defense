@@ -11,19 +11,13 @@ var gui = null						# gui reference	(GUI)
 var Point = null					#  (point, for cancelling)
 var isStartConv := true				# if there was a start of a conveyor (conv switcher btw start/end)
 var isFocusedOnSmth := false		# if we are already interacting with smth	(focus)
-#var endsPlist := []
 
 var money := 250
 
 
 func _ready() -> void:
-#	conv_list.clear()
 	signalConnector()
 	gui.call("updateMoney", money)				# calling to GUI.gd
-
-#func _physics_process(delta: float) -> void:
-#	for p in endsPlist:
-#		p.CheckQuitInChain()
 
 # Method is responsible for finding and connecting signals to THIS script
 func signalConnector() -> void:
@@ -52,9 +46,6 @@ func s_Cancel() -> void:				# signal from GUI.gd (RMB)
 	if(isFocusedOnSmth):
 		if(!isStartConv):
 			print("\nCanceling conveyor")
-#			conv_list.erase(convBuildRef)	# delete conv from list
-#			PrintConvList()					# print active conv-s
-#			DeArmPoint() 
 			isStartConv = true
 			isFocusedOnSmth = false
 			convBuildRef.queue_free()
@@ -77,10 +68,8 @@ func DeArmPoint() -> void:
 		if(!isStartConv):
 			Point.out_convs.erase(convBuildRef)		# delete new ref in the list
 			print("disarmed Point")
-			#print("Point out has been decreased to 1")
 			if(Point.inc_convs.size() == 0 and Point.inc_convs.size() == 0):
 				Point.isUsed = false
-				#print("Point also has been marked as not used")
 		else:
 			push_error("GM_DeArmPoint_ERROR: isStartConv is true, wtf?")
 
@@ -149,11 +138,6 @@ func s_ConvBuild(refToPoint : StaticBody2D, isUsed : bool, _Pntposition : Vector
 #		Point.TryMoveCell()					# Set up connections in start point
 		RequestSpawn(convBuildRef.capacity)	# requesting spawn from start point
 		
-		# General
-#		if(endsPlist.has(Point) or !refToPoint.out_convs):	# if start point is in list and no outcoming convs in end point
-#			endsPlist.erase(Point)			# delete start point from list
-#			endsPlist.append(refToPoint)	# add point to list of end points of chains
-		
 		isFocusedOnSmth = false
 		isStartConv = true
 		convBuildRef = null					# deleting reference as a precaution
@@ -162,7 +146,6 @@ func s_ConvBuild(refToPoint : StaticBody2D, isUsed : bool, _Pntposition : Vector
 
 # convBuildRef dependent
 func RequestSpawn(_count : int) -> void:
-#	Point = BadPoint.instance()
 	print("GM: req for spawning ", _count, " cells")
 	if(_count < 1):
 		push_error("GM_RequestS_ERROR: Can not send req with less than 1 cells to spawn!")
