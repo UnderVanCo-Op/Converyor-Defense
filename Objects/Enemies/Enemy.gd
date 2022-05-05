@@ -4,9 +4,15 @@ extends PathFollow2D
 var speed = 4
 var hp = 10
 
+
 func _physics_process(delta: float) -> void:
 	offset += speed
-	if unit_offset >= 1:
+	#if unit_offset >= 1:
+		#queue_free()
+	if (global_position.x>1920):
+		print("ENDMAP")
+		get_parent().get_parent().get_parent().get_node("GUI/ProgressBar").ProgresBarHP()
+		
 		queue_free()
 
 
