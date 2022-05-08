@@ -73,9 +73,10 @@ func DeArmPoint() -> void:
 			push_error("GM_DeArmPoint_ERROR: isStartConv is true, wtf?")
 
 
-# Marks point as Used, and also adds ref to conv, must be called after convBuildRef is set properly.
+# Marks point as Used and turns physics on, and also adds ref to conv, must be called after convBuildRef is set properly.
 func ArmPoint(_point : StaticBody2D, _isStartConv : bool) -> void:
-	if(!_point.isUsed):			# first use of this point
+	_point.set_physics_process(true)	# turn on the physics
+	if(!_point.isUsed):					# first use of this point
 		_point.isUsed = true
 	
 	if(_isStartConv):

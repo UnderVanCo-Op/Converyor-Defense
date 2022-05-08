@@ -6,36 +6,39 @@ var isUsed := false			# for speed of checking
 var isSpawnPoint := true setget setter_isSpP	# shows if this is the start point of a chain
 var inc_convs := []			# list-arrays for inc conveyors. All the conv inside these 2 lists must
 var out_convs := []			# be (and are) ready to use
-#var MoveCounter := 0		#
+var inc_count := 0			# 
+var out_count := 0			# 
+
+func _ready() -> void:
+	set_physics_process(false)
 
 func setter_isSpP(new_val : bool) -> void:
 	print("WOROAWROAWROARWOAORW", new_val)
 	isSpawnPoint = new_val
-	pass
 
 func _on_TextureButton_pressed() -> void:
 	emit_signal("ConvBuilding", self, isUsed, get_node("Position2D").global_position)
 
 func AddIncConv(conv) -> void:
 	call_deferred("set", "isSpawnPoint", false)
+	inc_count += 1
 #	isSpawnPoint = false				# this breaks a circle spawn
 	inc_convs.append(conv)				# new ref to list
-	pass
 
 func AddOutConv(conv) -> void:
+	out_count += 1
 	out_convs.append(conv)		# new ref to list
-	pass
 
 # warning-ignore:unused_argument
 func _physics_process(delta: float) -> void:
-	if(isUsed and inc_convs and inc_convs[0].isReady):
-		if(out_convs):
-			for outc in out_convs:
-				if(!outc.isReady):
-					TryMoveCell(outc)
+	if(isUsed and inc_convs and inc_convs[0].isReady and out_convs):
+		for outc in out_convs:
+			if(!outc.isReady and !outc.isSpawning):
+				TryMoveCell(outc)
+				break
 #	if(isUsed and inc_convs and inc_convs[0].isReady and out_convs and !out_convs[0].isReady):
 #		TryMoveCell()
-	pass
+
 
 #
 func TryMoveCell(outconv):
@@ -54,6 +57,11 @@ func TryMoveCell(outconv):
 		return false
 	
 	# General
+	print("Point is getting cell now")
+	inc_convs[0].StartCells()
+	inc_convs[0].ActivatePhysics()
+	inc_convs[0].isReady = false
+	
 	print("Point is moving cell...")
 	var cell = inc_convs[0].get_child(0)
 	
@@ -65,7 +73,7 @@ func TryMoveCell(outconv):
 	
 	outconv.add_child(cell)
 	outconv.call_deferred("ReceiveCell",cell)		# set up cell in new conv +updatefirstcell
-
+	
 	inc_convs[0].StartCells()
 	inc_convs[0].isReady = false			# start cells (emit signal) in inc conv bcs it is now freed
 	inc_convs[0].ActivatePhysics()

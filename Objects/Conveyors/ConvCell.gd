@@ -8,9 +8,10 @@ var isMoving := true	# if the cell is in movement
 
 func _ready() -> void:
 	# Cannon
-	var ref = cannon.instance()
-	ref.building = false
-	add_child(ref)
+#	var ref = cannon.instance()
+#	ref.building = false
+#	add_child(ref)
+
 	# Highlighting on spawn
 	$Sprite.scale *= 2						# for highlighting spawn
 	yield(get_tree().create_timer(0.5), "timeout")	# 

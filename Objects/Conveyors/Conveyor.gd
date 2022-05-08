@@ -17,8 +17,9 @@ var cellInQ := 0						# cells, that are enqueued in this conv
 const FREE_DST := 110					# wanted distance btw pivot of near cells
 var SpawnFreeOffset : int = -1			# gets calc in CountCap method
 const POINT_OFFSET := 200				# basic offset to not overlap Point (around 230)
-export var WantedOffset : float = 0		# adds to Points offset (can be set from Editor mb)
-var StartOffset : float = -1			# gets calc in CountCap method
+export var WantedOffset : int = 0		# adds to Points offset (can be set from Editor mb)
+var StartOffset : int = -1			# gets calc in CountCap method
+var ShadeOffset : int = -1
 var QuitOffset : int = -1				# gets calc in CountCap method
 
 signal StopCells()			# signal is emitted when cells are need to be stopped
@@ -35,8 +36,21 @@ func _physics_process(_delta: float) -> void:
 	if(isSpawning and CellOnSpawn and CellOnSpawn.offset >= SpawnFreeOffset - 10):
 		call_deferred("SpawnQ")
 	if(!isReady):
-		CheckQuitOffset()	# now it is called from GM through Point
+#		CheckQuitOffset()
+		CheckShadeOffset()
 	pass
+
+
+func CheckShadeOffset() -> void:
+	if(FirstCell and FirstCell.offset >= ShadeOffset - 10):
+		print("Conv firstcell is in the end!")
+		isReady = true
+		call_deferred("StopCells")
+		if(!isSpawning):
+			call_deferred("DeactivatePhysics")
+#	else:
+#		ActivatePhysics()
+#		isReady = false
 
 
 func CheckQuitOffset() -> void:
@@ -89,19 +103,21 @@ func CountCapacity() -> int:
 	
 	var _capacity : int =  int((Cleng - StartOffset - StartOffset) / (FREE_DST))	# for now
 	_capacity += 1		# bcs FREE_DST is only distance btw cells
-	QuitOffset = StartOffset + (_capacity - 1 ) * (FREE_DST)
-	print("QuitOffset before ceiling: ", QuitOffset)
-	var temp := QuitOffset % 10
+	ShadeOffset = StartOffset + (_capacity - 1 ) * (FREE_DST)
+	print("ShadeOffset before ceiling: ", ShadeOffset)
+	var temp := ShadeOffset % 10
 	if(temp != 0):
-		QuitOffset += (10 - QuitOffset % 10)						# ceil to 10
+		ShadeOffset += (10 - ShadeOffset % 10)						# ceil to 10
 	SpawnFreeOffset -= (SpawnFreeOffset % 10)
-	if(QuitOffset >= Cleng):		# Check
-		push_error("Conv_CountCap_ERROR: QuitOffset is greater that curve length! Setting default value...")
-		print("QuitOffset: ", QuitOffset)
-		QuitOffset = Cleng - StartOffset
-	if(StartOffset == QuitOffset):
-		push_warning("Conv_CountCap_WARNING: StartOffset = QuitOffset, so there will be no movement on conveyor!")
-	print("\nCleng: ", Cleng, " Chislitel: ", Cleng - StartOffset - StartOffset, " capacity: ", _capacity, " x: ", _rect.x * _scale.x, " StartOffset: ", StartOffset, " SpawnFreeOffset: ", SpawnFreeOffset, " QuitOffset: ", QuitOffset, " FREE_DST: ", FREE_DST)
+	if(ShadeOffset >= Cleng):		# Check
+		push_error("Conv_CountCap_ERROR: ShadeOffset is greater that curve length! Setting default value...")
+		print("ShadeOffset: ", ShadeOffset)
+		ShadeOffset = Cleng - StartOffset
+	if(StartOffset == ShadeOffset):
+		push_warning("Conv_CountCap_WARNING: StartOffset = ShadeOffset, so there will be no movement on conveyor!")
+	QuitOffset = ShadeOffset + FREE_DST
+		
+	print("\nCleng: ", Cleng, " Chislitel: ", Cleng - StartOffset - StartOffset, " capacity: ", _capacity, " x: ", _rect.x * _scale.x, " StartOffset: ", StartOffset, " SpawnFreeOffset: ", SpawnFreeOffset, " ShadeOffset: ", ShadeOffset, " QuitOffset: ", QuitOffset,  " FREE_DST: ", FREE_DST)
 	
 	capacity = _capacity
 	return _capacity
@@ -113,12 +129,12 @@ func CheckIfCapacityIsOver() -> bool:
 		push_error("Conv_CRITICAL_ERROR: there are more than max cells on" + str(self) + "conveyor !!!")
 		isFull = true
 		return true
-	elif(get_child_count() < capacity):
+	else:
 		isFull = false
 		return false
-	else:					# ==capacity + 1 and ==capacity
-		isFull = true
-		return true
+#	else:					# ==capacity + 1 and ==capacity
+#		isFull = true
+#		return true
 
 func CheckIfSpawnIsFree() -> bool:
 	if(get_child_count() == 0):
