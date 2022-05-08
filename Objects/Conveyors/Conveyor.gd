@@ -50,7 +50,6 @@ func CheckQuitOffset() -> void:
 		ActivatePhysics()
 		isReady = false
 
-
 func StopCells() -> void:
 	print("Stopping cells on a conv ", self)
 	isMoving = false
@@ -121,7 +120,6 @@ func CheckIfCapacityIsOver() -> bool:
 		isFull = true
 		return true
 
-
 func CheckIfSpawnIsFree() -> bool:
 	if(get_child_count() == 0):
 		return true
@@ -129,6 +127,7 @@ func CheckIfSpawnIsFree() -> bool:
 		return false
 	else:
 		return true
+
 
 # Method for setting starting valus for incoming cell, unit_offset doesn't seem to work outside the conv
 func ReceiveCell(newcell : PathFollow2D, addtnlOffset := 0) -> bool:

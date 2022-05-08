@@ -3,7 +3,6 @@ extends Node2D
 
 var cannon = preload("res://Objects/Cannons/Cannon.tscn")
 var conv = preload("res://Objects/Conveyors/Conveyor.tscn")
-var BadPoint = preload("res://Objects/Points/Point.tscn")		# is used for auto-complete :)
 
 var convBuildRef  = null 			# ref to new v of conveyour building	(conv)
 var cannonBuildRef = null			# ref to cannon in b-ing stage, mb unj-ly	(cannon)

@@ -6,7 +6,7 @@
 [ext_resource path="res://Objects/Points/Point.gd" type="Script" id=4]
 
 [sub_resource type="RectangleShape2D" id=1]
-extents = Vector2( 130, 129 )
+extents = Vector2( 92, 91.5 )
 
 [node name="Point" type="StaticBody2D" groups=["Points"]]
 collision_layer = 4
@@ -14,18 +14,21 @@ collision_mask = 4
 script = ExtResource( 4 )
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2( 126, 125 )
+position = Vector2( 88, 87.5 )
 shape = SubResource( 1 )
 
 [node name="TextureButton" type="TextureButton" parent="."]
-anchor_right = 1.0
-anchor_bottom = 1.0
+margin_left = -37.0
+margin_top = -37.0
+margin_right = 214.0
+margin_bottom = 214.0
+rect_scale = Vector2( 0.7, 0.7 )
 rect_pivot_offset = Vector2( 126, 125 )
 texture_normal = ExtResource( 1 )
 texture_pressed = ExtResource( 3 )
 texture_hover = ExtResource( 2 )
 
 [node name="Position2D" type="Position2D" parent="."]
-position = Vector2( 126, 125 )
+position = Vector2( 88, 88 )
 
 [connection signal="pressed" from="TextureButton" to="." method="_on_TextureButton_pressed"]
