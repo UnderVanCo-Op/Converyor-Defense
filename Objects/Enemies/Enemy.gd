@@ -9,7 +9,7 @@ func _physics_process(delta: float) -> void:
 	offset += speed
 	#if unit_offset >= 1:
 		#queue_free()
-	if (global_position.x>1920):
+	if (unit_offset>=0.99):
 		print("ENDMAP")
 		get_parent().get_parent().get_parent().get_node("GUI/ProgressBar").ProgresBarHP()
 		
