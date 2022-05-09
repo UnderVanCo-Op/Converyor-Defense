@@ -9,7 +9,7 @@
    id="svg5"
    inkscape:version="1.1 (c68e22c387, 2021-05-23)"
    sodipodi:docname="earth.svg"
-   inkscape:export-filename="C:\game\Converyor-Defense\Game Files\Graphics\Sprites\earth.png"
+   inkscape:export-filename="C:\game\Converyor-Defense\Game Files\Graphics\Tiles\earth.png"
    inkscape:export-xdpi="162.55954"
    inkscape:export-ydpi="162.55954"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
@@ -29,9 +29,9 @@
      inkscape:object-paths="false"
      inkscape:snap-page="false"
      inkscape:snap-grids="true"
-     inkscape:zoom="0.70710678"
-     inkscape:cx="-325.26912"
-     inkscape:cy="204.35386"
+     inkscape:zoom="2"
+     inkscape:cx="-9.5"
+     inkscape:cy="85.25"
      inkscape:window-width="1920"
      inkscape:window-height="1017"
      inkscape:window-x="1352"
@@ -127,7 +127,7 @@
      inkscape:label="Слой 4"
      style="display:inline">
     <g
-       id="g5648">
+       id="g2314">
       <g
          id="g4174">
         <path
@@ -266,7 +266,7 @@
            sodipodi:nodetypes="sccas" />
         <path
            style="display:inline;fill:#9af500;fill-opacity:1;stroke:none;stroke-width:0.0418343px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-           d="M 20.330729,11.206254 20,8.000004 c 3.521817,-0.00428 6.896517,0.5799058 10.198438,1.4552083 C 31.297,10.303476 30.616638,11.15174 30,12.000004 c -3.22309,0.06767 -6.446181,-0.113724 -9.669271,-0.79375 z"
+           d="M 20.330729,11.206254 20,8.000004 C 23.521817,7.995724 26.896517,8.5799098 30.198438,9.4552123 31.297,10.303476 30.616638,11.15174 30,12.000004 c -3.22309,0.06767 -6.446181,-0.113724 -9.669271,-0.79375 z"
            id="path1332-7-4"
            sodipodi:nodetypes="ccccc" />
         <path
@@ -330,12 +330,12 @@
            sodipodi:nodetypes="ccccc" />
       </g>
       <rect
-         style="fill:#c09e04;fill-opacity:0.19243985;fill-rule:evenodd;stroke:none;stroke-width:10;stroke-linecap:square;paint-order:markers stroke fill"
+         style="fill:#000000;fill-opacity:0.20618556;fill-rule:evenodd;stroke:none;stroke-width:10;stroke-linecap:square;paint-order:markers stroke fill"
          id="rect6499"
          width="40"
          height="40"
          x="0"
-         y="0" />
+         y="4e-06" />
     </g>
   </g>
 </svg>
