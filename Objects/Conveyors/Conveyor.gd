@@ -5,7 +5,7 @@ var ConvCell := preload("res://Objects/Conveyors/ConvCell.tscn")
 var Point : StaticBody2D = null			# stores ref to point-parent (not used currently)
 var endPoint : StaticBody2D = null		# stores ref to point-next (used in phys_proc)
 var capacity := -1						# stores number of cells, that conv can have
-var isFull := false						# shows if the conveyor is fulled with cells
+var isFull := false						# shows if the conveyor is fulled with cells (+1)
 var isMoving := false					#
 var isReady := false					# fulled and stopped
 var isBuilding := true					# shows if the conv is in building stage
@@ -18,15 +18,17 @@ const FREE_DST := 110					# wanted distance btw pivot of near cells
 var SpawnFreeOffset : int = -1			# gets calc in CountCap method
 const POINT_OFFSET := 200				# basic offset to not overlap Point (around 230)
 export var WantedOffset : int = 0		# adds to Points offset (can be set from Editor mb)
-var StartOffset : int = -1			# gets calc in CountCap method
-var ShadeOffset : int = -1
+var StartOffset : int = -1				# gets calc in CountCap method
+var ShadeOffset : int = -1				#
 var QuitOffset : int = -1				# gets calc in CountCap method
+var isShaded := false					# sets only from Point, no changing inside Conv.gd must be done
+var isCellOnQuit := false				#
 
 signal StopCells()			# signal is emitted when cells are need to be stopped
 signal StartCells()			# signal is emitted when cells are need to be started
 
 func ActivatePhysics() -> void:
-	isReady = false
+#	isReady = false
 	set_physics_process(true)
 
 func DeactivatePhysics() -> void:
@@ -35,16 +37,19 @@ func DeactivatePhysics() -> void:
 func _physics_process(_delta: float) -> void:
 	if(isSpawning and CellOnSpawn and CellOnSpawn.offset >= SpawnFreeOffset - 10):
 		call_deferred("SpawnQ")
-	if(!isReady):
+	if(!isReady and !isShaded):
 #		CheckQuitOffset()
 		CheckShadeOffset()
+	if(isShaded):
+		CheckQuitOffset()
 	pass
 
 
 func CheckShadeOffset() -> void:
 	if(FirstCell and FirstCell.offset >= ShadeOffset - 10):
-		print("Conv firstcell is in the end!")
-		isReady = true
+		print("Conv firstcell is in 10p from the ShadeOffset!")
+		if(get_child_count() == capacity):
+			isReady = true
 		call_deferred("StopCells")
 		if(!isSpawning):
 			call_deferred("DeactivatePhysics")
@@ -55,14 +60,14 @@ func CheckShadeOffset() -> void:
 
 func CheckQuitOffset() -> void:
 	if(FirstCell and FirstCell.offset >= QuitOffset - 10):
-		print("Conv firstcell is in the end!")
-		isReady = true
+		print("Conv firstcell is in 10p from the QuitOffset!")
 		call_deferred("StopCells")
 		if(!isSpawning):
 			call_deferred("DeactivatePhysics")
-	else:
-		ActivatePhysics()
-		isReady = false
+		isCellOnQuit = true
+#	else:
+#		ActivatePhysics()
+#		isReady = false
 
 func StopCells() -> void:
 	print("Stopping cells on a conv ", self)
@@ -159,6 +164,7 @@ func ReceiveCell(newcell : PathFollow2D, addtnlOffset := 0) -> bool:
 		newcell.isMoving = true
 	else:
 		newcell.isMoving = false
+		isReady = true
 	
 	CellOnSpawn = newcell
 	if(get_child_count() == 1):		# if more, they should be moving already
@@ -211,6 +217,7 @@ func SpawnCells(count : int) -> void:
 	isSpawning = true
 	if(get_child_count() == 0):		# mb if not firstcell
 		CellOnSpawn = AddCell()		# update cellonspawn
+		print("First cell spawned")
 		cellInQ -= 1
 	
 	cellInQ += count

@@ -8,6 +8,7 @@ var inc_convs := []			# list-arrays for inc conveyors. All the conv inside these
 var out_convs := []			# be (and are) ready to use
 var inc_count := 0			# 
 var out_count := 0			# 
+var isShadingCell := false	#
 
 func _ready() -> void:
 	set_physics_process(false)
@@ -29,22 +30,26 @@ func AddOutConv(conv) -> void:
 	out_count += 1
 	out_convs.append(conv)		# new ref to list
 
+
+# For now system chooses outc conv (if multiply are free) by who-is-first-entry in the out_convs (time approach)
 # warning-ignore:unused_argument
 func _physics_process(delta: float) -> void:
-	if(isUsed and inc_convs and inc_convs[0].isReady and out_convs):
+	if(isUsed and inc_convs and (inc_convs[0].isReady or inc_convs[0].isShaded) and out_convs):
 		for outc in out_convs:
-			if(!outc.isReady and !outc.isSpawning):
-				TryMoveCell(outc)
-				break
+			if(!outc.isReady and !outc.isSpawning):		# finding free conv
+				if(!isShadingCell):
+					TryShadeCell(outc)
+					break		# this ensures point only moves one cell from all inc convs to only one out conv
+				elif(inc_convs[0].isCellOnQuit):
+					TryMoveCell(outc)
+					break		# this ensures point only moves one cell from all inc convs to only one out conv
 #	if(isUsed and inc_convs and inc_convs[0].isReady and out_convs and !out_convs[0].isReady):
 #		TryMoveCell()
 
 
 #
-func TryMoveCell(outconv):
-#	MoveCounter += 1	# seems like Point has only 1 unnessarily call of this func
-#	print("Movecounter becomes ", MoveCounter, " on some Point...")
-	print("Outconv move reached")
+func TryShadeCell(outconv):
+	print("TryShadeCell reached")
 	# Checks
 	if(outconv.isBuilding or outconv.CheckIfCapacityIsOver()):	# to be heavied in the future
 		push_warning("Point_ConnC_WARNING: Out conv is full or is building, returning")
@@ -52,17 +57,38 @@ func TryMoveCell(outconv):
 	if(inc_convs[0].isBuilding):
 		push_warning("Point_ConnC_WARNING: Inc conv is building, returning")
 		return false
-	if(!outconv.CheckIfSpawnIsFree()):
-		push_warning("Point_ConnC_WARNING: Out conv spawn is not free, returning")
-		return false
+#	if(!outconv.CheckIfSpawnIsFree()):
+#		push_warning("Point_ConnC_WARNING: Out conv spawn is not free, returning")
+#		return false
+	
+	if(!isShadingCell):
+		print("\nPoint is offsetting cell now")
+		inc_convs[0].StartCells()
+		inc_convs[0].ActivatePhysics()
+		inc_convs[0].isShaded = true
+		isShadingCell = true
+	else:
+		push_error("Point_TryShade_ERROR: Tried to shade cell when some other cell is already shading")
+		
+
+#
+func TryMoveCell(outconv):
+#	MoveCounter += 1	# seems like Point has only 1 unnessarily call of this func
+#	print("Movecounter becomes ", MoveCounter, " on some Point...")
+#	print("TryMoveCell reached")
+	# Checks are commented, bcs we have done them in TryShade method
+#	if(outconv.isBuilding or outconv.CheckIfCapacityIsOver()):	# to be heavied in the future
+#		push_warning("Point_ConnC_WARNING: Out conv is full or is building, returning")
+#		return false
+#	if(inc_convs[0].isBuilding):
+#		push_warning("Point_ConnC_WARNING: Inc conv is building, returning")
+#		return false
+#	if(!outconv.CheckIfSpawnIsFree()):
+#		push_warning("Point_ConnC_WARNING: Out conv spawn is not free, returning")
+#		return false
 	
 	# General
-	print("Point is getting cell now")
-	inc_convs[0].StartCells()
-	inc_convs[0].ActivatePhysics()
-	inc_convs[0].isReady = false
-	
-	print("Point is moving cell...")
+	print("\nPoint is moving cell now")
 	var cell = inc_convs[0].get_child(0)
 	
 	inc_convs[0].remove_child(cell)
@@ -72,11 +98,16 @@ func TryMoveCell(outconv):
 	inc_convs[0].CheckIfCapacityIsOver()	# set isFull properly
 	
 	outconv.add_child(cell)
-	outconv.call_deferred("ReceiveCell",cell)		# set up cell in new conv +updatefirstcell
+	outconv.call_deferred("ReceiveCell", cell)		# set up cell in new conv +updatefirstcell
 	
-	inc_convs[0].StartCells()
-	inc_convs[0].isReady = false			# start cells (emit signal) in inc conv bcs it is now freed
+	# start cells (emit signal) in inc conv bcs it is now freed
+	inc_convs[0].isShaded = false
+	inc_convs[0].isCellOnQuit = false
+#	inc_convs[0].StartCells()
+	inc_convs[0].StopCells()
 	inc_convs[0].ActivatePhysics()
+	
+	isShadingCell = false
 	return true
 
 
@@ -126,7 +157,7 @@ func ReceiveSpawnRequest(count : int, conv) -> void:
 	# General
 	if(isSpawnPoint):
 		# add check for cycle works, mb TryMoveCell()
-		conv.StartCells()
+#		conv.StartCells()
 		conv.ActivatePhysics()
 		conv.SpawnCells(count)
 	else:
