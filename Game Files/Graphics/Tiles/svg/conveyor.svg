@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 210 297"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.1 (c68e22c387, 2021-05-23)"
+   sodipodi:docname="conveyor.svg"
+   inkscape:export-filename="C:\game\Converyor-Defense\Game Files\Graphics\Tiles\conveyor.png"
+   inkscape:export-xdpi="162.56"
+   inkscape:export-ydpi="162.56"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#999999"
+     borderopacity="1"
+     inkscape:pageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="3.0574074"
+     inkscape:cx="92.235009"
+     inkscape:cy="96.977589"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1352"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2">
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient21952"
+       id="radialGradient21956"
+       cx="-14.397429"
+       cy="80.690292"
+       fx="-14.397429"
+       fy="80.690292"
+       r="15"
+       gradientTransform="matrix(0.99999994,-3.2832249e-4,0.01422779,43.336791,-0.04266308,-3385.9851)"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient21952">
+      <stop
+         style="stop-color:#faf8ef;stop-opacity:1;"
+         offset="0"
+         id="stop21948" />
+      <stop
+         style="stop-color:#faf8ef;stop-opacity:0;"
+         offset="1"
+         id="stop21950" />
+    </linearGradient>
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient21952"
+       id="radialGradient21956-2"
+       cx="-14.397429"
+       cy="80.690292"
+       fx="-14.397429"
+       fy="80.690292"
+       r="15"
+       gradientTransform="matrix(0.99999994,-3.2832249e-4,0.01422779,43.336791,-0.04266308,-3385.9851)"
+       gradientUnits="userSpaceOnUse" />
+  </defs>
+  <g
+     inkscape:label="Слой 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <g
+       id="g1944">
+      <rect
+         style="fill:#333333;fill-rule:evenodd;stroke:none;stroke-width:0.00552882;stroke-linecap:square;stroke-linejoin:bevel;paint-order:markers stroke fill"
+         id="rect1174"
+         width="47.999912"
+         height="40"
+         x="-4.0004582"
+         y="0" />
+      <rect
+         style="fill:#b3b3b3;fill-rule:evenodd;stroke:none;stroke-width:0.00554356;stroke-linecap:square;stroke-linejoin:bevel;paint-order:markers stroke fill"
+         id="rect1318"
+         width="4"
+         height="40"
+         x="39.999454"
+         y="0"
+         inkscape:export-filename="C:\Users\AntonG\Desktop\conv.png"
+         inkscape:export-xdpi="60.959991"
+         inkscape:export-ydpi="60.959991" />
+      <rect
+         style="fill:#b3b3b3;fill-rule:evenodd;stroke:none;stroke-width:0.00554356;stroke-linecap:square;stroke-linejoin:bevel;paint-order:markers stroke fill"
+         id="rect1318-1"
+         width="4"
+         height="40"
+         x="-4.0004582"
+         y="0"
+         inkscape:export-filename="C:\Users\AntonG\Desktop\conv.png"
+         inkscape:export-xdpi="60.959991"
+         inkscape:export-ydpi="60.959991" />
+      <g
+         id="g23339"
+         transform="matrix(0.1,0,0,0.1,-4.0004584,9.0000001)">
+        <path
+           style="fill:#cdba66;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="M 0,39.999999 -30,50 v 120 l 30,10 z"
+           id="path21279"
+           sodipodi:nodetypes="ccccc" />
+        <path
+           style="opacity:0.273239;fill:url(#radialGradient21956);fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="M -3e-6,39.999999 -30,50 l 3e-6,120 L 0,180 Z"
+           id="path21279-3"
+           sodipodi:nodetypes="ccccc" />
+      </g>
+      <g
+         id="g23339-1"
+         transform="matrix(-0.1,0,0,0.1,43.999454,9.0000001)">
+        <path
+           style="fill:#cdba66;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="M 0,39.999999 -30,50 v 120 l 30,10 z"
+           id="path21279-1"
+           sodipodi:nodetypes="ccccc" />
+        <path
+           style="opacity:0.273239;fill:url(#radialGradient21956-2);fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="M -3e-6,39.999999 -30,50 l 3e-6,120 L 0,180 Z"
+           id="path21279-3-1"
+           sodipodi:nodetypes="ccccc" />
+      </g>
+    </g>
+  </g>
+</svg>
