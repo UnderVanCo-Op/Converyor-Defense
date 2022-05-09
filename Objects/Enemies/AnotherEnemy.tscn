@@ -4,7 +4,7 @@
 [ext_resource path="res://Objects/Enemies/chel2.png" type="Texture" id=2]
 
 [sub_resource type="CapsuleShape2D" id=1]
-radius = 29.0
+radius = 30.0
 height = 170.0
 
 [node name="AnotherEnimy" type="PathFollow2D"]
