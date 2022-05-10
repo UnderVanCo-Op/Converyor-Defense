@@ -23,10 +23,6 @@ func _ready() -> void:
 func _physics_process(_delta: float) -> void:
 	if(isMoving):
 		offset += speed
-	#if(unit_offset >= 1):
-		#emit_signal("ReachedEnd")
-		#queue_free()
-
 
 func s_StopCell() -> void:		# signal income from Conveyor.gd
 	isMoving = false

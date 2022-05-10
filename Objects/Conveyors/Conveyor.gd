@@ -13,7 +13,7 @@ var FirstCell : PathFollow2D = null		# ref to first cell in conv
 var CellOnSpawn : PathFollow2D = null 	# Practically, this is the last cell in conv
 var isSpawning := false					# shows if the conv is spawning cells
 var cellInQ := 0						# cells, that are enqueued in this conv
-#var isSending := false					# shows if conv is sending cells somewhere to next conv
+var isSending := false				# shows if conv is sending cells somewhere to next conv
 const FREE_DST := 110					# wanted distance btw pivot of near cells
 var SpawnFreeOffset : int = -1			# gets calc in CountCap method
 const POINT_OFFSET := 200				# basic offset to not overlap Point (around 230)
@@ -36,7 +36,7 @@ func DeactivatePhysics() -> void:
 
 func _physics_process(_delta: float) -> void:
 	if(isSpawning and CellOnSpawn and CellOnSpawn.offset >= SpawnFreeOffset - 10):
-		call_deferred("SpawnQ")
+		call("SpawnQ")
 	if(!isReady and !isShaded):
 #		CheckQuitOffset()
 		CheckShadeOffset()
@@ -46,10 +46,8 @@ func _physics_process(_delta: float) -> void:
 
 
 func CheckShadeOffset() -> void:
-	if(FirstCell and FirstCell.offset >= ShadeOffset - 10):
+	if(FirstCell and FirstCell.offset >= ShadeOffset - 10 and !isSending):
 		print("Conv firstcell is in 10p from the ShadeOffset!")
-		if(get_child_count() == capacity):
-			isReady = true
 		call_deferred("StopCells")
 		if(!isSpawning):
 			call_deferred("DeactivatePhysics")
@@ -61,9 +59,9 @@ func CheckShadeOffset() -> void:
 func CheckQuitOffset() -> void:
 	if(FirstCell and FirstCell.offset >= QuitOffset - 10):
 		print("Conv firstcell is in 10p from the QuitOffset!")
-		call_deferred("StopCells")
-		if(!isSpawning):
-			call_deferred("DeactivatePhysics")
+#		call_deferred("StopCells")
+#		if(!isSpawning):
+#			call_deferred("DeactivatePhysics")
 		isCellOnQuit = true
 #	else:
 #		ActivatePhysics()
@@ -73,6 +71,8 @@ func StopCells() -> void:
 	print("Stopping cells on a conv ", self)
 	isMoving = false
 	emit_signal("StopCells")
+	if(get_child_count() == capacity):
+		isReady = true
 	
 func StartCells() -> void:
 	print("Starting cells on a conv ", self)
@@ -81,7 +81,7 @@ func StartCells() -> void:
 	emit_signal("StartCells")
 
 
-# Calculates and sets capacity, without gap and separation, to be redone in future
+# Calculates and sets all ofssets
 func CountCapacity() -> int:
 	if(curve.get_point_count() < 2):
 		push_error("Conveyor_CountC_ERROR: 1 or 0 points in curve is not enough!")
@@ -127,6 +127,14 @@ func CountCapacity() -> int:
 	capacity = _capacity
 	return _capacity
 
+
+func CheckIfCapacityIsEqual() -> bool:
+	if(get_child_count() == capacity):	# +1 bcs there are border-conditions when moving cells
+#		isFull = true
+		return true
+	else:
+#		isFull = false
+		return false
 
 # Checks if the number of cells exceed capacity + 1, should be done everytime operation with moving/spawning cell is done
 func CheckIfCapacityIsOver() -> bool:

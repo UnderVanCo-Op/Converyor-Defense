@@ -14,7 +14,7 @@ func _ready() -> void:
 	set_physics_process(false)
 
 func setter_isSpP(new_val : bool) -> void:
-	print("WOROAWROAWROARWOAORW", new_val)
+#	print("WOROAWROAWROARWOAORW", new_val)
 	isSpawnPoint = new_val
 
 func _on_TextureButton_pressed() -> void:
@@ -34,7 +34,7 @@ func AddOutConv(conv) -> void:
 # For now system chooses outc conv (if multiply are free) by who-is-first-entry in the out_convs (time approach)
 # warning-ignore:unused_argument
 func _physics_process(delta: float) -> void:
-	if(isUsed and inc_convs and (inc_convs[0].isReady or inc_convs[0].isShaded) and out_convs):
+	if(isUsed and inc_convs and (inc_convs[0].isSending or inc_convs[0].isShaded) and out_convs):
 		for outc in out_convs:
 			if(!outc.isReady and !outc.isSpawning):		# finding free conv
 				if(!isShadingCell):
@@ -63,10 +63,10 @@ func TryShadeCell(outconv):
 	
 	if(!isShadingCell):
 		print("\nPoint is offsetting cell now")
-		inc_convs[0].StartCells()
-		inc_convs[0].ActivatePhysics()
 		inc_convs[0].isShaded = true
 		isShadingCell = true
+#		inc_convs[0].StartCells()
+#		inc_convs[0].ActivatePhysics()
 	else:
 		push_error("Point_TryShade_ERROR: Tried to shade cell when some other cell is already shading")
 		
@@ -104,9 +104,12 @@ func TryMoveCell(outconv):
 	inc_convs[0].isShaded = false
 	inc_convs[0].isCellOnQuit = false
 #	inc_convs[0].StartCells()
-	inc_convs[0].StopCells()
-	inc_convs[0].ActivatePhysics()
-	
+#	inc_convs[0].StopCells()
+#	inc_convs[0].ActivatePhysics()
+	if(!outconv.isSending and outconv.CheckIfCapacityIsEqual()):
+		inc_convs[0].StopCells()
+		inc_convs[0].DeactivatePhysics()
+
 	isShadingCell = false
 	return true
 
@@ -146,7 +149,7 @@ func OldTryMoveCell() -> bool:
 
 
 # Recursive function for moving request to the start of a chain
-func ReceiveSpawnRequest(count : int, conv) -> void:
+func ReceiveSpawnRequest(count : int, conv, isContinuation := false) -> void:
 	# Checks
 	if(!isSpawnPoint and inc_convs.size() == 0):		# mb add another, antonymus check
 		push_error("Point_ERROR: ReceiveReq can not be executed since no incoming conv are connected and not spawnpoint!")
@@ -157,10 +160,12 @@ func ReceiveSpawnRequest(count : int, conv) -> void:
 	# General
 	if(isSpawnPoint):
 		# add check for cycle works, mb TryMoveCell()
-#		conv.StartCells()
+		if(isContinuation):
+			conv.isSending = true
+		conv.StartCells()
 		conv.ActivatePhysics()
 		conv.SpawnCells(count)
 	else:
 		print("Point: Moving request to the prev Point!")
-		inc_convs[0].Point.ReceiveSpawnRequest(count, inc_convs[0])	# move on to the prev conv and Point
+		inc_convs[0].Point.ReceiveSpawnRequest(count, inc_convs[0], true)	# move on to the prev conv and Point
 		# inc convs[0] should be replaced with smart choice of a path-system
