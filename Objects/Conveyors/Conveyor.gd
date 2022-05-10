@@ -138,7 +138,7 @@ func CheckIfCapacityIsEqual() -> bool:
 
 # Checks if the number of cells exceed capacity + 1, should be done everytime operation with moving/spawning cell is done
 func CheckIfCapacityIsOver() -> bool:
-	if(get_child_count() > capacity):	# +1 bcs there are border-conditions when moving cells
+	if(get_child_count() > capacity + 1):	# +1 bcs there are border-conditions when moving cells
 		push_error("Conv_CRITICAL_ERROR: there are more than max cells on" + str(self) + "conveyor !!!")
 		isFull = true
 		return true
@@ -159,7 +159,7 @@ func CheckIfSpawnIsFree() -> bool:
 
 
 # Method for setting starting valus for incoming cell, unit_offset doesn't seem to work outside the conv
-func ReceiveCell(newcell : PathFollow2D, addtnlOffset := 0) -> bool:
+func ReceiveCell(newcell : PathFollow2D) -> bool:
 	if(isFull):
 		push_error("Conv_ReceiveC_ERROR: Can not receive cell, since conv is full")
 		return false
@@ -173,7 +173,6 @@ func ReceiveCell(newcell : PathFollow2D, addtnlOffset := 0) -> bool:
 	else:
 		newcell.isMoving = false
 		isReady = true
-	
 	CellOnSpawn = newcell
 	if(get_child_count() == 1):		# if more, they should be moving already
 		StartCells()

@@ -9,6 +9,8 @@ var out_convs := []			# be (and are) ready to use
 var inc_count := 0			# 
 var out_count := 0			# 
 var isShadingCell := false	#
+var WasUsed := false		# recursive system works
+var WasCellMoved := false	# recursive system works
 
 func _ready() -> void:
 	set_physics_process(false)
@@ -34,24 +36,37 @@ func AddOutConv(conv) -> void:
 # For now system chooses outc conv (if multiply are free) by who-is-first-entry in the out_convs (time approach)
 # warning-ignore:unused_argument
 func _physics_process(delta: float) -> void:
-	if(isUsed and inc_convs and (inc_convs[0].isSending or inc_convs[0].isShaded) and out_convs):
+	if(!WasUsed):
+		CellWork()
+	
+
+#
+func ResetMarks() -> void:
+	WasUsed = false
+	WasCellMoved = false
+
+#
+func CellWork():
+	if(isUsed and inc_convs and (inc_convs[0].isSending or inc_convs[0].isShaded) and out_convs and !WasUsed):
 		for outc in out_convs:
-			if(!outc.isReady and !outc.isSpawning):		# finding free conv
+			if((!outc.isReady and !outc.isSpawning) or outc.isSending):		# finding free conv
 				if(!isShadingCell):
 					TryShadeCell(outc)
+					call_deferred("ResetMarks")
 					break		# this ensures point only moves one cell from all inc convs to only one out conv
 				elif(inc_convs[0].isCellOnQuit):
+#					WasUsed = true
 					TryMoveCell(outc)
+					call_deferred("ResetMarks")
 					break		# this ensures point only moves one cell from all inc convs to only one out conv
-#	if(isUsed and inc_convs and inc_convs[0].isReady and out_convs and !out_convs[0].isReady):
-#		TryMoveCell()
+	
 
 
 #
 func TryShadeCell(outconv):
 	print("TryShadeCell reached")
 	# Checks
-	if(outconv.isBuilding or outconv.CheckIfCapacityIsOver()):	# to be heavied in the future
+	if(outconv.isBuilding or outconv.CheckIfCapacityIsOver() or (outconv.CheckIfCapacityIsEqual() and !outconv.isSending)):	# to be heavied in the future
 		push_warning("Point_ConnC_WARNING: Out conv is full or is building, returning")
 		return false
 	if(inc_convs[0].isBuilding):
@@ -65,8 +80,9 @@ func TryShadeCell(outconv):
 		print("\nPoint is offsetting cell now")
 		inc_convs[0].isShaded = true
 		isShadingCell = true
-#		inc_convs[0].StartCells()
-#		inc_convs[0].ActivatePhysics()
+		inc_convs[0].StartCells()
+		inc_convs[0].ActivatePhysics()
+		# mb WasUsed = true
 	else:
 		push_error("Point_TryShade_ERROR: Tried to shade cell when some other cell is already shading")
 		
@@ -88,6 +104,9 @@ func TryMoveCell(outconv):
 #		return false
 	
 	# General
+	if(!outconv.endPoint.WasUsed):
+		outconv.endPoint.CellWork()		# recursive to the end
+	
 	print("\nPoint is moving cell now")
 	var cell = inc_convs[0].get_child(0)
 	
@@ -98,7 +117,7 @@ func TryMoveCell(outconv):
 	inc_convs[0].CheckIfCapacityIsOver()	# set isFull properly
 	
 	outconv.add_child(cell)
-	outconv.call_deferred("ReceiveCell", cell)		# set up cell in new conv +updatefirstcell
+	outconv.call_deferred("ReceiveCell", cell)		# set up cell in new conv +updatefirstcell, mb not deferred
 	
 	# start cells (emit signal) in inc conv bcs it is now freed
 	inc_convs[0].isShaded = false
@@ -109,7 +128,10 @@ func TryMoveCell(outconv):
 	if(!outconv.isSending and outconv.CheckIfCapacityIsEqual()):
 		inc_convs[0].StopCells()
 		inc_convs[0].DeactivatePhysics()
-
+		inc_convs[0].isSending = false
+	
+	WasUsed = true
+	WasCellMoved = true
 	isShadingCell = false
 	return true
 
@@ -158,10 +180,12 @@ func ReceiveSpawnRequest(count : int, conv, isContinuation := false) -> void:
 		push_error("Point_ERROR: Can not spawn less than 1 cell!")
 		return
 	# General
+	if(isContinuation):		# возможно лишняя переменная
+		conv.isSending = true
+		conv.StartCells()
+		conv.ActivatePhysics()
 	if(isSpawnPoint):
 		# add check for cycle works, mb TryMoveCell()
-		if(isContinuation):
-			conv.isSending = true
 		conv.StartCells()
 		conv.ActivatePhysics()
 		conv.SpawnCells(count)
