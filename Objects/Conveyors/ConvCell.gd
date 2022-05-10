@@ -8,9 +8,10 @@ var isMoving := true	# if the cell is in movement
 
 func _ready() -> void:
 	# Cannon
-	var ref = cannon.instance()
-	ref.building = false
-	add_child(ref)
+#	var ref = cannon.instance()
+#	ref.building = false
+#	add_child(ref)
+
 	# Highlighting on spawn
 	$Sprite.scale *= 2						# for highlighting spawn
 	yield(get_tree().create_timer(0.5), "timeout")	# 
@@ -22,10 +23,6 @@ func _ready() -> void:
 func _physics_process(_delta: float) -> void:
 	if(isMoving):
 		offset += speed
-	#if(unit_offset >= 1):
-		#emit_signal("ReachedEnd")
-		#queue_free()
-
 
 func s_StopCell() -> void:		# signal income from Conveyor.gd
 	isMoving = false

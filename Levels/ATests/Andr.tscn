@@ -16,6 +16,8 @@ _data = {
 
 [node name="GameManager" parent="." instance=ExtResource( 1 )]
 
+[node name="Conveyors" type="Node2D" parent="."]
+
 [node name="Ways" type="Node2D" parent="."]
 
 [node name="Way" parent="Ways" instance=ExtResource( 2 )]
@@ -48,7 +50,5 @@ position = Vector2( 514, 888 )
 
 [node name="Factory" parent="Factories" instance=ExtResource( 5 )]
 position = Vector2( 1586, 679 )
-
-[node name="Conveyors" type="Node2D" parent="."]
 
 [node name="GUI" parent="." instance=ExtResource( 3 )]

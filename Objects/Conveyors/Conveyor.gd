@@ -5,7 +5,7 @@ var ConvCell := preload("res://Objects/Conveyors/ConvCell.tscn")
 var Point : StaticBody2D = null			# stores ref to point-parent (not used currently)
 var endPoint : StaticBody2D = null		# stores ref to point-next (used in phys_proc)
 var capacity := -1						# stores number of cells, that conv can have
-var isFull := false						# shows if the conveyor is fulled with cells
+var isFull := false						# shows if the conveyor is fulled with cells (+1)
 var isMoving := false					#
 var isReady := false					# fulled and stopped
 var isBuilding := true					# shows if the conv is in building stage
@@ -13,19 +13,22 @@ var FirstCell : PathFollow2D = null		# ref to first cell in conv
 var CellOnSpawn : PathFollow2D = null 	# Practically, this is the last cell in conv
 var isSpawning := false					# shows if the conv is spawning cells
 var cellInQ := 0						# cells, that are enqueued in this conv
-#var isSending := false					# shows if conv is sending cells somewhere to next conv
+var isSending := false				# shows if conv is sending cells somewhere to next conv
 const FREE_DST := 110					# wanted distance btw pivot of near cells
 var SpawnFreeOffset : int = -1			# gets calc in CountCap method
 const POINT_OFFSET := 200				# basic offset to not overlap Point (around 230)
-export var WantedOffset : float = 0		# adds to Points offset (can be set from Editor mb)
-var StartOffset : float = -1			# gets calc in CountCap method
+export var WantedOffset : int = 0		# adds to Points offset (can be set from Editor mb)
+var StartOffset : int = -1				# gets calc in CountCap method
+var ShadeOffset : int = -1				#
 var QuitOffset : int = -1				# gets calc in CountCap method
+var isShaded := false					# sets only from Point, no changing inside Conv.gd must be done
+var isCellOnQuit := false				#
 
 signal StopCells()			# signal is emitted when cells are need to be stopped
 signal StartCells()			# signal is emitted when cells are need to be started
 
 func ActivatePhysics() -> void:
-	isReady = false
+#	isReady = false
 	set_physics_process(true)
 
 func DeactivatePhysics() -> void:
@@ -33,27 +36,43 @@ func DeactivatePhysics() -> void:
 
 func _physics_process(_delta: float) -> void:
 	if(isSpawning and CellOnSpawn and CellOnSpawn.offset >= SpawnFreeOffset - 10):
-		call_deferred("SpawnQ")
-	if(!isReady):
-		CheckQuitOffset()	# now it is called from GM through Point
+		call("SpawnQ")
+	if(!isReady and !isShaded):
+#		CheckQuitOffset()
+		CheckShadeOffset()
+	if(isShaded):
+		CheckQuitOffset()
 	pass
+
+
+func CheckShadeOffset() -> void:
+	if(FirstCell and FirstCell.offset >= ShadeOffset - 10 and !isSending):
+		print("Conv firstcell is in 10p from the ShadeOffset!")
+		call_deferred("StopCells")
+		if(!isSpawning):
+			call_deferred("DeactivatePhysics")
+#	else:
+#		ActivatePhysics()
+#		isReady = false
 
 
 func CheckQuitOffset() -> void:
 	if(FirstCell and FirstCell.offset >= QuitOffset - 10):
-		print("Conv firstcell is in the end!")
-		isReady = true
-		call_deferred("StopCells")
-		if(!isSpawning):
-			call_deferred("DeactivatePhysics")
-	else:
-		ActivatePhysics()
-		isReady = false
+		print("Conv firstcell is in 10p from the QuitOffset!")
+#		call_deferred("StopCells")
+#		if(!isSpawning):
+#			call_deferred("DeactivatePhysics")
+		isCellOnQuit = true
+#	else:
+#		ActivatePhysics()
+#		isReady = false
 
 func StopCells() -> void:
 	print("Stopping cells on a conv ", self)
 	isMoving = false
 	emit_signal("StopCells")
+	if(get_child_count() == capacity):
+		isReady = true
 	
 func StartCells() -> void:
 	print("Starting cells on a conv ", self)
@@ -62,7 +81,7 @@ func StartCells() -> void:
 	emit_signal("StartCells")
 
 
-# Calculates and sets capacity, without gap and separation, to be redone in future
+# Calculates and sets all ofssets
 func CountCapacity() -> int:
 	if(curve.get_point_count() < 2):
 		push_error("Conveyor_CountC_ERROR: 1 or 0 points in curve is not enough!")
@@ -89,36 +108,46 @@ func CountCapacity() -> int:
 	
 	var _capacity : int =  int((Cleng - StartOffset - StartOffset) / (FREE_DST))	# for now
 	_capacity += 1		# bcs FREE_DST is only distance btw cells
-	QuitOffset = StartOffset + (_capacity - 1 ) * (FREE_DST)
-	print("QuitOffset before ceiling: ", QuitOffset)
-	var temp := QuitOffset % 10
+	ShadeOffset = StartOffset + (_capacity - 1 ) * (FREE_DST)
+	print("ShadeOffset before ceiling: ", ShadeOffset)
+	var temp := ShadeOffset % 10
 	if(temp != 0):
-		QuitOffset += (10 - QuitOffset % 10)						# ceil to 10
+		ShadeOffset += (10 - ShadeOffset % 10)						# ceil to 10
 	SpawnFreeOffset -= (SpawnFreeOffset % 10)
-	if(QuitOffset >= Cleng):		# Check
-		push_error("Conv_CountCap_ERROR: QuitOffset is greater that curve length! Setting default value...")
-		print("QuitOffset: ", QuitOffset)
-		QuitOffset = Cleng - StartOffset
-	if(StartOffset == QuitOffset):
-		push_warning("Conv_CountCap_WARNING: StartOffset = QuitOffset, so there will be no movement on conveyor!")
-	print("\nCleng: ", Cleng, " Chislitel: ", Cleng - StartOffset - StartOffset, " capacity: ", _capacity, " x: ", _rect.x * _scale.x, " StartOffset: ", StartOffset, " SpawnFreeOffset: ", SpawnFreeOffset, " QuitOffset: ", QuitOffset, " FREE_DST: ", FREE_DST)
+	if(ShadeOffset >= Cleng):		# Check
+		push_error("Conv_CountCap_ERROR: ShadeOffset is greater that curve length! Setting default value...")
+		print("ShadeOffset: ", ShadeOffset)
+		ShadeOffset = Cleng - StartOffset
+	if(StartOffset == ShadeOffset):
+		push_warning("Conv_CountCap_WARNING: StartOffset = ShadeOffset, so there will be no movement on conveyor!")
+	QuitOffset = ShadeOffset + FREE_DST
+		
+	print("\nCleng: ", Cleng, " Chislitel: ", Cleng - StartOffset - StartOffset, " capacity: ", _capacity, " x: ", _rect.x * _scale.x, " StartOffset: ", StartOffset, " SpawnFreeOffset: ", SpawnFreeOffset, " ShadeOffset: ", ShadeOffset, " QuitOffset: ", QuitOffset,  " FREE_DST: ", FREE_DST)
 	
 	capacity = _capacity
 	return _capacity
 
 
+func CheckIfCapacityIsEqual() -> bool:
+	if(get_child_count() == capacity):	# +1 bcs there are border-conditions when moving cells
+#		isFull = true
+		return true
+	else:
+#		isFull = false
+		return false
+
 # Checks if the number of cells exceed capacity + 1, should be done everytime operation with moving/spawning cell is done
 func CheckIfCapacityIsOver() -> bool:
-	if(get_child_count() > capacity):	# +1 bcs there are border-conditions when moving cells
+	if(get_child_count() > capacity + 1):	# +1 bcs there are border-conditions when moving cells
 		push_error("Conv_CRITICAL_ERROR: there are more than max cells on" + str(self) + "conveyor !!!")
 		isFull = true
 		return true
-	elif(get_child_count() < capacity):
+	else:
 		isFull = false
 		return false
-	else:					# ==capacity + 1 and ==capacity
-		isFull = true
-		return true
+#	else:					# ==capacity + 1 and ==capacity
+#		isFull = true
+#		return true
 
 func CheckIfSpawnIsFree() -> bool:
 	if(get_child_count() == 0):
@@ -130,7 +159,7 @@ func CheckIfSpawnIsFree() -> bool:
 
 
 # Method for setting starting valus for incoming cell, unit_offset doesn't seem to work outside the conv
-func ReceiveCell(newcell : PathFollow2D, addtnlOffset := 0) -> bool:
+func ReceiveCell(newcell : PathFollow2D) -> bool:
 	if(isFull):
 		push_error("Conv_ReceiveC_ERROR: Can not receive cell, since conv is full")
 		return false
@@ -143,7 +172,7 @@ func ReceiveCell(newcell : PathFollow2D, addtnlOffset := 0) -> bool:
 		newcell.isMoving = true
 	else:
 		newcell.isMoving = false
-	
+		isReady = true
 	CellOnSpawn = newcell
 	if(get_child_count() == 1):		# if more, they should be moving already
 		StartCells()
@@ -195,6 +224,7 @@ func SpawnCells(count : int) -> void:
 	isSpawning = true
 	if(get_child_count() == 0):		# mb if not firstcell
 		CellOnSpawn = AddCell()		# update cellonspawn
+		print("First cell spawned")
 		cellInQ -= 1
 	
 	cellInQ += count
