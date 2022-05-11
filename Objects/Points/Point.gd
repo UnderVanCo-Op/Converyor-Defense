@@ -6,11 +6,12 @@ var isUsed := false			# for speed of checking
 var isSpawnPoint := true setget setter_isSpP	# shows if this is the start point of a chain
 var inc_convs := []			# list-arrays for inc conveyors. All the conv inside these 2 lists must
 var out_convs := []			# be (and are) ready to use
-var inc_count := 0			# 
-var out_count := 0			# 
-var isShadingCell := false	#
+var inc_count := 0			# not used currently
+var out_count := 0			# not used currently
+var isShadingCell := false	# shading
 var WasUsed := false		# recursive system works
 var WasCellMoved := false	# recursive system works
+#var EndOfChain = null		# cycle system
 
 func _ready() -> void:
 	set_physics_process(false)
@@ -38,15 +39,16 @@ func AddOutConv(conv) -> void:
 func _physics_process(delta: float) -> void:
 	if(!WasUsed):
 		CellWork()
-	
 
 #
 func ResetMarks() -> void:
 	WasUsed = false
 	WasCellMoved = false
 
+
+# downlying if: mb isspawnpoint or smth
 #
-func CellWork():
+func CellWork(Point = null):
 	if(isUsed and inc_convs and (inc_convs[0].isSending or inc_convs[0].isShaded) and out_convs and !WasUsed):
 		for outc in out_convs:
 			if((!outc.isReady and !outc.isSpawning) or outc.isSending):		# finding free conv
@@ -59,7 +61,6 @@ func CellWork():
 					TryMoveCell(outc)
 					call_deferred("ResetMarks")
 					break		# this ensures point only moves one cell from all inc convs to only one out conv
-	
 
 
 #
@@ -136,54 +137,30 @@ func TryMoveCell(outconv):
 	return true
 
 
-# Methods tries to move cell to the next conv, update ref to first cell, and start inc conv
-func OldTryMoveCell() -> bool:
-	print("Try to move cell method reached")
-	if(!isUsed or !out_convs or !inc_convs):
-		push_warning("Point_ConnC_WARNING: first check triggered returning")
-		return false
-	if(out_convs[0].isBuilding or out_convs[0].CheckIfCapacityIsOver()):	# to be heavied in the future
-		push_warning("Point_ConnC_WARNING: Out conv is full or is building, returning")
-		return false
-	if(inc_convs[0].isBuilding):
-		push_warning("Point_ConnC_WARNING: Inc conv is not full or is building, returning")
-		return false
-	if(!out_convs[0].CheckIfSpawnIsFree()):
-		push_warning("Point_ConnC_WARNING: Out conv spawn is not free, returning")
-		return false
-	
-	print("Point is moving cell...")
-	var cell = inc_convs[0].get_child(0)
-	
-	inc_convs[0].remove_child(cell)
-	inc_convs[0].disconnect("StartCells", cell, "s_StartCell")
-	inc_convs[0].disconnect("StopCells", cell, "s_StopCell")
-	inc_convs[0].UpdateFirstCell()			# update first cell in the inc conv
-	inc_convs[0].CheckIfCapacityIsOver()	# set isFull properly
-	
-	out_convs[0].add_child(cell)
-	out_convs[0].call_deferred("ReceiveCell",cell)		# set up cell in new conv +updatefirstcell
-
-	inc_convs[0].StartCells()
-	inc_convs[0].isReady = false			# start cells (emit signal) in inc conv bcs it is now freed
-	inc_convs[0].ActivatePhysics()
-	return true
-
-
-# Recursive function for moving request to the start of a chain
-func ReceiveSpawnRequest(count : int, conv, isContinuation := false) -> void:
+# Recursive function for moving request to the start of a chain, conv is outc from P
+func ReceiveSpawnRequest(count : int, conv, isContinuation := false, EndOfChainP = null) -> void:
 	# Checks
 	if(!isSpawnPoint and inc_convs.size() == 0):		# mb add another, antonymus check
 		push_error("Point_ERROR: ReceiveReq can not be executed since no incoming conv are connected and not spawnpoint!")
 		return
-	if(count < 1):		# mb redundant since GM has it's own check
+	if(count < 1):			# mb redundant since GM has it's own check
 		push_error("Point_ERROR: Can not spawn less than 1 cell!")
 		return
 	# General
+	var PToSend = null
 	if(isContinuation):		# возможно лишняя переменная
 		conv.isSending = true
 		conv.StartCells()
 		conv.ActivatePhysics()
+		
+		if(self == EndOfChainP):
+			print("\nFOUND A CYCLE!!")
+			call_deferred("set", "isSpawnPoint", true)
+			inc_convs[0].isSending = true				# for now, to run the circle
+		else:
+			PToSend = EndOfChainP
+	else:
+		PToSend = conv.endPoint
 	if(isSpawnPoint):
 		# add check for cycle works, mb TryMoveCell()
 		conv.StartCells()
@@ -191,5 +168,5 @@ func ReceiveSpawnRequest(count : int, conv, isContinuation := false) -> void:
 		conv.SpawnCells(count)
 	else:
 		print("Point: Moving request to the prev Point!")
-		inc_convs[0].Point.ReceiveSpawnRequest(count, inc_convs[0], true)	# move on to the prev conv and Point
+		inc_convs[0].Point.ReceiveSpawnRequest(count, inc_convs[0], true, PToSend)	# move on to the prev conv and Point
 		# inc convs[0] should be replaced with smart choice of a path-system

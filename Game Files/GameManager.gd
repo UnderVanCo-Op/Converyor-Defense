@@ -10,6 +10,9 @@ var gui = null						# gui reference	(GUI)
 var Point = null					#  (point, for cancelling)
 var isStartConv := true				# if there was a start of a conveyor (conv switcher btw start/end)
 var isFocusedOnSmth := false		# if we are already interacting with smth	(focus)
+#var EndOfChain = null
+
+signal Send
 
 var money := 250
 
@@ -137,6 +140,10 @@ func s_ConvBuild(refToPoint : StaticBody2D, isUsed : bool, _Pntposition : Vector
 		ArmPoint(refToPoint, false)			# marking end point, must be before isStartConv setting
 #		Point.TryMoveCell()					# Set up connections in start point
 		RequestSpawn(convBuildRef.capacity)	# requesting spawn from start point
+#		EndOfChain = refToPoint
+#		for p in get_node("Points").get_children():
+#
+		
 		
 		isFocusedOnSmth = false
 		isStartConv = true
