@@ -58,7 +58,10 @@ func CellWork(Point = null):
 					break		# this ensures point only moves one cell from all inc convs to only one out conv
 				elif(inc_convs[0].isCellOnQuit):
 #					WasUsed = true
-					TryMoveCell(outc)
+					if(!isSpawnPoint):
+						TryMoveCell(outc)
+					else:
+						TryMoveCell(outc, false)
 					call_deferred("ResetMarks")
 					break		# this ensures point only moves one cell from all inc convs to only one out conv
 
@@ -78,7 +81,7 @@ func TryShadeCell(outconv):
 #		return false
 	
 	if(!isShadingCell):
-		print("\nPoint is offsetting cell now")
+		print("\nPoint ", self, " is offsetting cell now")
 		inc_convs[0].isShaded = true
 		isShadingCell = true
 		inc_convs[0].StartCells()
@@ -89,7 +92,7 @@ func TryShadeCell(outconv):
 		
 
 #
-func TryMoveCell(outconv):
+func TryMoveCell(outconv, useRecursion := true):
 #	MoveCounter += 1	# seems like Point has only 1 unnessarily call of this func
 #	print("Movecounter becomes ", MoveCounter, " on some Point...")
 #	print("TryMoveCell reached")
@@ -105,10 +108,10 @@ func TryMoveCell(outconv):
 #		return false
 	
 	# General
-	if(!outconv.endPoint.WasUsed):
+	if(!outconv.endPoint.WasUsed and useRecursion):
 		outconv.endPoint.CellWork()		# recursive to the end
 	
-	print("\nPoint is moving cell now")
+	print("\nPoint ", self, " is moving cell now")
 	var cell = inc_convs[0].get_child(0)
 	
 	inc_convs[0].remove_child(cell)
