@@ -10,6 +10,8 @@ func _on_Button_pressed() -> void:
 
 func updateMoney(money) -> void:
 	$Label.text = "Money: " + str(money)
+func updateResources(resource)->void:
+	$Res.text="Resources : " + str(resource)
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("RMB"):

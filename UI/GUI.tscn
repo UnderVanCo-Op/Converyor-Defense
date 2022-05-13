@@ -31,4 +31,12 @@ margin_bottom = 57.0
 value = 100.0
 script = ExtResource( 2 )
 
+[node name="Res" type="Label" parent="."]
+margin_left = 1720.0
+margin_top = 34.0
+margin_right = 1732.0
+margin_bottom = 65.0
+text = "Resources : 
+   "
+
 [connection signal="pressed" from="Button" to="." method="_on_Button_pressed"]
