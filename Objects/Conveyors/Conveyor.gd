@@ -51,9 +51,6 @@ func CheckShadeOffset() -> void:
 		call_deferred("StopCells")
 		if(!isSpawning):
 			call_deferred("DeactivatePhysics")
-#	else:
-#		ActivatePhysics()
-#		isReady = false
 
 
 func CheckQuitOffset() -> void:
@@ -63,9 +60,7 @@ func CheckQuitOffset() -> void:
 #		if(!isSpawning):
 #			call_deferred("DeactivatePhysics")
 		isCellOnQuit = true
-#	else:
-#		ActivatePhysics()
-#		isReady = false
+
 
 func StopCells() -> void:
 	print("Stopping cells on a conv ", self)

@@ -14,7 +14,7 @@ func _ready():
 	#print("BBullets: " + str(BBullets))
 	if(building):
 		GM = get_parent().get_node("GameManager")	# connection between nodes
-	else:											# added for pre-placing functionality
+	else:						# added for pre-placing functionality
 		GM = $"../../../../GameManager"
 		$Vision.monitoring = true
 		$Vision.monitorable = true
