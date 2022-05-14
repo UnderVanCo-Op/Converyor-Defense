@@ -108,7 +108,7 @@ func TryMoveCell(outconv, useRecursion := true):
 #		return false
 	
 	# General
-	if(!outconv.endPoint.WasUsed and useRecursion):
+	if(!outconv.endPoint.WasUsed and useRecursion):		#useRecur can be replaced with isspawnpoint
 		outconv.endPoint.CellWork()		# recursive to the end
 	
 	print("\nPoint ", self, " is moving cell now")
@@ -170,6 +170,6 @@ func ReceiveSpawnRequest(count : int, conv, isContinuation := false, EndOfChainP
 		conv.ActivatePhysics()
 		conv.SpawnCells(count)
 	else:
-		print("Point: Moving request to the prev Point!")
+		print("Point ", self, ": Moving request to the prev Point!")
 		inc_convs[0].Point.ReceiveSpawnRequest(count, inc_convs[0], true, PToSend)	# move on to the prev conv and Point
 		# inc convs[0] should be replaced with smart choice of a path-system

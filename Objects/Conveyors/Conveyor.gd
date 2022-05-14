@@ -47,7 +47,7 @@ func _physics_process(_delta: float) -> void:
 
 func CheckShadeOffset() -> void:
 	if(FirstCell and FirstCell.offset >= ShadeOffset - 10 and !isSending):
-		print("Conv firstcell is in 10p from the ShadeOffset!")
+		print("Conv ", self, " firstcell is in 10p from the ShadeOffset!")
 		call_deferred("StopCells")
 		if(!isSpawning):
 			call_deferred("DeactivatePhysics")
@@ -55,7 +55,7 @@ func CheckShadeOffset() -> void:
 
 func CheckQuitOffset() -> void:
 	if(FirstCell and FirstCell.offset >= QuitOffset - 10):
-		print("Conv firstcell is in 10p from the QuitOffset!")
+		print("Conv ", self,  " firstcell is in 10p from the QuitOffset!")
 #		call_deferred("StopCells")
 #		if(!isSpawning):
 #			call_deferred("DeactivatePhysics")
