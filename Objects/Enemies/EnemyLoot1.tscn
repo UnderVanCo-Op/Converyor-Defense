@@ -6,8 +6,6 @@
 [node name="EnemyLoot1" type="Node2D"]
 script = ExtResource( 2 )
 
-[node name="Timer" type="Timer" parent="."]
-
 [node name="Area2D" type="Area2D" parent="."]
 
 [node name="TextureButton" type="TextureButton" parent="Area2D"]
@@ -16,4 +14,8 @@ margin_bottom = 40.0
 texture_normal = ExtResource( 1 )
 expand = true
 
+[node name="LootTimer" type="Timer" parent="."]
+autostart = true
+
 [connection signal="pressed" from="Area2D/TextureButton" to="." method="_on_TextureButton_pressed"]
+[connection signal="timeout" from="LootTimer" to="." method="_on_Timer_timeout"]

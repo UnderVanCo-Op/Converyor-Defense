@@ -6,14 +6,12 @@ var anotherFollowwer:=preload("res://Objects/Enemies/AnotherEnemy.tscn")
 var levelWave
 var newFollower
 
-
-
 func _ready() -> void:
 	$Timer.wait_time = spawnTime
 	levelWave = LevelWave.mobModel["0"]
 
 func _on_Timer_timeout() -> void:
-	print(levelWave[0])
+	#print(levelWave[0])
 	if (levelWave[0]=="bot"):
 		newFollower=follower.instance()
 		add_child(newFollower)
