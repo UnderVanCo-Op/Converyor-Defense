@@ -1,5 +1,5 @@
 extends Node2D
-#This is GameManager.gd
+# This is GameManager.gd
 
 var cannon = preload("res://Objects/Cannons/Cannon.tscn")
 var conv = preload("res://Objects/Conveyors/Conveyor.tscn")
