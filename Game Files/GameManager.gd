@@ -23,10 +23,10 @@ func _ready() -> void:
 
 # Method is responsible for finding and connecting signals to THIS script
 func signalConnector() -> void:
-	var t = get_node_or_null("../Points")					# привязка к Точкам
+	var t = get_node_or_null("../Batteries")					# привязка к Точкам
 	if(t):
-		for ch in t.get_children():
-			ch.connect("ConvBuilding", self, "s_ConvBuild")	# signal connection
+		for battery in t.get_children():
+			battery.get_node("Point").connect("ConvBuilding", self, "s_ConvBuild")	# signal connection
 	else:
 		push_error("GM_ERROR: failed to get Points Nodes in Points!")
 	

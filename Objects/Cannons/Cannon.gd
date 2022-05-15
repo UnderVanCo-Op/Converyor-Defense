@@ -2,9 +2,9 @@ extends Node2D
 # This is Cannon.gd
 
 var bullet := preload("res://Objects/Bullets/Bullet.tscn")
-#var GM = null				# ref to GameManager.gd
-var BBullets = null			# ref to spawn bullets parent node
-export var isDelivering := true
+#var GM = null					# ref to GameManager.gd
+var BBullets = null				# ref to spawn bullets parent node
+export var DeliveryStatus := 0	# 0 = no delivery/delivered, 1 = on factory, 2 = on cell on conv
 var enemies = []		# list of all enemies in vision area
 var cur_enemy = null
 
@@ -13,13 +13,20 @@ func _ready():
 #	BBullets = 
 #	BBullets = get_tree().get_root().get_node("/root/Main/Bullets")		# connection
 	#print("BBullets: " + str(BBullets))
-	if(isDelivering):
-		BBullets = get_node("../../../Bullets")
+	match DeliveryStatus:
+		0:
+			push_warning("Cannon: Reached 0 delivery status")
+			BBullets = get_node("../../../../../Bullets")			# need to be checked
+			set_physics_process(true)
+		1:	# on factory
+			BBullets = get_node("../../../Bullets")
+			set_physics_process(false)
+		2:	# on cell
+			BBullets = get_node("../../../../Bullets")
+			set_physics_process(false)
+		
 #		GM = get_node("../../GameManager")		# connection between nodes
-		set_physics_process(false)
-	else:						# added for pre-placing functionality
-		push_error("Cannon: Reached unwritten else in _ready")
-		pass
+# added for pre-placing functionality
 #		GM = $"../../../../GameManager"
 #		$Vision.monitoring = true
 #		$Vision.monitorable = true
@@ -37,7 +44,7 @@ func _ready():
 func FinishDelivering() -> void:
 	$Vision.monitoring = true
 	$Vision.monitorable = true
-	isDelivering = false
+	DeliveryStatus = 0
 	set_physics_process(true)
 	
 #	GM.call("tower_built")			# calling to GM

@@ -13,7 +13,7 @@ var FirstCell : PathFollow2D = null		# ref to first cell in conv
 var CellOnSpawn : PathFollow2D = null 	# Practically, this is the last cell in conv
 var isSpawning := false					# shows if the conv is spawning cells
 var cellInQ := 0						# cells, that are enqueued in this conv
-var isSending := false				# shows if conv is sending cells somewhere to next conv
+var isSending := false					# shows if conv is sending cells somewhere to next conv
 const FREE_DST := 110					# wanted distance btw pivot of near cells
 var SpawnFreeOffset : int = -1			# gets calc in CountCap method
 const POINT_OFFSET := 200				# basic offset to not overlap Point (around 230)
@@ -23,6 +23,10 @@ var ShadeOffset : int = -1				#
 var QuitOffset : int = -1				# gets calc in CountCap method
 var isShaded := false					# sets only from Point, no changing inside Conv.gd must be done
 var isCellOnQuit := false				#
+var Cannon = null						#
+var isCannonInQ	:= false				#
+var hasCannon := false					#
+var isFulling := false					#
 
 signal StopCells()			# signal is emitted when cells are need to be stopped
 signal StartCells()			# signal is emitted when cells are need to be started
@@ -35,7 +39,7 @@ func DeactivatePhysics() -> void:
 	set_physics_process(false)
 
 func _physics_process(_delta: float) -> void:
-	if(isSpawning and CellOnSpawn and CellOnSpawn.offset >= SpawnFreeOffset - 10):
+	if((isSpawning or isFulling) and CellOnSpawn and CellOnSpawn.offset >= SpawnFreeOffset - 10):
 		call("SpawnQ")
 	if(!isReady and !isShaded):
 #		CheckQuitOffset()
@@ -45,12 +49,26 @@ func _physics_process(_delta: float) -> void:
 	pass
 
 
+# Places cannon in the next cell available
+func ReceiveCannon(cannon) -> void:
+#	StartCells()
+#	ActivatePhysics()
+	if(Point.TryPauseShading()):	# immediately spawn when spawn is free
+		isCannonInQ = true
+		Cannon = cannon
+		SpawnCells(1)				# spawn new cell
+	else:							# means that Point is already shading some cell
+		print("Conv_ReceiveCannon: Reached else")
+		pass	# wait
+
+
 func CheckShadeOffset() -> void:
 	if(FirstCell and FirstCell.offset >= ShadeOffset - 10 and !isSending):
 		print("Conv ", self, " firstcell is in 10p from the ShadeOffset!")
-		call_deferred("StopCells")
-		if(!isSpawning):
-			call_deferred("DeactivatePhysics")
+		if(!isCannonInQ and !hasCannon):
+			call_deferred("StopCells")
+			if(!isSpawning):
+				call_deferred("DeactivatePhysics")
 
 
 func CheckQuitOffset() -> void:
@@ -68,7 +86,7 @@ func StopCells() -> void:
 	emit_signal("StopCells")
 	if(get_child_count() == capacity):
 		isReady = true
-	
+
 func StartCells() -> void:
 	print("Starting cells on a conv ", self)
 	isReady = false
@@ -131,6 +149,7 @@ func CheckIfCapacityIsEqual() -> bool:
 #		isFull = false
 		return false
 
+
 # Checks if the number of cells exceed capacity + 1, should be done everytime operation with moving/spawning cell is done
 func CheckIfCapacityIsOver() -> bool:
 	if(get_child_count() > capacity + 1):	# +1 bcs there are border-conditions when moving cells
@@ -144,10 +163,23 @@ func CheckIfCapacityIsOver() -> bool:
 #		isFull = true
 #		return true
 
+
+# 
+func CheckIfCellOnQuitHasCannon() -> bool:
+	if(isCellOnQuit):
+		if(FirstCell.isOccupied):
+			return true
+		else:
+			return false
+	else:
+		push_error("Conv_CheckCellOnQuit: no cell on quit")
+		return false
+
+
 func CheckIfSpawnIsFree() -> bool:
 	if(get_child_count() == 0):
 		return true
-	if(CellOnSpawn.offset < SpawnFreeOffset - 10):		# CellOnSpawn always exists if child count != 0
+	elif(CellOnSpawn.offset < SpawnFreeOffset - 10):		# CellOnSpawn always exists if child count != 0
 		return false
 	else:
 		return true
@@ -199,8 +231,15 @@ func SpawnQ() -> void:
 	print("SpawnQ is working now...")
 	var newcell = AddCell()		# spawn
 	CellOnSpawn = newcell		# update ref
+	if(isCannonInQ):
+		newcell.add_child(Cannon)
+		newcell.isOccupied = true
+		newcell.cannon = Cannon
+		hasCannon = true
+		isCannonInQ = false
 	
-	cellInQ -= 1
+	if(!isFulling):
+		cellInQ -= 1
 	if(get_child_count() >= capacity):
 		isFull = true
 	if(cellInQ == 0):
@@ -237,5 +276,6 @@ func AddCell() -> PathFollow2D:
 	connect("StartCells", ref, "s_StartCell")		# connecting signal from conv
 # warning-ignore:return_value_discarded
 	connect("StopCells", ref, "s_StopCell")			# connecting signal from conv
+	CheckIfCapacityIsOver()
 	UpdateFirstCell()		# everytime cell adds
 	return ref

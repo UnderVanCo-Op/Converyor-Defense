@@ -6,12 +6,12 @@ var isUsed := false			# for speed of checking
 var isSpawnPoint := true setget setter_isSpP	# shows if this is the start point of a chain
 var inc_convs := []			# list-arrays for inc conveyors. All the conv inside these 2 lists must
 var out_convs := []			# be (and are) ready to use
-var inc_count := 0			# not used currently
-var out_count := 0			# not used currently
+var isFactoryP := false		#
+var isBatteryP := false		#
 var isShadingCell := false	# shading
 var WasUsed := false		# recursive system works
 var WasCellMoved := false	# recursive system works
-#var EndOfChain = null		# cycle system
+var isPaused := false		# new system
 
 func _ready() -> void:
 	set_physics_process(false)
@@ -25,13 +25,47 @@ func _on_TextureButton_pressed() -> void:
 
 func AddIncConv(conv) -> void:
 	call_deferred("set", "isSpawnPoint", false)
-	inc_count += 1
+#	inc_count += 1
 #	isSpawnPoint = false				# this breaks a circle spawn
 	inc_convs.append(conv)				# new ref to list
 
 func AddOutConv(conv) -> void:
-	out_count += 1
+#	out_count += 1
 	out_convs.append(conv)		# new ref to list
+
+
+# Gets called from Conv2.gd
+func TryPauseShading() -> bool:
+	if(!isShadingCell):
+		isPaused = true
+		return true
+	else:
+		isPaused = true
+		return false
+
+# Tries to send cannon on a last cell in the out[0] conv
+func TrySendCannon(cannon) -> bool:
+	if(isFactoryP):
+		if(out_convs.size() > 1):
+			push_error("Point_TrySendCan: there are more that 2 outc convs!")
+			return false
+		if(out_convs[0].isBuilding or out_convs[0].CheckIfCapacityIsOver()):	# to be heavied in the future
+			push_warning("Point_TryGetCan: Out conv is full or is building, returning")
+			return false
+		if(out_convs[0].CheckIfSpawnIsFree()):
+			push_error("Point_TrySendCan: I dont know how, but Spawn is free, lol. Resuming anyway")
+		
+		print("\nPoint ", self, " is trying to put cannon on cell now")
+		out_convs[0].ReceiveCannon(cannon)
+		out_convs[0].isSending = true
+		if(!inc_convs):
+			out_convs[0].isFulling = true
+#		out_convs.ActivatePhysics()
+		
+		return true
+	else:
+		push_error("Point" + self.to_string() + ": tried to get cannon, but this point is not FactoryP!")
+		return false
 
 
 # For now system chooses outc conv (if multiply are free) by who-is-first-entry in the out_convs (time approach)
@@ -39,6 +73,7 @@ func AddOutConv(conv) -> void:
 func _physics_process(delta: float) -> void:
 	if(!WasUsed):
 		CellWork()
+	pass
 
 #
 func ResetMarks() -> void:
@@ -48,8 +83,8 @@ func ResetMarks() -> void:
 
 # downlying if: mb isspawnpoint or smth
 #
-func CellWork(Point = null):
-	if(isUsed and inc_convs and (inc_convs[0].isSending or inc_convs[0].isShaded) and out_convs and !WasUsed):
+func CellWork(Point = null) -> void:
+	if(isUsed and !isBatteryP and inc_convs and (inc_convs[0].isSending or inc_convs[0].isShaded) and out_convs and !WasUsed):
 		for outc in out_convs:
 			if((!outc.isReady and !outc.isSpawning) or outc.isSending):		# finding free conv
 				if(!isShadingCell):
@@ -63,22 +98,65 @@ func CellWork(Point = null):
 					else:
 						TryMoveCell(outc, false)
 					call_deferred("ResetMarks")
-					break		# this ensures point only moves one cell from all inc convs to only one out conv
+					break		# this ensures point only moves one cell from all inc convs to only one outconv
+	elif(isBatteryP and isUsed and inc_convs and (inc_convs[0].isSending or inc_convs[0].isShaded) and !WasUsed and (inc_convs[0].isCannonInQ or inc_convs[0].hasCannon)):	# same, but for battery point, including additional checks
+		if(!isShadingCell):
+			TryShadeCell()
+			call_deferred("ResetMarks")
+		elif(inc_convs[0].isCellOnQuit):
+			if(inc_convs[0].FirstCell.isOccupied):
+				TryToGiveOutCannon()
+			else:
+				RemoveCell()
+			call_deferred("ResetMarks")
+		pass
+
+func RemoveCell() -> void:
+	inc_convs[0].remove_child(inc_convs[0].FirstCell)
+	inc_convs[0].FirstCell.queue_free()
+	inc_convs[0].isCellOnQuit = false
+	
+#	inc_convs[0].disconnect("StartCells", cell, "s_StartCell")
+#	inc_convs[0].disconnect("StopCells", cell, "s_StopCell")
+	inc_convs[0].call_deferred("UpdateFirstCell")	# update first cell in the inc conv
+	inc_convs[0].call_deferred("CheckIfCapacityIsOver")		# set isFull properly
+	
+	# Final
+	WasUsed = true
+	isShadingCell = false
+
+
+# 
+func TryToGiveOutCannon() -> void:
+	print("\nPoint ", self, " is moving cell to the Battery now")
+	if(true):		# if there is space inside a battery
+		inc_convs[0].FirstCell.remove_child(inc_convs[0].FirstCell.cannon)
+		get_parent().ReceiveCannon(inc_convs[0].FirstCell.cannon)	# get battery
+		RemoveCell()
+	
+	# Final
+	WasUsed = true
+	WasCellMoved = true
+	isShadingCell = false
 
 
 #
-func TryShadeCell(outconv):
+func TryShadeCell(outconv = null):
 	print("TryShadeCell reached")
 	# Checks
-	if(outconv.isBuilding or outconv.CheckIfCapacityIsOver() or (outconv.CheckIfCapacityIsEqual() and !outconv.isSending)):	# to be heavied in the future
-		push_warning("Point_ConnC_WARNING: Out conv is full or is building, returning")
-		return false
+	if(outconv):
+		if(outconv.isBuilding or outconv.CheckIfCapacityIsOver() or (outconv.CheckIfCapacityIsEqual() and !outconv.isSending)):	# to be heavied in the future
+			push_warning("Point_TryShade_WARNING: Out conv is full or is building, returning")
+			return false
 	if(inc_convs[0].isBuilding):
-		push_warning("Point_ConnC_WARNING: Inc conv is building, returning")
+		push_warning("Point_TryShade_WARNING: Inc conv is building, returning")
 		return false
 #	if(!outconv.CheckIfSpawnIsFree()):
 #		push_warning("Point_ConnC_WARNING: Out conv spawn is not free, returning")
 #		return false
+	if(isPaused):
+		push_warning("Point_TryShade_WARNING: Point is paused")
+		return
 	
 	if(!isShadingCell):
 		print("\nPoint ", self, " is offsetting cell now")
@@ -93,24 +171,12 @@ func TryShadeCell(outconv):
 
 #
 func TryMoveCell(outconv, useRecursion := true):
-#	MoveCounter += 1	# seems like Point has only 1 unnessarily call of this func
-#	print("Movecounter becomes ", MoveCounter, " on some Point...")
-#	print("TryMoveCell reached")
-	# Checks are commented, bcs we have done them in TryShade method
-#	if(outconv.isBuilding or outconv.CheckIfCapacityIsOver()):	# to be heavied in the future
-#		push_warning("Point_ConnC_WARNING: Out conv is full or is building, returning")
-#		return false
-#	if(inc_convs[0].isBuilding):
-#		push_warning("Point_ConnC_WARNING: Inc conv is building, returning")
-#		return false
-#	if(!outconv.CheckIfSpawnIsFree()):
-#		push_warning("Point_ConnC_WARNING: Out conv spawn is not free, returning")
-#		return false
 	
-	# General
+	# Recursion
 	if(!outconv.endPoint.WasUsed and useRecursion):		#useRecur can be replaced with isspawnpoint
 		outconv.endPoint.CellWork()		# recursive to the end
 	
+	# General
 	print("\nPoint ", self, " is moving cell now")
 	var cell = inc_convs[0].get_child(0)
 	
@@ -124,15 +190,19 @@ func TryMoveCell(outconv, useRecursion := true):
 	outconv.call_deferred("ReceiveCell", cell)		# set up cell in new conv +updatefirstcell, mb not deferred
 	
 	# start cells (emit signal) in inc conv bcs it is now freed
+	
+	# Final
 	inc_convs[0].isShaded = false
 	inc_convs[0].isCellOnQuit = false
 #	inc_convs[0].StartCells()
 #	inc_convs[0].StopCells()
 #	inc_convs[0].ActivatePhysics()
+	
 	if(!outconv.isSending and outconv.CheckIfCapacityIsEqual()):
 		inc_convs[0].StopCells()
 		inc_convs[0].DeactivatePhysics()
 		inc_convs[0].isSending = false
+	
 	
 	WasUsed = true
 	WasCellMoved = true
