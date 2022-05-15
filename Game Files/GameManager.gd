@@ -14,7 +14,7 @@ var isFocusedOnSmth := false		# if we are already interacting with smth	(focus)
 signal Send
 
 var money := 250
-
+var resource:=100
 
 func _ready() -> void:
 	signalConnector()
@@ -179,3 +179,7 @@ func tower_built() -> void:					# calling from Cannon.gd
 func change_money(_money) -> void:			# calling from THIS script and Enemy.gd
 	money += _money
 	gui.call("updateMoney", money)			# calling to GUI.gd
+
+func _change_resources(_resources)->void:	# calling from THIS script and Enemy.gd
+	resource+=_resources
+	gui.call("updateResources",resource)

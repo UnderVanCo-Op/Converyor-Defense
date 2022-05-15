@@ -17,6 +17,7 @@ config/icon="res://icon.png"
 [autoload]
 
 Global="*res://Game Files/Global.gd"
+LevelWave="*res://Game Files/LevelWave.tscn"
 
 [display]
 
