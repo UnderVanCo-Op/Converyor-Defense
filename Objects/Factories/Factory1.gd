@@ -2,9 +2,9 @@ extends Node2D
 
 onready var objMenu := $ObjectMenu
 var cannon = preload("res://Objects/Cannons/Cannon.tscn")
+var package = preload("res://Objects/Package/Package.tscn")
 var point = null
 var isShowed := false
-var hasCannon := false
 #var sprNamesList := ["but1", "but2", "but3"]
 #enum s {but1, but2, but3}
 
@@ -33,23 +33,27 @@ func _ready() -> void:
 func s_FactoryButPressed(spriteNumber) -> void:		
 	#print("signal received")
 	#print("button " + _spriteName + " was pressed")
-	if int(spriteNumber) == 1:
-		# build tower
-#		print("Number 1 button was pressed!")
-		var newCannon = cannon.instance()
-		
-		print("Factory: Cannon added to the Delivery")
-		if(point):
-			newCannon.DeliveryStatus = 2
-			if(point.TrySendCannon(newCannon)):	# if point succeeds in adding cannon to the q in the conv
-				hasCannon = false
-			else:
-				newCannon.DeliveryStatus = 1
-				add_child(newCannon)
-				hasCannon = true
-		else:
-			push_error("Factory: Tried to call get cannon in point, but no point is set!")
-		
+	match spriteNumber:
+		1:
+			# build tower
+	#		print("Number 1 button was pressed!")
+			var newPackage = package.instance()
+			var newCannon = cannon.instance()
+			
+			print("Factory: Cannon added to the Package, Package added to the Point")
+	#		if(point):
+	#		newCannon.DeliveryStatus = 2
+	#			if(point.TrySendCannon(newCannon)):	# Auto-delivery: if point succeeds in adding cannon to the q in the conv
+	#				hasCannon = false
+	#			else:		# manual delivery
+			newPackage.DeliveryStatus = 1
+			point.ReceivePackage(newPackage)
+	#		else:
+	#			push_error("Factory: Tried to call get cannon in point, but no point is set!")
+		2:
+			print("Factory: Button2 was pressed")
+		3:
+			print("Factory: Button2 was pressed")
 
 
 # Pressing on a Factory area

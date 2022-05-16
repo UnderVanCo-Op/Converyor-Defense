@@ -68,7 +68,7 @@ func ReceiveCannon(cannon) -> void:
 # Ahhhh Currently idk why it is here
 func CheckShadeOffset() -> void:
 	if(FirstCell and FirstCell.offset >= ShadeOffset - 10 and !isSending):
-		print("Conv ", self, " firstcell is in 10p from the ShadeOffset!")
+#		print("Conv ", self, " firstcell is in 10p from the ShadeOffset!")
 		if(!isCannonInQ and !hasCannon):
 			call_deferred("StopCells")
 			if(!isSpawning):
@@ -78,7 +78,7 @@ func CheckShadeOffset() -> void:
 # Only sets isCellOnQuit
 func CheckQuitOffset() -> void:
 	if(FirstCell and FirstCell.offset >= QuitOffset - 10):
-		print("Conv ", self,  " firstcell is in 10p from the QuitOffset!")
+#		print("Conv ", self,  " firstcell is in 10p from the QuitOffset!")
 #		call_deferred("StopCells")
 #		if(!isSpawning):
 #			call_deferred("DeactivatePhysics")

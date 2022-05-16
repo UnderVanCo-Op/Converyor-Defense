@@ -7,6 +7,7 @@ var isSpawnPoint := true setget setter_isSpP	# shows if this is the start point 
 var inc_convs := []			# list-arrays for inc conveyors. All the conv inside these 2 lists must
 var out_convs := []			# be (and are) ready to use
 var isFactoryP := false		#
+var packages := []			#
 var isBatteryP := false		#
 var isShadingCell := false	# shading
 var WasUsed := false		# recursive system works
@@ -34,6 +35,12 @@ func AddOutConv(conv) -> void:
 	out_convs.append(conv)		# new ref to list
 
 
+# 
+func ReceivePackage(package) -> void:
+	packages.append(package)
+	$Packages.add_child(package)
+
+
 # Gets called from Conv2.gd
 func TryPauseShading() -> bool:
 	if(!isShadingCell):
@@ -43,11 +50,12 @@ func TryPauseShading() -> bool:
 		isPaused = true
 		return false
 
+
 # Tries to send cannon on a last cell in the out[0] conv
 func TrySendCannon(cannon) -> bool:
 	if(isFactoryP):
 		if(out_convs.size() > 1):
-			push_error("Point_TrySendCan: there are more that 2 outc convs!")
+			push_error("Point_TrySendCan: there are more that 1 outc convs!")
 			return false
 		if(out_convs[0].isBuilding or out_convs[0].CheckIfCapacityIsOver()):	# to be heavied in the future
 			push_warning("Point_TryGetCan: Out conv is full or is building, returning")
@@ -71,11 +79,11 @@ func TrySendCannon(cannon) -> bool:
 # For now system chooses outc conv (if multiply are free) by who-is-first-entry in the out_convs (time approach)
 # warning-ignore:unused_argument
 func _physics_process(delta: float) -> void:
-	if(!WasUsed):
+	if(!WasUsed and !isPaused):
 		CellWork()
 	pass
 
-#
+# Gets called deferred in order to clear all flags dedicated to recursive call of TryMove
 func ResetMarks() -> void:
 	WasUsed = false
 	WasCellMoved = false
@@ -129,7 +137,7 @@ func RemoveCell() -> void:
 	isShadingCell = false
 
 
-#  Method tries to 
+#  Method checks if there is space in Battery, if so, send cannon to it, if not stopsConv
 func TryToGiveOutCannon() -> void:
 	print("\nPoint ", self, " is moving cell to the Battery now")
 	if(get_parent().CheckForPlace()):		# if there is space inside a battery
@@ -146,6 +154,7 @@ func TryToGiveOutCannon() -> void:
 		inc_convs[0].isFulling = false
 		inc_convs[0].StopCells()
 		inc_convs[0].DeactivatePhysics()
+		isPaused = true
 			
 	
 	# Final

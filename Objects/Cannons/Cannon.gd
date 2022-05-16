@@ -4,26 +4,29 @@ extends Node2D
 var bullet := preload("res://Objects/Bullets/Bullet.tscn")
 #var GM = null					# ref to GameManager.gd
 var BBullets = null				# ref to spawn bullets parent node
-export var DeliveryStatus := 0	# 0 = no delivery/delivered, 1 = on factory, 2 = on cell on conv
-var enemies = []		# list of all enemies in vision area
+export var DeliveryStatus := 0	# 0 = no delivery/delivered, 1 = on factory point, 2 = on cell on conv
+var enemies = []				# list of all enemies in vision area
 var cur_enemy = null
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-#	BBullets = 
 #	BBullets = get_tree().get_root().get_node("/root/Main/Bullets")		# connection
 	#print("BBullets: " + str(BBullets))
-	match DeliveryStatus:
-		0:
-			push_warning("Cannon: Reached 0 delivery status")
-			BBullets = get_node("../../../../../Bullets")			# need to be checked
-			set_physics_process(true)
-		1:	# on factory
-			BBullets = get_node("../../../Bullets")
-			set_physics_process(false)
-		2:	# on cell
-			BBullets = get_node("../../../../Bullets")
-			set_physics_process(false)
+	if(DeliveryStatus == 0):
+		set_physics_process(true)
+	else:
+		set_physics_process(false)
+#	match DeliveryStatus:
+#		0:
+#			push_warning("Cannon: Reached 0 delivery status")
+#			BBullets = get_node("../../../../../Bullets")			# need to be checked
+#			set_physics_process(true)
+#		1:	# on factory
+#			BBullets = get_node("../../../Bullets")
+#			set_physics_process(false)
+#		2:	# on cell
+#			BBullets = get_node("../../../../Bullets")
+#			set_physics_process(false)
 		
 #		GM = get_node("../../GameManager")		# connection between nodes
 # added for pre-placing functionality
@@ -40,12 +43,15 @@ func _ready():
 #	building = true
 #	# set_physics_process(false)
 	
-# Finish Delivering function
+# Finish Delivering function (but still inside package)
 func FinishDelivering() -> void:
+	BBullets = get_node("/root/Main/Bullets")
+	print(BBullets)
 	$Vision.monitoring = true
 	$Vision.monitorable = true
 	DeliveryStatus = 0
 	set_physics_process(true)
+	
 	
 #	GM.call("tower_built")			# calling to GM
 	
