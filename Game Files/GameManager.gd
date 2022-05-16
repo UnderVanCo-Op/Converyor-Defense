@@ -10,12 +10,11 @@ var gui = null						# gui reference	(GUI)
 var Point = null					#  (point, for cancelling)
 var isStartConv := true				# if there was a start of a conveyor (conv switcher btw start/end)
 var isFocusedOnSmth := false		# if we are already interacting with smth	(focus)
-#var EndOfChain = null
 
 signal Send
 
 var money := 250
-
+var resource:=100
 
 func _ready() -> void:
 	signalConnector()
@@ -180,3 +179,7 @@ func tower_built() -> void:					# calling from Cannon.gd
 func change_money(_money) -> void:			# calling from THIS script and Enemy.gd
 	money += _money
 	gui.call("updateMoney", money)			# calling to GUI.gd
+
+func _change_resources(_resources)->void:	# calling from THIS script and Enemy.gd
+	resource+=_resources
+	gui.call("updateResources",resource)
