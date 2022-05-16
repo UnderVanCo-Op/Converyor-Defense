@@ -111,6 +111,9 @@ func CellWork(Point = null) -> void:
 			call_deferred("ResetMarks")
 		pass
 
+
+
+# Method removes FirstCell on inc[0] 
 func RemoveCell() -> void:
 	inc_convs[0].remove_child(inc_convs[0].FirstCell)
 	inc_convs[0].FirstCell.queue_free()
@@ -126,13 +129,24 @@ func RemoveCell() -> void:
 	isShadingCell = false
 
 
-# 
+#  Method tries to 
 func TryToGiveOutCannon() -> void:
 	print("\nPoint ", self, " is moving cell to the Battery now")
-	if(true):		# if there is space inside a battery
+	if(get_parent().CheckForPlace()):		# if there is space inside a battery
+		inc_convs[0].RemoveCannonWork()
 		inc_convs[0].FirstCell.remove_child(inc_convs[0].FirstCell.cannon)
 		get_parent().ReceiveCannon(inc_convs[0].FirstCell.cannon)	# get battery
 		RemoveCell()
+		
+		if(!inc_convs[0].hasCannon):
+			inc_convs[0].isFulling = false
+			inc_convs[0].StopCells()
+			inc_convs[0].DeactivatePhysics()
+	else:
+		inc_convs[0].isFulling = false
+		inc_convs[0].StopCells()
+		inc_convs[0].DeactivatePhysics()
+			
 	
 	# Final
 	WasUsed = true

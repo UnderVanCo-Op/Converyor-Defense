@@ -11,7 +11,29 @@ func _ready() -> void:
 	$"Point".isBatteryP = true
 
 
+# Simple method that checks for a free place in a lafets
+func CheckForPlace() -> bool:
+	var laf = Request()
+	if(laf):
+		return true
+	else:
+		return false
+
+
 # Gets called from point
 func ReceiveCannon(cannon) -> void:
-	listOfLafets[0].add_child(cannon)
+	var laf = Request()
+	if(laf):
+		laf.add_child(cannon)
+		laf.isOccupied = true
+	else:
+		push_error("Battery: Can not add cannon, since no free place is available")
 	pass
+
+
+# Request
+func Request() -> Node2D:
+	for laf in listOfLafets:
+		if(!laf.isOccupied):
+			return laf
+	return null

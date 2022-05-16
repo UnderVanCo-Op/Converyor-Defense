@@ -22,11 +22,13 @@ var StartOffset : int = -1				# gets calc in CountCap method
 var ShadeOffset : int = -1				#
 var QuitOffset : int = -1				# gets calc in CountCap method
 var isShaded := false					# sets only from Point, no changing inside Conv.gd must be done
-var isCellOnQuit := false				#
-var Cannon = null						#
-var isCannonInQ	:= false				#
-var hasCannon := false					#
-var isFulling := false					#
+var isCellOnQuit := false				# 
+var Cannon = null						# 
+var isCannonInQ	:= false				# 
+var hasCannon := false					# 
+var isFulling := false					# 
+var CannonsInQ := 0						# 
+var CannonsOnConv := 0					# 
 
 signal StopCells()			# signal is emitted when cells are need to be stopped
 signal StartCells()			# signal is emitted when cells are need to be started
@@ -49,12 +51,13 @@ func _physics_process(_delta: float) -> void:
 	pass
 
 
-# Places cannon in the next cell available
+# Places cannon in the next free cell
 func ReceiveCannon(cannon) -> void:
 #	StartCells()
 #	ActivatePhysics()
 	if(Point.TryPauseShading()):	# immediately spawn when spawn is free
 		isCannonInQ = true
+		CannonsInQ += 1
 		Cannon = cannon
 		SpawnCells(1)				# spawn new cell
 	else:							# means that Point is already shading some cell
@@ -62,6 +65,7 @@ func ReceiveCannon(cannon) -> void:
 		pass	# wait
 
 
+# Ahhhh Currently idk why it is here
 func CheckShadeOffset() -> void:
 	if(FirstCell and FirstCell.offset >= ShadeOffset - 10 and !isSending):
 		print("Conv ", self, " firstcell is in 10p from the ShadeOffset!")
@@ -71,6 +75,7 @@ func CheckShadeOffset() -> void:
 				call_deferred("DeactivatePhysics")
 
 
+# Only sets isCellOnQuit
 func CheckQuitOffset() -> void:
 	if(FirstCell and FirstCell.offset >= QuitOffset - 10):
 		print("Conv ", self,  " firstcell is in 10p from the QuitOffset!")
@@ -141,6 +146,7 @@ func CountCapacity() -> int:
 	return _capacity
 
 
+# Just Do what is says, equality measures Exactly
 func CheckIfCapacityIsEqual() -> bool:
 	if(get_child_count() == capacity):	# +1 bcs there are border-conditions when moving cells
 #		isFull = true
@@ -164,7 +170,7 @@ func CheckIfCapacityIsOver() -> bool:
 #		return true
 
 
-# 
+# Not used?
 func CheckIfCellOnQuitHasCannon() -> bool:
 	if(isCellOnQuit):
 		if(FirstCell.isOccupied):
@@ -216,6 +222,17 @@ func UpdateFirstCell() -> void:
 	FirstCell = get_child(0)	# update ref to first cell
 
 
+# Set on conv vars right
+func RemoveCannonWork() -> void:
+	if(CannonsOnConv == 0):
+		push_error("Conv: Tried to removed cannon, but there is no cannon on conv")
+		return
+	
+	CannonsOnConv -= 1
+	if(CannonsOnConv == 0):
+		hasCannon = false
+
+
 # Main function of spawn
 func SpawnQ() -> void:
 	# Checks
@@ -236,7 +253,9 @@ func SpawnQ() -> void:
 		newcell.isOccupied = true
 		newcell.cannon = Cannon
 		hasCannon = true
+		CannonsOnConv += 1
 		isCannonInQ = false
+		CannonsInQ -= 1
 	
 	if(!isFulling):
 		cellInQ -= 1
