@@ -62,12 +62,15 @@ func TryReceivePackage(package) -> bool:
 		isFulled = true
 		push_warning("Point: There are no space in the Point!")
 		return false
-
+	
 	package.DeliveryStatus = 2		# set status = in delivery
 	if(OutConvMain):				# if we have our target conv
 		if(!TrySendPackage(package, OutConvMain)):		# if package was not sent to conv
 			packages.append(package)					# then add to point
 			$Packages.add_child(package)				#
+	else:
+		packages.append(package)					# then add to point
+		$Packages.add_child(package)				#
 	
 	if(packages.size() == capacity):	# check for trigger
 		isFulled = true					# set trigger
@@ -91,7 +94,7 @@ func TryPauseShading() -> bool:
 		return false
 
 
-# Tries to send cannon on a last cell in the out[0] conv
+# Tries to send package on a last cell in the out[0] conv
 func TrySendPackage(package, conv) -> bool:
 		# Checks
 		if(conv.endPoint.isFulled):
@@ -131,7 +134,17 @@ func ResetMarks() -> void:
 # downlying if: mb isspawnpoint or smth
 # 
 func CellWork(Point = null) -> void:
-	if(isUsed and !isBatteryP and inc_convs and (inc_convs[0].isSending or inc_convs[0].isShaded) and out_convs and !WasUsed):
+	if(!isUsed):
+		return
+	if(out_convs):
+		for outc in out_convs:
+			if(outc.isCellOnShade):
+				if(outc.isMoving and !outc.isPackageWaiting and !outc.hasPackage):
+					outc.StopCells()
+					if(!outc.isSpawning):
+						outc.DeactivatePhysics()
+						
+	if(!isBatteryP and inc_convs and (inc_convs[0].isSending or inc_convs[0].isShaded) and out_convs and !WasUsed):
 		for outc in out_convs:
 			if((!outc.isReady and !outc.isSpawning) or outc.isSending):		# finding free conv
 				if(!isShadingCell):
@@ -156,7 +169,7 @@ func CellWork(Point = null) -> void:
 			else:
 				RemoveCell()
 			call_deferred("ResetMarks")
-		pass
+		
 
 
 # Method removes FirstCell on inc[0] 
@@ -290,6 +303,13 @@ func ReceiveSpawnRequest(count : int, conv, isContinuation := false, EndOfChainP
 		PToSend = conv.endPoint
 	if(isSpawnPoint):
 		# add check for cycle works, mb TryMoveCell()
+		if(packages):
+			get_node("Packages").remove_child(packages[0])
+			if(TrySendPackage(packages[0], conv)):
+				packages.pop_at(0)		# pop out of a list
+				count -= 1				# to be changed
+			else:
+				get_node("Packages").add_child(packages[0])	# add child back
 		conv.StartCells()
 		conv.ActivatePhysics()
 		conv.SpawnCells(count)

@@ -25,6 +25,7 @@ var QuitOffset : int = -1				# gets calc in CountCap method
 #
 var isShaded := false					# sets only from Point, no changing inside Conv.gd must be done
 var isCellOnQuit := false				# shows if some cell reached quitoffset (or will reach later in this physics tick)
+var isCellOnShade := false				#
 var isPackageWaiting := false			#
 var hasPackage := false					# shows if conv has at least 1 package
 var numberOfPacks := 0					# amount of packs on the conv
@@ -58,6 +59,7 @@ func ReceivePackage(pack) -> void:
 	isPackageWaiting = true
 	package = pack
 	if(Point.TryPauseShading()):	# immediately spawn when spawn is free
+		pass
 		SpawnCells(1)				# spawn new cell
 	else:							# means that Point is already shading some cell
 		print("Conv_ReceivePackage: Reached else")
@@ -68,10 +70,11 @@ func ReceivePackage(pack) -> void:
 func CheckShadeOffset() -> void:
 	if(FirstCell and FirstCell.offset >= ShadeOffset - 10 and !isSending):
 #		print("Conv ", self, " firstcell is in 10p from the ShadeOffset!")
-		if(!isPackageWaiting and !hasPackage):
-			call_deferred("StopCells")
-			if(!isSpawning):
-				call_deferred("DeactivatePhysics")
+		isCellOnShade = true
+#		if(!isPackageWaiting and !hasPackage):
+#			call_deferred("StopCells")
+#			if(!isSpawning):
+#				call_deferred("DeactivatePhysics")
 
 
 # Only sets isCellOnQuit, conv doesnt stop on its own
@@ -165,7 +168,7 @@ func CheckIfCapacityIsOver() -> bool:
 
 
 # Not used?
-func CheckIfCellOnQuitHasCannon() -> bool:
+func CheckIfCellOnQuitHasPackage() -> bool:
 	if(isCellOnQuit):
 		if(FirstCell.isOccupied):
 			return true
