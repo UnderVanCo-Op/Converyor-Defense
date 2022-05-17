@@ -14,6 +14,7 @@ var CellOnSpawn : PathFollow2D = null 	# Practically, this is the last cell in c
 var isSpawning := false					# shows if the conv is spawning cells
 var cellInQ := 0						# cells, that are enqueued in this conv
 var isSending := false					# shows if conv is sending cells somewhere to next conv
+# Offsets work
 const FREE_DST := 110					# wanted distance btw pivot of near cells
 var SpawnFreeOffset : int = -1			# gets calc in CountCap method
 const POINT_OFFSET := 200				# basic offset to not overlap Point (around 230)
@@ -21,17 +22,20 @@ export var WantedOffset : int = 0		# adds to Points offset (can be set from Edit
 var StartOffset : int = -1				# gets calc in CountCap method
 var ShadeOffset : int = -1				#
 var QuitOffset : int = -1				# gets calc in CountCap method
+#
 var isShaded := false					# sets only from Point, no changing inside Conv.gd must be done
-var isCellOnQuit := false				# 
-var Cannon = null						# 
-var isCannonInQ	:= false				# 
-var hasCannon := false					# 
-var isFulling := false					# 
-var CannonsInQ := 0						# 
-var CannonsOnConv := 0					# 
+var isCellOnQuit := false				# shows if some cell reached quitoffset (or will reach later in this physics tick)
+var Cannon = null						# needs delete
+var isCannonInQ	:= false				# needs rework
+var hasCannon := false					# rework
+var isFulling := false					# shows if conv is spawning new cells
+var CannonsInQ := 0						# rework
+var CannonsOnConv := 0					# rework
+#var CurveRotation := 0					# gets calc in CountCap method
 
 signal StopCells()			# signal is emitted when cells are need to be stopped
 signal StartCells()			# signal is emitted when cells are need to be started
+
 
 func ActivatePhysics() -> void:
 #	isReady = false
@@ -111,6 +115,7 @@ func CountCapacity() -> int:
 	c.queue_free()
 	
 	var Cleng := curve.get_baked_length()		# get length of the curve
+#	var pointArr := curve.get_baked_points()
 	
 	StartOffset = POINT_OFFSET + WantedOffset	# WantedOffset = 0 for default
 	SpawnFreeOffset = StartOffset + FREE_DST

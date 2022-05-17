@@ -6,6 +6,7 @@ var isUsed := false			# for speed of checking
 var isSpawnPoint := true setget setter_isSpP	# shows if this is the start point of a chain
 var inc_convs := []			# list-arrays for inc conveyors. All the conv inside these 2 lists must
 var out_convs := []			# be (and are) ready to use
+var OutConvMain = null		#
 var isFactoryP := false		#
 var packages := []			#
 var isBatteryP := false		#
@@ -14,31 +15,55 @@ var WasUsed := false		# recursive system works
 var WasCellMoved := false	# recursive system works
 var isPaused := false		# new system
 
+
 func _ready() -> void:
-	set_physics_process(false)
+	# Arrow work
+	if(out_convs.size() < 1):
+		$Arrow.hide()
+	elif(out_convs.size() == 1):
+		print("Point_ready: There was a pre-build conv, so setting arrow dir now...")
+		setArrowDirAndShow(out_convs[0])
+	else:
+		push_warning("Point_ready: Cant set arrow dir bcs there are already more than 1 convs")
+	
+	set_physics_process(false)	    # turn off ph process
+
 
 func setter_isSpP(new_val : bool) -> void:
 #	print("WOROAWROAWROARWOAORW", new_val)
 	isSpawnPoint = new_val
 
-func _on_TextureButton_pressed() -> void:
+
+func _on_TextureButton_pressed() -> void:		# need to get rid of position
 	emit_signal("ConvBuilding", self, isUsed, get_node("Position2D").global_position)
 
-func AddIncConv(conv) -> void:
+
+func AddIncConv(conv) -> void:		# adds inc conv
 	call_deferred("set", "isSpawnPoint", false)
 #	inc_count += 1
 #	isSpawnPoint = false				# this breaks a circle spawn
 	inc_convs.append(conv)				# new ref to list
 
-func AddOutConv(conv) -> void:
+
+func AddOutConv(conv) -> void:		# adds out conv with some additional work of setting arrow dir
 #	out_count += 1
-	out_convs.append(conv)		# new ref to list
+	out_convs.append(conv)			# new ref to list
+	if(out_convs.size() == 1):		# if this is first out conv
+		OutConvMain = conv
+		setArrowDirAndShow(conv)
+		
 
 
-# 
+# Just receives package by appending it to the list and adding its as a child
 func ReceivePackage(package) -> void:
 	packages.append(package)
 	$Packages.add_child(package)
+
+
+# Sets direction of the sprite to the current output conv
+func setArrowDirAndShow(conv) -> void:
+	$Arrow.look_at(conv.endPoint.get_node("Position2D").global_position)
+	$Arrow.show()
 
 
 # Gets called from Conv2.gd
@@ -76,12 +101,12 @@ func TrySendCannon(cannon) -> bool:
 		return false
 
 
-# For now system chooses outc conv (if multiply are free) by who-is-first-entry in the out_convs (time approach)
 # warning-ignore:unused_argument
 func _physics_process(delta: float) -> void:
 	if(!WasUsed and !isPaused):
 		CellWork()
 	pass
+
 
 # Gets called deferred in order to clear all flags dedicated to recursive call of TryMove
 func ResetMarks() -> void:
@@ -90,7 +115,7 @@ func ResetMarks() -> void:
 
 
 # downlying if: mb isspawnpoint or smth
-#
+# 
 func CellWork(Point = null) -> void:
 	if(isUsed and !isBatteryP and inc_convs and (inc_convs[0].isSending or inc_convs[0].isShaded) and out_convs and !WasUsed):
 		for outc in out_convs:
@@ -118,7 +143,6 @@ func CellWork(Point = null) -> void:
 				RemoveCell()
 			call_deferred("ResetMarks")
 		pass
-
 
 
 # Method removes FirstCell on inc[0] 

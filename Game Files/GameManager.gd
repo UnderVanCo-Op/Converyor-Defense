@@ -22,14 +22,23 @@ func _ready() -> void:
 
 # Method is responsible for finding and connecting signals to THIS script
 func signalConnector() -> void:
-	var t = get_node_or_null("../Batteries")					# привязка к Точкам
+	
+	var t = get_node_or_null("../Batteries")		# привязка к Точкам в батареях
 	if(t):
 		for battery in t.get_children():
 			battery.get_node("Point").connect("ConvBuilding", self, "s_ConvBuild")	# signal connection
 	else:
-		push_error("GM_ERROR: failed to get Points Nodes in Points!")
+		push_error("GM_ERROR: failed to get Batteries node!")
 	
-	t = get_node_or_null("../Factories")					# привязка к Точкам 2 в факторках
+	t = get_node_or_null("../Points")				# привязка к Точкам (отдельным)
+	if(t):
+		for p in t.get_children():
+			t.connect("ConvBuilding", self, "s_ConvBuild")	# signal connection
+	else:
+		push_error("GM_ERROR: failed to get Points nodes in Points!")
+	
+	
+	t = get_node_or_null("../Factories")			# привязка к Точкам в факторках
 	if(t):
 		for ch in t.get_children():
 			ch.get_node("Point").connect("ConvBuilding", self, "s_ConvBuild")	# signal connection
@@ -181,5 +190,5 @@ func change_money(_money) -> void:			# calling from THIS script and Enemy.gd
 	gui.call("updateMoney", money)			# calling to GUI.gd
 
 func _change_resources(_resources)->void:	# calling from THIS script and Enemy.gd
-	resource+=_resources
-	gui.call("updateResources",resource)
+	resource += _resources
+	gui.call("updateResources", resource)

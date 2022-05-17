@@ -12,14 +12,17 @@ func _ready() -> void:
 
 func _on_Timer_timeout() -> void:
 	#print(levelWave[0])
-	if (levelWave[0]=="bot"):
-		newFollower=follower.instance()
-		add_child(newFollower)
-	elif (levelWave[0]=="tank") :
-		newFollower=anotherFollowwer.instance()
-		add_child(newFollower)
-	levelWave.pop_front()
-	print(levelWave)
+	if(levelWave):
+		if (levelWave[0]=="bot"):
+			newFollower=follower.instance()
+			add_child(newFollower)
+		elif (levelWave[0]=="tank") :
+			newFollower=anotherFollowwer.instance()
+			add_child(newFollower)
+		levelWave.pop_front()
+		print(levelWave)
+	else:
+		push_warning("Way: LevelWawe is empty")
 	
 	
 	

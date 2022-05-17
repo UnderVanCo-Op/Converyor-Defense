@@ -43,3 +43,5 @@ position = Vector2( 614, 671 )
 [node name="Battery2" parent="Batteries" instance=ExtResource( 4 )]
 position = Vector2( 1001, 295 )
 rotation = 3.00571
+
+[node name="Points" type="Node2D" parent="."]
