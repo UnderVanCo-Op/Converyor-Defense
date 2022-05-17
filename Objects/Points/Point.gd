@@ -97,25 +97,45 @@ func TryPauseShading() -> bool:
 # Tries to send package on a last cell in the out[0] conv
 func TrySendPackage(package, conv) -> bool:
 		# Checks
-		if(conv.endPoint.isFulled):
-			push_warning("Point_TrySendPack: outconvs endpoint is fulled, returning")
-			return false
-		if(conv.isBuilding or conv.CheckIfCapacityIsOver()):	# to be heavied in the future
-			push_warning("Point_TryGetPack: Out conv is full or is building, returning")
+#		if(conv.endPoint.isFulled):	# add and !enpoint.outconv.ismoving
+#			push_warning("Point_TrySendPack: outconvs endpoint is fulled, returning")
+#			return false
+		if(conv.isBuilding):
+			push_warning("Point_TryGetPack: Out conv is building, returning")
 			return false
 		if(conv.CheckIfSpawnIsFree()):
-			push_error("Point_TrySendPack: I dont know how, but Spawn is free, lol. Resuming anyway")
+			push_warning("Point_TrySendPack: I dont know how, but Spawn is free, lol. Resuming anyway")
 		
 		# General
 		print("\nPoint ", self, " is trying to put package on cell now")
 		conv.ReceivePackage(package)	# send package to conv
-		conv.isSending = true			# turn on trigger for physics work
-		if(!inc_convs):
-			conv.isFulling = true		# set continious spawning of a new cells on
+		StartOutConv()
 #		out_convs.ActivatePhysics()
 		if(packages.size() < capacity):		# trigger checks
 			isFulled = false				# trigger set
 		return true
+
+
+# Recursive method to start all convs to the end of a chain
+func StartOutConv() -> void:
+	var t := false
+	if(OutConvMain):
+		OutConvMain.endPoint.StartOutConv()		# recursive to the end of a chain
+		t = true
+	elif(isBatteryP):
+		return
+	OutConvMain.StartCells()
+	OutConvMain.ActivatePhysics()
+	OutConvMain.isSending = t		# turn trigger for physics on 
+	if(!inc_convs):
+		OutConvMain.isFulling = true		# set continious spawning of a new cells on
+#		out_convs.ActivatePhysics()
+	pass
+
+# Gets called deferred in order to clear all flags dedicated to recursive call of TryMove
+func ResetMarks() -> void:
+	WasUsed = false
+	WasCellMoved = false
 
 
 # warning-ignore:unused_argument
@@ -125,32 +145,32 @@ func _physics_process(delta: float) -> void:
 	pass
 
 
-# Gets called deferred in order to clear all flags dedicated to recursive call of TryMove
-func ResetMarks() -> void:
-	WasUsed = false
-	WasCellMoved = false
+# Method checks if we can stop conv on a shade level. Also gets called in a Conv2.gd
+func TryStopConvOnShade(outc):
+	if(outc.isCellOnShade and !outc.isShaded):
+		if(outc.isMoving and !outc.isPackageWaiting and !outc.hasPackage):	# means is ready
+			outc.StopCells()
+			if(!outc.isSpawning):
+				outc.DeactivatePhysics()
 
 
 # downlying if: mb isspawnpoint or smth
 # 
 func CellWork(Point = null) -> void:
+	if(OutConvMain and !OutConvMain.endPoint.WasUsed):	# recursive call to the end of a chain
+		OutConvMain.endPoint.CellWork()		# recursive to the end
 	if(!isUsed):
 		return
 	if(out_convs):
 		for outc in out_convs:
-			if(outc.isCellOnShade):
-				if(outc.isMoving and !outc.isPackageWaiting and !outc.hasPackage):
-					outc.StopCells()
-					if(!outc.isSpawning):
-						outc.DeactivatePhysics()
-						
+			TryStopConvOnShade(outc)
 	if(!isBatteryP and inc_convs and (inc_convs[0].isSending or inc_convs[0].isShaded) and out_convs and !WasUsed):
 		for outc in out_convs:
 			if((!outc.isReady and !outc.isSpawning) or outc.isSending):		# finding free conv
 				if(!isShadingCell):
 					TryShadeCell(outc)
 					call_deferred("ResetMarks")
-					break		# this ensures point only moves one cell from all inc convs to only one out conv
+					break	# this ensures point only moves one cell from all inc convs to only one out conv
 				elif(inc_convs[0].isCellOnQuit):
 #					WasUsed = true
 					if(!isSpawnPoint):
@@ -158,8 +178,8 @@ func CellWork(Point = null) -> void:
 					else:
 						TryMoveCell(outc, false)
 					call_deferred("ResetMarks")
-					break		# this ensures point only moves one cell from all inc convs to only one outconv
-	elif(isBatteryP and isUsed and inc_convs and (inc_convs[0].isSending or inc_convs[0].isShaded) and !WasUsed and (inc_convs[0].isPackageWaiting or inc_convs[0].hasPackage)):	# same, but for battery point, including additional checks
+					break	# this ensures point only moves one cell from all inc convs to only one outconv
+	elif(isBatteryP and isUsed and inc_convs and (inc_convs[0].isSending or inc_convs[0].isShaded) and !WasUsed):	# same, but for battery point, including additional checks
 		if(!isShadingCell):
 			TryShadeCell()
 			call_deferred("ResetMarks")
@@ -169,7 +189,7 @@ func CellWork(Point = null) -> void:
 			else:
 				RemoveCell()
 			call_deferred("ResetMarks")
-		
+#		(inc_convs[0].isPackageWaiting or inc_convs[0].hasPackage)
 
 
 # Method removes FirstCell on inc[0] 
@@ -186,7 +206,7 @@ func RemoveCell() -> void:
 	isShadingCell = false
 
 
-#  Method checks if there is space in Battery, if so, send cannon to it, if not stopsConv
+# Method checks if there is space in Battery, if so, send cannon to it, if not stopsConv
 func TryToGiveOutPackage() -> void:
 	print("\nPoint ", self, " is moving cell to the Battery now")
 	if(get_parent().CheckForPlace()):		# if there is space inside a battery
@@ -213,7 +233,7 @@ func TryToGiveOutPackage() -> void:
 	WasUsed = true
 
 
-#
+# Method tries to shade cell
 func TryShadeCell(outconv = null):
 	print("TryShadeCell reached")
 	# Checks
@@ -237,14 +257,14 @@ func TryShadeCell(outconv = null):
 		# mb WasUsed = true
 	else:
 		push_error("Point_TryShade_ERROR: Tried to shade cell when some other cell is already shading")
-		
 
-#
+
+# Method tries to send cell to the next conv
 func TryMoveCell(outconv, useRecursion := true):
 	
-	# Recursion
-	if(!outconv.endPoint.WasUsed and useRecursion):		#useRecur can be replaced with isspawnpoint
-		outconv.endPoint.CellWork()		# recursive to the end
+	# Recursion (seems like we dont need this anymore bcs its now written in CellWork()
+#	if(!outconv.endPoint.WasUsed and useRecursion):		#useRecur can be replaced with isspawnpoint
+#		outconv.endPoint.CellWork()		# recursive to the end
 	
 	# General
 	print("\nPoint ", self, " is moving cell now")
@@ -269,7 +289,6 @@ func TryMoveCell(outconv, useRecursion := true):
 		inc_convs[0].StopCells()
 		inc_convs[0].DeactivatePhysics()
 		inc_convs[0].isSending = false
-	
 	
 	WasUsed = true
 	WasCellMoved = true

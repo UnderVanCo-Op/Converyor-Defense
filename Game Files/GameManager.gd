@@ -14,7 +14,7 @@ var isFocusedOnSmth := false		# if we are already interacting with smth	(focus)
 signal Send
 
 var money := 250
-var resource:=100
+var resource := 100
 
 func _ready() -> void:
 	signalConnector()
@@ -33,7 +33,7 @@ func signalConnector() -> void:
 	t = get_node_or_null("../Points")				# привязка к Точкам (отдельным)
 	if(t):
 		for p in t.get_children():
-			t.connect("ConvBuilding", self, "s_ConvBuild")	# signal connection
+			p.connect("ConvBuilding", self, "s_ConvBuild")	# signal connection
 	else:
 		push_error("GM_ERROR: failed to get Points nodes in Points!")
 	
@@ -183,6 +183,6 @@ func change_money(_money) -> void:			# calling from THIS script and Enemy.gd
 	money += _money
 	gui.call("updateMoney", money)			# calling to GUI.gd
 
-func _change_resources(_resources)->void:	# calling from THIS script and Enemy.gd
+func _change_resources(_resources)-> void:	# calling from THIS script and Enemy.gd
 	resource += _resources
 	gui.call("updateResources", resource)

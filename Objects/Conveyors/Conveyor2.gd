@@ -28,7 +28,7 @@ var isCellOnQuit := false				# shows if some cell reached quitoffset (or will re
 var isCellOnShade := false				#
 var isPackageWaiting := false			#
 var hasPackage := false					# shows if conv has at least 1 package
-var numberOfPacks := 0					# amount of packs on the conv
+var numberOfPacks := 0					# amount of packs on the conv (currently not used, as i remember...)
 var isFulling := false					# shows if conv is spawning new cells and deleting quitcells in a row
 var package = null						# ref to the pack in q
 
@@ -57,6 +57,7 @@ func _physics_process(_delta: float) -> void:
 # Places cannon in the next free cell
 func ReceivePackage(pack) -> void:
 	isPackageWaiting = true
+	numberOfPacks += 1
 	package = pack
 	if(Point.TryPauseShading()):	# immediately spawn when spawn is free
 		pass
@@ -198,14 +199,15 @@ func ReceiveCell(newcell : PathFollow2D) -> bool:
 # warning-ignore:return_value_discarded
 	connect("StopCells", newcell, "s_StopCell")			# connecting signal from conv
 	newcell.offset = StartOffset
+#	Point.TryStopConvOnShade(self)		# call to point
 	if(isMoving):				# start parameters
 		newcell.isMoving = true
 	else:
 		newcell.isMoving = false
 		isReady = true
 	CellOnSpawn = newcell
-	if(get_child_count() == 1):		# if more, they should be moving already
-		StartCells()
+#	if(get_child_count() == 1):		# if more, they should be moving already
+#		StartCells()
 	CheckIfCapacityIsOver()
 	UpdateFirstCell()			# everytime cell move on to this conv
 	return true
