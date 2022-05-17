@@ -144,14 +144,8 @@ func s_ConvBuild(refToPoint : StaticBody2D, isUsed : bool, _Pntposition : Vector
 		
 		# Points
 		ArmPoint(Point, true)				# Set up start point
-#		Point = refToPoint					# upd the point	(not necessarily now)	
 		ArmPoint(refToPoint, false)			# marking end point, must be before isStartConv setting
-#		Point.TryMoveCell()					# Set up connections in start point
 		RequestSpawn(convBuildRef.capacity)	# requesting spawn from start point
-#		EndOfChain = refToPoint
-#		for p in get_node("Points").get_children():
-#
-		
 		
 		isFocusedOnSmth = false
 		isStartConv = true

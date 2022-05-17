@@ -25,13 +25,11 @@ var QuitOffset : int = -1				# gets calc in CountCap method
 #
 var isShaded := false					# sets only from Point, no changing inside Conv.gd must be done
 var isCellOnQuit := false				# shows if some cell reached quitoffset (or will reach later in this physics tick)
-var Cannon = null						# needs delete
-var isCannonInQ	:= false				# needs rework
-var hasCannon := false					# rework
-var isFulling := false					# shows if conv is spawning new cells
-var CannonsInQ := 0						# rework
-var CannonsOnConv := 0					# rework
-#var CurveRotation := 0					# gets calc in CountCap method
+var isPackageWaiting := false			#
+var hasPackage := false					# shows if conv has at least 1 package
+var numberOfPacks := 0					# amount of packs on the conv
+var isFulling := false					# shows if conv is spawning new cells and deleting quitcells in a row
+var package = null						# ref to the pack in q
 
 signal StopCells()			# signal is emitted when cells are need to be stopped
 signal StartCells()			# signal is emitted when cells are need to be started
@@ -56,36 +54,30 @@ func _physics_process(_delta: float) -> void:
 
 
 # Places cannon in the next free cell
-func ReceiveCannon(cannon) -> void:
-#	StartCells()
-#	ActivatePhysics()
+func ReceivePackage(pack) -> void:
+	isPackageWaiting = true
+	package = pack
 	if(Point.TryPauseShading()):	# immediately spawn when spawn is free
-		isCannonInQ = true
-		CannonsInQ += 1
-		Cannon = cannon
 		SpawnCells(1)				# spawn new cell
 	else:							# means that Point is already shading some cell
-		print("Conv_ReceiveCannon: Reached else")
+		print("Conv_ReceivePackage: Reached else")
 		pass	# wait
 
 
-# Ahhhh Currently idk why it is here
+# Conveyor is stopping on his own, if he doesnt wait package or has it
 func CheckShadeOffset() -> void:
 	if(FirstCell and FirstCell.offset >= ShadeOffset - 10 and !isSending):
 #		print("Conv ", self, " firstcell is in 10p from the ShadeOffset!")
-		if(!isCannonInQ and !hasCannon):
+		if(!isPackageWaiting and !hasPackage):
 			call_deferred("StopCells")
 			if(!isSpawning):
 				call_deferred("DeactivatePhysics")
 
 
-# Only sets isCellOnQuit
+# Only sets isCellOnQuit, conv doesnt stop on its own
 func CheckQuitOffset() -> void:
 	if(FirstCell and FirstCell.offset >= QuitOffset - 10):
 #		print("Conv ", self,  " firstcell is in 10p from the QuitOffset!")
-#		call_deferred("StopCells")
-#		if(!isSpawning):
-#			call_deferred("DeactivatePhysics")
 		isCellOnQuit = true
 
 
@@ -170,9 +162,6 @@ func CheckIfCapacityIsOver() -> bool:
 	else:
 		isFull = false
 		return false
-#	else:					# ==capacity + 1 and ==capacity
-#		isFull = true
-#		return true
 
 
 # Not used?
@@ -228,14 +217,14 @@ func UpdateFirstCell() -> void:
 
 
 # Set on conv vars right
-func RemoveCannonWork() -> void:
-	if(CannonsOnConv == 0):
-		push_error("Conv: Tried to removed cannon, but there is no cannon on conv")
+func RemovePackageWork() -> void:
+	if(numberOfPacks == 0):
+		push_error("Conv: Tried to removed package, but there is no package on conv")
 		return
-	
-	CannonsOnConv -= 1
-	if(CannonsOnConv == 0):
-		hasCannon = false
+
+	numberOfPacks -= 1
+	if(numberOfPacks == 0):
+		hasPackage = false
 
 
 # Main function of spawn
@@ -253,14 +242,14 @@ func SpawnQ() -> void:
 	print("SpawnQ is working now...")
 	var newcell = AddCell()		# spawn
 	CellOnSpawn = newcell		# update ref
-	if(isCannonInQ):
-		newcell.add_child(Cannon)
+	if(isPackageWaiting):
+		newcell.add_child(package)
 		newcell.isOccupied = true
-		newcell.cannon = Cannon
-		hasCannon = true
-		CannonsOnConv += 1
-		isCannonInQ = false
-		CannonsInQ -= 1
+		newcell.package = package
+		hasPackage = true
+		numberOfPacks += 1
+		# add check for packages in Point like Point.RequestPack()
+		isPackageWaiting = false
 	
 	if(!isFulling):
 		cellInQ -= 1

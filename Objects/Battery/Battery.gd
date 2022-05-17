@@ -21,14 +21,13 @@ func CheckForPlace() -> bool:
 
 
 # Gets called from point
-func ReceiveCannon(cannon) -> void:
+func ReceivePackage(package) -> void:
 	var laf = Request()
 	if(laf):
-		laf.add_child(cannon)
+		laf.add_child(package)
 		laf.isOccupied = true
 	else:
 		push_error("Battery: Can not add cannon, since no free place is available")
-	pass
 
 
 # Request

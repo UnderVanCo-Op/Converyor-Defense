@@ -4,7 +4,8 @@ extends Node2D
 var bullet := preload("res://Objects/Bullets/Bullet.tscn")
 #var GM = null					# ref to GameManager.gd
 var BBullets = null				# ref to spawn bullets parent node
-export var DeliveryStatus := 0	# 0 = no delivery/delivered, 1 = on factory point, 2 = on cell on conv
+var isInsidePack := true		#
+#export var DeliveryStatus := 0	# 0 = no delivery/delivered, 1 = on factory point, 2 = on cell on conv
 var enemies = []				# list of all enemies in vision area
 var cur_enemy = null
 
@@ -12,10 +13,10 @@ var cur_enemy = null
 func _ready():
 #	BBullets = get_tree().get_root().get_node("/root/Main/Bullets")		# connection
 	#print("BBullets: " + str(BBullets))
-	if(DeliveryStatus == 0):
-		set_physics_process(true)
-	else:
+	if(isInsidePack):
 		set_physics_process(false)
+	else:
+		set_physics_process(true)
 #	match DeliveryStatus:
 #		0:
 #			push_warning("Cannon: Reached 0 delivery status")
@@ -49,8 +50,9 @@ func FinishDelivering() -> void:
 	print(BBullets)
 	$Vision.monitoring = true
 	$Vision.monitorable = true
-	DeliveryStatus = 0
+	isInsidePack = false
 	set_physics_process(true)
+	$ReloadTimer.start()
 	
 	
 #	GM.call("tower_built")			# calling to GM

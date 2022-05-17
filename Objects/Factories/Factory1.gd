@@ -5,12 +5,9 @@ var cannon = preload("res://Objects/Cannons/Cannon.tscn")
 var package = preload("res://Objects/Package/Package.tscn")
 var point = null
 var isShowed := false
-#var sprNamesList := ["but1", "but2", "but3"]
-#enum s {but1, but2, but3}
 
 
 func _ready() -> void:
-#	$Point.isFactoryP = true
 	point = get_node("Point")
 	point.isFactoryP = true					# set Point ot factory point
 	point.set_physics_process(true)			# turn on physics
@@ -24,7 +21,6 @@ func _ready() -> void:
 			rndbut.connect("FactoryButPressed", self, "s_FactoryButPressed")		# signal connection
 			rndbut.texture_normal = load("res://UI/but" + str(counter) + ".png")
 			rndbut.set_sprite(counter)
-			#rndbut.call("set_sprite", str(counter))
 	else:
 		print("ERROR: failed to get ObjectMenu in Factory!")
 
@@ -34,22 +30,17 @@ func s_FactoryButPressed(spriteNumber) -> void:
 	#print("signal received")
 	#print("button " + _spriteName + " was pressed")
 	match spriteNumber:
-		1:
-			# build tower
+		1:			# build tower
 	#		print("Number 1 button was pressed!")
 			var newPackage = package.instance()
 			var newCannon = cannon.instance()
-			
+			newCannon.hide()
+			newPackage.add_child(newCannon)
 			print("Factory: Cannon added to the Package, Package added to the Point")
-	#		if(point):
-	#		newCannon.DeliveryStatus = 2
-	#			if(point.TrySendCannon(newCannon)):	# Auto-delivery: if point succeeds in adding cannon to the q in the conv
-	#				hasCannon = false
-	#			else:		# manual delivery
-			newPackage.DeliveryStatus = 1
-			point.ReceivePackage(newPackage)
-	#		else:
-	#			push_error("Factory: Tried to call get cannon in point, but no point is set!")
+			newPackage.DeliveryStatus = 1		# on factory
+			if(!point.TryReceivePackage(newPackage)):
+				push_error("Factory: Tried to call receivePack in point, but get false. Adding as a child to factory")
+				add_child(newPackage)
 		2:
 			print("Factory: Button2 was pressed")
 		3:
