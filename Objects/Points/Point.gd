@@ -251,6 +251,9 @@ func TryShadeCell(outconv = null):
 	if(!isShadingCell):
 		print("\nPoint ", self, " is offsetting cell now")
 		inc_convs[0].isShaded = true
+#		inc_convs[0].isPackageWaiting = true		# set packageWaiting for outc
+		if(OutConvMain and inc_convs[0].FirstCell.isOccupied):	# if cell that we are shading has pack
+			OutConvMain.isPackageWaiting = true		# set packaga waiting for the next conv beforehead
 		isShadingCell = true
 		inc_convs[0].StartCells()
 		inc_convs[0].ActivatePhysics()
@@ -269,6 +272,8 @@ func TryMoveCell(outconv, useRecursion := true):
 	# General
 	print("\nPoint ", self, " is moving cell now")
 	var cell = inc_convs[0].get_child(0)
+	if(cell.isOccupied):
+		inc_convs[0].RemovePackageWork()
 	
 	inc_convs[0].remove_child(cell)
 	inc_convs[0].disconnect("StartCells", cell, "s_StartCell")

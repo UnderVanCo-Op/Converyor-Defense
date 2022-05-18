@@ -61,7 +61,7 @@ func ReceivePackage(pack) -> void:
 	package = pack
 	if(Point.TryPauseShading()):	# immediately spawn when spawn is free
 		pass
-		SpawnCells(1)				# spawn new cell
+		SpawnCells(1)				# spawn new cell NEEDS REWORK
 	else:							# means that Point is already shading some cell
 		print("Conv_ReceivePackage: Reached else")
 		pass	# wait
@@ -205,6 +205,12 @@ func ReceiveCell(newcell : PathFollow2D) -> bool:
 	else:
 		newcell.isMoving = false
 		isReady = true
+	if(newcell.isOccupied):
+#		ReceivePackage(newcell.package)
+		hasPackage = true
+		numberOfPacks += 1
+		# add check for packages in Point like Point.RequestPack()
+	
 	CellOnSpawn = newcell
 #	if(get_child_count() == 1):		# if more, they should be moving already
 #		StartCells()
@@ -249,10 +255,11 @@ func SpawnQ() -> void:
 	CellOnSpawn = newcell		# update ref
 	if(isPackageWaiting):
 		newcell.add_child(package)
+		package = null
 		newcell.isOccupied = true
 		newcell.package = package
 		hasPackage = true
-		numberOfPacks += 1
+#		numberOfPacks += 1
 		# add check for packages in Point like Point.RequestPack()
 		isPackageWaiting = false
 	
