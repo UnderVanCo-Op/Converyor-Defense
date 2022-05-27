@@ -11,7 +11,7 @@ var Point = null					#  (point, for cancelling)
 var isStartConv := true				# if there was a start of a conveyor (conv switcher btw start/end)
 var isFocusedOnSmth := false		# if we are already interacting with smth	(focus)
 
-signal Send
+#signal Send
 
 var money := 250
 var resource := 100

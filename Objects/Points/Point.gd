@@ -122,11 +122,11 @@ func StartOutConv() -> void:
 	if(OutConvMain):
 		OutConvMain.endPoint.StartOutConv()		# recursive to the end of a chain
 		t = true
-	elif(isBatteryP):
+	elif(isBatteryP):	# may work unproperly, needs checking
 		return
 	OutConvMain.StartCells()
 	OutConvMain.ActivatePhysics()
-	OutConvMain.isSending = t		# turn trigger for physics on 
+	OutConvMain.isSending = true		# turn trigger for physics on 
 	if(!inc_convs):
 		OutConvMain.isFulling = true		# set continious spawning of a new cells on
 #		out_convs.ActivatePhysics()
@@ -153,18 +153,9 @@ func _physics_process(delta: float) -> void:
 	pass
 
 
-# Method checks if we can stop conv on a shade level. Also gets called in a Conv2.gd
-func TryStopConvOnShade(outc):
-	if(outc.isCellOnShade and !outc.isShaded):
-		if(outc.isMoving and !outc.isPackageWaiting and !outc.hasPackage):	# means is ready
-			outc.StopCells()
-			if(!outc.isSpawning):
-				outc.DeactivatePhysics()
-
-
 # downlying if: mb isspawnpoint or smth
 # 
-func CellWork(Point = null) -> void:
+func CellWork() -> void:
 	if(OutConvMain and !OutConvMain.endPoint.WasUsed):	# recursive call to the end of a chain
 		OutConvMain.endPoint.CellWork()		# recursive to the end
 	if(!isUsed):
@@ -184,7 +175,7 @@ func CellWork(Point = null) -> void:
 					if(!isSpawnPoint):
 						TryMoveCell(outc)
 					else:
-						TryMoveCell(outc, false)
+						TryMoveCell(outc)	#false
 					call_deferred("ResetMarks")
 					break	# this ensures point only moves one cell from all inc convs to only one outconv
 	elif(isBatteryP and isUsed and inc_convs and (inc_convs[0].isSending or inc_convs[0].isShaded) and !WasUsed):	# same, but for battery point, including additional checks
@@ -205,6 +196,7 @@ func RemoveCell() -> void:
 	inc_convs[0].remove_child(inc_convs[0].FirstCell)
 	inc_convs[0].FirstCell.queue_free()
 	inc_convs[0].isCellOnQuit = false
+	inc_convs[0].isShaded = false			# CAREFULL (will lead to unexpected beh-r if we ever try to delete some custom cell in the middle of the conv (which should not ever happen, according to the current design-doc(in our heads lol))) 
 	
 	inc_convs[0].call_deferred("UpdateFirstCell")	# update first cell in the inc conv
 	inc_convs[0].call_deferred("CheckIfCapacityIsOver")		# set isFull properly
@@ -220,12 +212,13 @@ func TryToGiveOutPackage() -> void:
 	if(get_parent().CheckForPlace()):		# if there is space inside a battery
 		
 		var pack = inc_convs[0].FirstCell.RemovePackage()
-		get_parent().ReceivePackage(pack)	# get battery and send it pack (there is free place, bcs we checked in if earlier)
 		inc_convs[0].RemovePackageWork()
+		get_parent().ReceivePackage(pack)	# get battery and send it pack (there is free place, bcs we checked in if earlier)
 		RemoveCell()
 		
 		if(!inc_convs[0].hasPackage):
 			inc_convs[0].isFulling = false
+			inc_convs[0].isSending = false
 			inc_convs[0].StopCells()
 			inc_convs[0].DeactivatePhysics()
 		
@@ -271,7 +264,7 @@ func TryShadeCell(outconv = null):
 
 
 # Method tries to send cell to the next conv
-func TryMoveCell(outconv, useRecursion := true):
+func TryMoveCell(outconv):
 	
 	# Recursion (seems like we dont need this anymore bcs its now written in CellWork()
 #	if(!outconv.endPoint.WasUsed and useRecursion):		#useRecur can be replaced with isspawnpoint
@@ -282,6 +275,7 @@ func TryMoveCell(outconv, useRecursion := true):
 	var cell = inc_convs[0].get_child(0)
 	if(cell.isOccupied):
 		inc_convs[0].RemovePackageWork()
+		out_convs[0].isPackageWaiting = false
 	
 	inc_convs[0].remove_child(cell)
 	inc_convs[0].disconnect("StartCells", cell, "s_StartCell")
