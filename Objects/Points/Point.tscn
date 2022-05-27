@@ -39,4 +39,13 @@ scale = Vector2( 0.2, 0.2 )
 texture = ExtResource( 5 )
 offset = Vector2( 225, 1.52588e-05 )
 
+[node name="Counter" type="Label" parent="."]
+margin_left = 8.0
+margin_top = 59.0
+margin_right = 66.0
+margin_bottom = 80.0
+custom_colors/font_color = Color( 1, 0.0235294, 0.0235294, 1 )
+text = "0"
+valign = 2
+
 [connection signal="pressed" from="TextureButton" to="." method="_on_TextureButton_pressed"]

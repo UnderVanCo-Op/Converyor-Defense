@@ -154,7 +154,7 @@ func _physics_process(delta: float) -> void:
 
 
 # downlying if: mb isspawnpoint or smth
-# 
+# All general stuff related to cells
 func CellWork() -> void:
 	if(OutConvMain and !OutConvMain.endPoint.WasUsed):	# recursive call to the end of a chain
 		OutConvMain.endPoint.CellWork()		# recursive to the end

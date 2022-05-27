@@ -88,8 +88,8 @@ func CheckQuitOffset() -> void:
 func StopCells() -> void:
 	print("Stopping cells on a conv ", self)
 	isMoving = false
-	isSpawning = false	# carefull
-	cellInQ = 0			# carefull
+	isSpawning = false			# carefull
+	cellInQ = 0					# carefull
 	emit_signal("StopCells")
 	if(get_child_count() == capacity):
 		isReady = true
