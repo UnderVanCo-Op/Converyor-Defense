@@ -137,6 +137,14 @@ func ResetMarks() -> void:
 	WasUsed = false
 	WasCellMoved = false
 
+# Method checks if we can stop conv on a shade level. Also gets called in a Conv2.gd
+func TryStopConvOnShade(outc):
+	if(outc.isCellOnShade and !outc.isShaded):
+		if(outc.isMoving and !outc.isPackageWaiting and !outc.hasPackage and !outc.isSending):	# means is ready
+			outc.StopCells()
+			if(!outc.isSpawning):
+				outc.DeactivatePhysics()
+
 
 # warning-ignore:unused_argument
 func _physics_process(delta: float) -> void:
@@ -290,7 +298,7 @@ func TryMoveCell(outconv, useRecursion := true):
 	inc_convs[0].isShaded = false
 	inc_convs[0].isCellOnQuit = false
 	
-	if(!outconv.isSending and outconv.CheckIfCapacityIsEqual()):
+	if(!outconv.isSending and outconv.CheckIfCapacityIsEqual()):	# stop cells on inc conv if out conv has got no place to send them
 		inc_convs[0].StopCells()
 		inc_convs[0].DeactivatePhysics()
 		inc_convs[0].isSending = false

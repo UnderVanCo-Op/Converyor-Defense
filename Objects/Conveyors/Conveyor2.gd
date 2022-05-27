@@ -6,7 +6,7 @@ var Point : StaticBody2D = null			# stores ref to point-parent (not used current
 var endPoint : StaticBody2D = null		# stores ref to point-next (used in phys_proc)
 var capacity := -1						# stores number of cells, that conv can have
 var isFull := false						# shows if the conveyor is fulled with cells (+1)
-var isMoving := false					#
+var isMoving := true					#
 var isReady := false					# fulled and stopped
 var isBuilding := true					# shows if the conv is in building stage
 var FirstCell : PathFollow2D = null		# ref to first cell in conv
@@ -17,7 +17,7 @@ var isSending := false					# shows if conv is sending cells somewhere to next co
 # Offsets work
 const FREE_DST := 110					# wanted distance btw pivot of near cells
 var SpawnFreeOffset : int = -1			# gets calc in CountCap method
-const POINT_OFFSET := 200				# basic offset to not overlap Point (around 230)
+const POINT_OFFSET := 100				# basic offset to not overlap Point (around 230)
 export var WantedOffset : int = 0		# adds to Points offset (can be set from Editor mb)
 var StartOffset : int = -1				# gets calc in CountCap method
 var ShadeOffset : int = -1				#
@@ -149,7 +149,7 @@ func CountCapacity() -> int:
 
 # Just Do what is says, equality measures Exactly
 func CheckIfCapacityIsEqual() -> bool:
-	if(get_child_count() == capacity):	# +1 bcs there are border-conditions when moving cells
+	if(get_child_count() == capacity):
 #		isFull = true
 		return true
 	else:
@@ -210,7 +210,7 @@ func ReceiveCell(newcell : PathFollow2D) -> bool:
 		hasPackage = true
 		numberOfPacks += 1
 		# add check for packages in Point like Point.RequestPack()
-	
+
 	CellOnSpawn = newcell
 #	if(get_child_count() == 1):		# if more, they should be moving already
 #		StartCells()
@@ -277,7 +277,7 @@ func SpawnCells(count : int) -> void:
 	if(curve.get_point_count() < 2):
 		push_error("Conv_SpawnC_ERROR: 1 or 0 points in curve is not enough!")
 		return
-	print("Conv: spawning " + str(count) + " cells...")
+	print("Conv " + (self).to_string() + ": spawning " + str(count) + " cells...")
 	
 	# General
 	isSpawning = true
