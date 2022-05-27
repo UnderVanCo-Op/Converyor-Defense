@@ -2,9 +2,10 @@ extends PathFollow2D
 # This is ConvCell.gd
 
 var speed = 10			# speed of the cell (needs to be moved in conveyor)
-var cannon := preload("res://Objects/Cannons/Cannon.tscn")
+#var cannon := preload("res://Objects/Cannons/Cannon.tscn")
 var isMoving := true	# if the cell is in movement
-#var isOccupied := false
+var isOccupied := false
+var package = null
 
 func _ready() -> void:
 	# Cannon
@@ -29,3 +30,14 @@ func s_StopCell() -> void:		# signal income from Conveyor.gd
 
 func s_StartCell() -> void:		# signal income from Conveyor.gd
 	isMoving = true
+
+
+# Deletes pack from childs and returns it
+func RemovePackage() -> Node2D:
+	if(isOccupied):
+		var pack = get_node("Package")
+		remove_child(pack)
+		return pack
+	else:
+		push_error("ConvCell: tried to removePackage from empty cell!")
+		return null
