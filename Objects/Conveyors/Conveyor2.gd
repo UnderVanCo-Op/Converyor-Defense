@@ -292,6 +292,15 @@ func SpawnCells(count : int) -> void:
 	isSpawning = true
 	if(get_child_count() == 0):		# mb if not firstcell
 		CellOnSpawn = AddCell()		# update cellonspawn
+		if(isPackageWaiting):
+			CellOnSpawn.add_child(package)
+			CellOnSpawn.package = package
+			CellOnSpawn.isOccupied = true
+			package = null
+			hasPackage = true
+	#		numberOfPacks += 1
+			# add check for packages in Point like Point.RequestPack()
+			isPackageWaiting = false
 		print("First cell spawned")
 		cellInQ -= 1
 	

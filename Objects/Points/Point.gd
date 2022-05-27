@@ -72,11 +72,24 @@ func TryReceivePackage(package) -> bool:
 	package.DeliveryStatus = 2		# set status = in delivery
 	if(OutConvMain):				# if we have our target conv
 		if(!TrySendPackage(package, OutConvMain)):		# if package was not sent to conv
+			package.visible = false
+		
+			var new_text = $Counter.text as int
+			new_text += 1
+			$Counter.text = new_text as String
+			
 			packages.append(package)					# then add to point
 			$Packages.add_child(package)				#
+			
 		else:
 			SetPackageWaitingRecursive()
 	else:
+		package.visible = false
+		
+		var new_text = $Counter.text as int
+		new_text += 1
+		$Counter.text = new_text as String
+		
 		packages.append(package)					# then add to point
 		$Packages.add_child(package)				#
 	
@@ -124,14 +137,11 @@ func TrySendPackage(package, conv) -> bool:
 		return true
 
 
-# Recursive method to start all convs to the end of a chain
+# Recursive method to start all convs to the end of a chain (MAY NEED REWORK)
 func StartOutConv() -> void:
-	var t := false
-	if(OutConvMain):
-		OutConvMain.endPoint.StartOutConv()		# recursive to the end of a chain
-		t = true
-	elif(isBatteryP):	# may work unproperly, needs checking
+	if(!OutConvMain):# may work unproperly, needs checking
 		return
+	OutConvMain.endPoint.StartOutConv()		# recursive to the end of a chain
 	OutConvMain.StartCells()
 	OutConvMain.ActivatePhysics()
 	OutConvMain.isSending = true		# turn trigger for physics on 
@@ -163,7 +173,6 @@ func _physics_process(delta: float) -> void:
 	pass
 
 
-# downlying if: mb isspawnpoint or smth
 # All general stuff related to cells
 func CellWork() -> void:
 	if(OutConvMain and !OutConvMain.endPoint.WasUsed):	# recursive call to the end of a chain
