@@ -9,7 +9,7 @@ var out_convs := []			# be (and are) ready to use
 var OutConvMain = null		# point to the current out conv
 var isFactoryP := false		# shows if point is a Factory point
 var packages := []			# list of packages inside
-var capacity := 9			# amount of available space for packages
+var capacity := 9 			# amount of available space for packages
 var isFulled := false		# shows if the amount of packages reached capacity
 var isBatteryP := false		# shows if point is a Battery point
 var isShadingCell := false	# shading
@@ -55,6 +55,12 @@ func AddOutConv(conv) -> void:		# adds out conv with some additional work of set
 		setArrowDirAndShow(conv)
 		
 
+func SetPackageWaitingRecursive() -> void:
+	if(OutConvMain):
+		OutConvMain.endPoint.SetPackageWaitingRecursive()
+		OutConvMain.isPackageWaiting = true
+	pass
+
 
 # Just receives package by appending it to the list and adding its as a child
 func TryReceivePackage(package) -> bool:
@@ -68,6 +74,8 @@ func TryReceivePackage(package) -> bool:
 		if(!TrySendPackage(package, OutConvMain)):		# if package was not sent to conv
 			packages.append(package)					# then add to point
 			$Packages.add_child(package)				#
+		else:
+			SetPackageWaitingRecursive()
 	else:
 		packages.append(package)					# then add to point
 		$Packages.add_child(package)				#
@@ -108,7 +116,7 @@ func TrySendPackage(package, conv) -> bool:
 		
 		# General
 		print("\nPoint ", self, " is trying to put package on cell now")
-		conv.ReceivePackage(package)	# send package to conv
+		conv.PreReceivePackage(package)	# send package to conv
 		StartOutConv()
 #		out_convs.ActivatePhysics()
 		if(packages.size() < capacity):		# trigger checks
@@ -132,10 +140,12 @@ func StartOutConv() -> void:
 #		out_convs.ActivatePhysics()
 	pass
 
+
 # Gets called deferred in order to clear all flags dedicated to recursive call of TryMove
 func ResetMarks() -> void:
 	WasUsed = false
 	WasCellMoved = false
+
 
 # Method checks if we can stop conv on a shade level. Also gets called in a Conv2.gd
 func TryStopConvOnShade(outc):
@@ -203,6 +213,7 @@ func RemoveCell() -> void:
 	
 	# Final
 	WasUsed = true
+	WasCellMoved = true		# careful
 	isShadingCell = false
 
 
@@ -216,20 +227,33 @@ func TryToGiveOutPackage() -> void:
 		get_parent().ReceivePackage(pack)	# get battery and send it pack (there is free place, bcs we checked in if earlier)
 		RemoveCell()
 		
-		if(!inc_convs[0].hasPackage):
+		if(!inc_convs[0].hasPackage and !inc_convs[0].isPackageWaiting):
+			print("Stopped by trygiveoutIF!")
 			inc_convs[0].isFulling = false
 			inc_convs[0].isSending = false
 			inc_convs[0].StopCells()
 			inc_convs[0].DeactivatePhysics()
 		
-		WasCellMoved = true		# careful
 		isShadingCell = false
 		
 	else:		# there is now place in battery, so we stop conv and turn pause on
-		inc_convs[0].isFulling = false
-		inc_convs[0].StopCells()
-		inc_convs[0].DeactivatePhysics()
-		isPaused = true
+		var pack = inc_convs[0].FirstCell.RemovePackage()
+		inc_convs[0].RemovePackageWork()
+		pack.visible = false
+		
+		var new_text = $Counter.text as int
+		new_text += 1
+		$Counter.text = new_text as String
+		$Packages.add_child(pack)
+		RemoveCell()
+		
+		if(!inc_convs[0].hasPackage and !inc_convs[0].isPackageWaiting):
+			print("Stopped by trygiveoutELSE!")
+			inc_convs[0].isFulling = false
+			inc_convs[0].isSending = false
+			inc_convs[0].StopCells()
+			inc_convs[0].DeactivatePhysics()
+#		isPaused = true
 		
 	WasUsed = true
 
@@ -275,7 +299,9 @@ func TryMoveCell(outconv):
 	var cell = inc_convs[0].get_child(0)
 	if(cell.isOccupied):
 		inc_convs[0].RemovePackageWork()
-		out_convs[0].isPackageWaiting = false
+		if(!inc_convs[0].hasPackage):
+			out_convs[0].isPackageWaiting = false
+#		out_convs[0].ReceivePackage()
 	
 	inc_convs[0].remove_child(cell)
 	inc_convs[0].disconnect("StartCells", cell, "s_StartCell")
@@ -293,6 +319,7 @@ func TryMoveCell(outconv):
 	inc_convs[0].isCellOnQuit = false
 	
 	if(!outconv.isSending and outconv.CheckIfCapacityIsEqual()):	# stop cells on inc conv if out conv has got no place to send them
+		print("Stopped by trymovecell!")
 		inc_convs[0].StopCells()
 		inc_convs[0].DeactivatePhysics()
 		inc_convs[0].isSending = false

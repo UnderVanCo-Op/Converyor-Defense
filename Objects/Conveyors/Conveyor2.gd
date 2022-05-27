@@ -55,7 +55,7 @@ func _physics_process(_delta: float) -> void:
 
 
 # Places cannon in the next free cell
-func ReceivePackage(pack) -> void:
+func PreReceivePackage(pack) -> void:
 	isPackageWaiting = true
 	numberOfPacks += 1
 	package = pack
@@ -65,6 +65,13 @@ func ReceivePackage(pack) -> void:
 	else:							# means that Point is already shading some cell
 		print("Conv_ReceivePackage: Reached else")
 		pass	# wait
+
+
+#func ReceivePackage(pack = null) -> void:
+#	hasPackage = true
+#	numberOfPacks += 1
+#	if(pack):
+#		package = pack
 
 
 # Conveyor is stopping on his own, if he doesnt wait package or has it
