@@ -16,7 +16,7 @@ var isShadingCell := false	# shading
 var WasUsed := false		# recursive system works
 var WasCellMoved := false	# recursive system works
 var isPaused := false		# new system
-var WasOutJustStopped := false	# very spec variable for looking at the next point movements (slight imitation of a bidirectional chain)
+
 
 func _ready() -> void:
 	# Arrow work
@@ -53,70 +53,45 @@ func AddOutConv(conv) -> void:		# adds out conv with some additional work of set
 	if(out_convs.size() == 1):		# if this is first out conv
 		OutConvMain = conv
 		setArrowDirAndShow(conv)
-
+		
 
 func SetPackageWaitingRecursive() -> void:
 	if(OutConvMain):
 		OutConvMain.endPoint.SetPackageWaitingRecursive()
 		OutConvMain.isPackageWaiting = true
+	pass
 
 
-func SetSendingRecursive() -> void:
-	if(OutConvMain.endPoint.OutConvMain):
-		OutConvMain.endPoint.SetSendingRecursive()
-		OutConvMain.isSending = true
-	elif(OutConvMain.endPoint.isBatteryP):
-		OutConvMain.isSending = true
-
-
-func IncRequestPackage() -> Node2D:
-	if(packages):
-		var new_text = $Counter.text as int
-		new_text -= 1
-		$Counter.text = new_text as String
-		
-#		SetPackageWaitingRecursive()
-		SetSendingRecursive()
-#		OutConvMain.isPackageWaiting = false	# BROKEN fix for the first outconvmain (our)
-		
-		var _pack = packages[0]
-		$Packages.remove_child(packages[0])
-		packages.remove(0)
-		return _pack
-	return null
-
-# Just receives package by appending it to the list and adding its as a child, if possible
+# Just receives package by appending it to the list and adding its as a child
 func TryReceivePackage(package) -> bool:
 	if(packages.size() >= capacity):
 		isFulled = true
 		push_warning("Point: There are no space in the Point!")
 		return false
 	
-#	package.DeliveryStatus = 2		# set status = in delivery
-#	if(OutConvMain):				# if we have our target conv
-#		if(!TrySendPackage(package, OutConvMain)):		# if package was not sent to conv
-#			package.visible = false
-#
-#			var new_text = $Counter.text as int
-#			new_text += 1
-#			$Counter.text = new_text as String
-#
-#			packages.append(package)					# then add to point
-#			$Packages.add_child(package)				#
-#
-#		else:		# pack was send to outconvmain
-#			package.visible = true						# turn on visibility on conv
-#			SetPackageWaitingRecursive()
-#			OutConvMain.isPackageWaiting = false			# fix for the first outconvmain (our)
-#	else:
-	package.visible = false						# turn off visibility
-	
-	var new_text = $Counter.text as int			# counter work
-	new_text += 1								# 
-	$Counter.text = new_text as String			# 
-	
-	packages.append(package)					# then add to point
-	$Packages.add_child(package)				# 
+	package.DeliveryStatus = 2		# set status = in delivery
+	if(OutConvMain):				# if we have our target conv
+		if(!TrySendPackage(package, OutConvMain)):		# if package was not sent to conv
+			package.visible = false
+		
+			var new_text = $Counter.text as int
+			new_text += 1
+			$Counter.text = new_text as String
+			
+			packages.append(package)					# then add to point
+			$Packages.add_child(package)				#
+			
+		else:
+			SetPackageWaitingRecursive()
+	else:
+		package.visible = false
+		
+		var new_text = $Counter.text as int
+		new_text += 1
+		$Counter.text = new_text as String
+		
+		packages.append(package)					# then add to point
+		$Packages.add_child(package)				#
 	
 	if(packages.size() == capacity):	# check for trigger
 		isFulled = true					# set trigger
@@ -129,42 +104,51 @@ func setArrowDirAndShow(conv) -> void:
 	$Arrow.look_at(conv.endPoint.get_node("Position2D").global_position)
 	$Arrow.show()
 
+
+# Gets called from Conv2.gd
+func TryPauseShading() -> bool:
+	if(!isShadingCell):
+		isPaused = true
+		return true
+	else:
+		isPaused = true
+		return false
+
+
 # Tries to send package on a last cell in the out[0] conv
-#func TrySendPackage(package, conv) -> bool:
-#		# Checks
-##		if(conv.endPoint.isFulled):	# add and !enpoint.outconv.ismoving
-##			push_warning("Point_TrySendPack: outconvs endpoint is fulled, returning")
-##			return false
-#		if(conv.isBuilding):
-#			push_warning("Point_TryGetPack: Out conv is building, returning")
+func TrySendPackage(package, conv) -> bool:
+		# Checks
+#		if(conv.endPoint.isFulled):	# add and !enpoint.outconv.ismoving
+#			push_warning("Point_TrySendPack: outconvs endpoint is fulled, returning")
 #			return false
-#		if(conv.CheckIfSpawnIsFree()):
-#			push_warning("Point_TrySendPack: I dont know how, but Spawn is free, lol. Resuming anyway")
-#
-#		# General
-#		print("\nPoint ", self, " is trying to put package on cell now")
-##		package.visible = true
-##		conv.PreReceivePackage(package)	# send package to conv
-##		StartOutConv()
-##		out_convs.ActivatePhysics()
-#		if(packages.size() < capacity):		# trigger checks
-#			isFulled = false				# trigger set
-#		return true
+		if(conv.isBuilding):
+			push_warning("Point_TryGetPack: Out conv is building, returning")
+			return false
+		if(conv.CheckIfSpawnIsFree()):
+			push_warning("Point_TrySendPack: I dont know how, but Spawn is free, lol. Resuming anyway")
+		
+		# General
+		print("\nPoint ", self, " is trying to put package on cell now")
+		conv.PreReceivePackage(package)	# send package to conv
+		StartOutConv()
+#		out_convs.ActivatePhysics()
+		if(packages.size() < capacity):		# trigger checks
+			isFulled = false				# trigger set
+		return true
 
 
 # Recursive method to start all convs to the end of a chain (MAY NEED REWORK)
-#func StartOutConv() -> void:
-#	if(!OutConvMain):# may work unproperly, needs checking
-#		return
-#	OutConvMain.endPoint.StartOutConv()		# recursive to the end of a chain
-#	OutConvMain.StartCells()
-#	OutConvMain.ActivatePhysics()
-#	if(OutConvMain.endPoint.OutConvMain or OutConvMain.endPoint.isBatteryP):	# fix for first conv in chain not having continuation but has been set to isSending
-#		OutConvMain.isSending = true		# turn trigger for physics on 
-#	if(!inc_convs):
-#		OutConvMain.isFulling = true		# set continious spawning of a new cells on
-##		out_convs.ActivatePhysics()
-#	pass
+func StartOutConv() -> void:
+	if(!OutConvMain):# may work unproperly, needs checking
+		return
+	OutConvMain.endPoint.StartOutConv()		# recursive to the end of a chain
+	OutConvMain.StartCells()
+	OutConvMain.ActivatePhysics()
+	OutConvMain.isSending = true		# turn trigger for physics on 
+	if(!inc_convs):
+		OutConvMain.isFulling = true		# set continious spawning of a new cells on
+#		out_convs.ActivatePhysics()
+	pass
 
 
 # Gets called deferred in order to clear all flags dedicated to recursive call of TryMove
@@ -175,13 +159,11 @@ func ResetMarks() -> void:
 
 # Method checks if we can stop conv on a shade level. Also gets called in a Conv2.gd
 func TryStopConvOnShade(outc):
-	if(outc.isCellOnShade and !outc.isShaded and outc.isMoving):
-		if((!outc.hasPackage and !outc.isSending) or (outc.hasPackage and !outc.isSending and !outc.endPoint.isBatteryP) or (outc.endPoint.WasOutJustStopped)):
-			outc.endPoint.WasOutJustStopped = false
+	if(outc.isCellOnShade and !outc.isShaded):
+		if(outc.isMoving and !outc.isPackageWaiting and !outc.hasPackage and !outc.isSending):	# means is ready
 			outc.StopCells()
 			if(!outc.isSpawning):
 				outc.DeactivatePhysics()
-			WasOutJustStopped = true
 
 
 # warning-ignore:unused_argument
@@ -193,10 +175,10 @@ func _physics_process(delta: float) -> void:
 
 # All general stuff related to cells
 func CellWork() -> void:
+	if(OutConvMain and !OutConvMain.endPoint.WasUsed):	# recursive call to the end of a chain
+		OutConvMain.endPoint.CellWork()		# recursive to the end
 	if(!isUsed):
 		return
-	if(OutConvMain):	# recursive call to the end of a chain
-		OutConvMain.endPoint.CellWork()		# recursive to the end
 	if(out_convs):
 		for outc in out_convs:
 			TryStopConvOnShade(outc)
@@ -290,7 +272,7 @@ func TryShadeCell(outconv = null):
 	print("TryShadeCell reached")
 	# Checks
 	if(outconv):
-		if(outconv.isBuilding or outconv.CheckIfCapacityIsOver() or (outconv.CheckIfCapacityIsEqual() and !outconv.isSending and !outconv.endPoint.isBatteryP)):	# to be heavied in the future
+		if(outconv.isBuilding or outconv.CheckIfCapacityIsOver() or (outconv.CheckIfCapacityIsEqual() and !outconv.isSending)):	# to be heavied in the future
 			push_warning("Point_TryShade_WARNING: Out conv is full or is building, returning")
 			return false
 	if(inc_convs[0].isBuilding):
@@ -345,12 +327,11 @@ func TryMoveCell(outconv):
 	inc_convs[0].isShaded = false
 	inc_convs[0].isCellOnQuit = false
 	
-#	if(!outconv.isSending and !outconv.endPoint.isBatteryP and outconv.CheckIfCapacityIsEqual()):	# stop cells on inc conv if out conv has got no place to send them
-#		print("Stopped by trymovecell!")
-#		inc_convs[0].StopCells()
-#		inc_convs[0].DeactivatePhysics()
-#		inc_convs[0].isSending = false
-#	CellWork()
+	if(!outconv.isSending and outconv.CheckIfCapacityIsEqual()):	# stop cells on inc conv if out conv has got no place to send them
+		print("Stopped by trymovecell!")
+		inc_convs[0].StopCells()
+		inc_convs[0].DeactivatePhysics()
+		inc_convs[0].isSending = false
 	
 	WasUsed = true
 	WasCellMoved = true
@@ -384,13 +365,13 @@ func ReceiveSpawnRequest(count : int, conv, isContinuation := false, EndOfChainP
 		PToSend = conv.endPoint
 	if(isSpawnPoint):
 		# add check for cycle works, mb TryMoveCell()
-#		if(packages):
-#			get_node("Packages").remove_child(packages[0])
-#			if(TrySendPackage(packages[0], conv)):
-#				packages.pop_at(0)		# pop out of a list
-#				count -= 1				# to be changed
-#			else:
-#			get_node("Packages").add_child(packages[0])	# add child back
+		if(packages):
+			get_node("Packages").remove_child(packages[0])
+			if(TrySendPackage(packages[0], conv)):
+				packages.pop_at(0)		# pop out of a list
+				count -= 1				# to be changed
+			else:
+				get_node("Packages").add_child(packages[0])	# add child back
 		conv.StartCells()
 		conv.ActivatePhysics()
 		conv.SpawnCells(count)
