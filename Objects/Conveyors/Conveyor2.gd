@@ -30,7 +30,7 @@ var isPackageWaiting := false			# shows if the conv is waiting for package (corr
 var hasPackage := false					# shows if conv has at least 1 package
 var numberOfPacks := 0					# amount of packs on the conv (currently not used, as i remember...)
 var isFulling := false					# shows if conv is spawning new cells and deleting quitcells in a row
-var package = null						# ref to the pack in q
+#var package = null						# ref to the pack in q
 
 signal StopCells()			# signal is emitted when cells are need to be stopped
 signal StartCells()			# signal is emitted when cells are need to be started
@@ -54,17 +54,17 @@ func _physics_process(_delta: float) -> void:
 	pass
 
 
-# Places cannon in the next free cell
-func PreReceivePackage(pack) -> void:
-	isPackageWaiting = true
-	numberOfPacks += 1
-	package = pack
-	if(Point.TryPauseShading()):	# immediately spawn when spawn is free
-		pass
-		SpawnCells(1)				# spawn new cell NEEDS REWORK
-	else:							# means that Point is already shading some cell
-		print("Conv_ReceivePackage: Reached else")
-		pass	# wait
+## Places cannon in the next free cell
+#func PreReceivePackage(pack) -> void:
+#	isPackageWaiting = true
+#	numberOfPacks += 1
+#	package = pack
+#	if(Point.TryPauseShading()):	# immediately spawn when spawn is free
+#		pass
+#		SpawnCells(1)				# spawn new cell NEEDS REWORK
+#	else:							# means that Point is already shading some cell
+#		print("Conv_ReceivePackage: Reached else")
+#		pass	# wait
 
 
 #func ReceivePackage(pack = null) -> void:
@@ -177,18 +177,6 @@ func CheckIfCapacityIsOver() -> bool:
 		return false
 
 
-# Not used?
-func CheckIfCellOnQuitHasPackage() -> bool:
-	if(isCellOnQuit):
-		if(FirstCell.isOccupied):
-			return true
-		else:
-			return false
-	else:
-		push_error("Conv_CheckCellOnQuit: no cell on quit")
-		return false
-
-
 func CheckIfSpawnIsFree() -> bool:
 	if(get_child_count() == 0):
 		return true
@@ -262,15 +250,16 @@ func SpawnQ() -> void:
 	print("SpawnQ is working now...")
 	var newcell = AddCell()		# spawn
 	CellOnSpawn = newcell		# update ref
-	if(isPackageWaiting):
-		newcell.add_child(package)
-		package = null
+	var _package = Point.IncRequestPackage()
+	if(_package):			# if we have packs on Point
+		_package.visible = true
+		newcell.add_child(_package)
 		newcell.isOccupied = true
-		newcell.package = package
+		newcell.package = _package
 		hasPackage = true
-#		numberOfPacks += 1
+		numberOfPacks += 1
 		# add check for packages in Point like Point.RequestPack()
-		isPackageWaiting = false
+#		isPackageWaiting = false		# careful
 	
 	if(!isFulling):
 		cellInQ -= 1
@@ -292,15 +281,16 @@ func SpawnCells(count : int) -> void:
 	isSpawning = true
 	if(get_child_count() == 0):		# mb if not firstcell
 		CellOnSpawn = AddCell()		# update cellonspawn
-		if(isPackageWaiting):
-			CellOnSpawn.add_child(package)
-			CellOnSpawn.package = package
+		var _package = Point.IncRequestPackage()
+		if(_package):			# if we have packs on Point
+			_package.visible = true
+			CellOnSpawn.add_child(_package)
+			CellOnSpawn.package = _package
 			CellOnSpawn.isOccupied = true
-			package = null
+#			package = null
 			hasPackage = true
-	#		numberOfPacks += 1
-			# add check for packages in Point like Point.RequestPack()
-			isPackageWaiting = false
+			numberOfPacks += 1
+#			isPackageWaiting = false
 		print("First cell spawned")
 		cellInQ -= 1
 	
