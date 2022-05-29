@@ -1,5 +1,5 @@
 extends Node2D
-#This is GameManager.gd
+# This is GameManager.gd
 
 var cannon = preload("res://Objects/Cannons/Cannon.tscn")
 var conv = preload("res://Objects/Conveyors/Conveyor.tscn")
@@ -11,10 +11,10 @@ var Point = null					#  (point, for cancelling)
 var isStartConv := true				# if there was a start of a conveyor (conv switcher btw start/end)
 var isFocusedOnSmth := false		# if we are already interacting with smth	(focus)
 
-signal Send
+#signal Send
 
 var money := 250
-
+var resource := 100
 
 func _ready() -> void:
 	signalConnector()
@@ -22,14 +22,23 @@ func _ready() -> void:
 
 # Method is responsible for finding and connecting signals to THIS script
 func signalConnector() -> void:
-	var t = get_node_or_null("../Points")					# привязка к Точкам
-	if(t):
-		for ch in t.get_children():
-			ch.connect("ConvBuilding", self, "s_ConvBuild")	# signal connection
-	else:
-		push_error("GM_ERROR: failed to get Points Nodes in Points!")
 	
-	t = get_node_or_null("../Factories")					# привязка к Точкам 2 в факторках
+	var t = get_node_or_null("../Batteries")		# привязка к Точкам в батареях
+	if(t):
+		for battery in t.get_children():
+			battery.get_node("Point").connect("ConvBuilding", self, "s_ConvBuild")	# signal connection
+	else:
+		push_error("GM_ERROR: failed to get Batteries node!")
+	
+	t = get_node_or_null("../Points")				# привязка к Точкам (отдельным)
+	if(t):
+		for p in t.get_children():
+			p.connect("ConvBuilding", self, "s_ConvBuild")	# signal connection
+	else:
+		push_error("GM_ERROR: failed to get Points nodes in Points!")
+	
+	
+	t = get_node_or_null("../Factories")			# привязка к Точкам в факторках
 	if(t):
 		for ch in t.get_children():
 			ch.get_node("Point").connect("ConvBuilding", self, "s_ConvBuild")	# signal connection
@@ -135,14 +144,8 @@ func s_ConvBuild(refToPoint : StaticBody2D, isUsed : bool, _Pntposition : Vector
 		
 		# Points
 		ArmPoint(Point, true)				# Set up start point
-#		Point = refToPoint					# upd the point	(not necessarily now)	
 		ArmPoint(refToPoint, false)			# marking end point, must be before isStartConv setting
-#		Point.TryMoveCell()					# Set up connections in start point
 		RequestSpawn(convBuildRef.capacity)	# requesting spawn from start point
-#		EndOfChain = refToPoint
-#		for p in get_node("Points").get_children():
-#
-		
 		
 		isFocusedOnSmth = false
 		isStartConv = true
@@ -179,3 +182,7 @@ func tower_built() -> void:					# calling from Cannon.gd
 func change_money(_money) -> void:			# calling from THIS script and Enemy.gd
 	money += _money
 	gui.call("updateMoney", money)			# calling to GUI.gd
+
+func _change_resources(_resources)-> void:	# calling from THIS script and Enemy.gd
+	resource += _resources
+	gui.call("updateResources", resource)
