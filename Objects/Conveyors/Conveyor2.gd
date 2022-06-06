@@ -47,7 +47,6 @@ func _physics_process(_delta: float) -> void:
 	if((isSpawning or isFulling) and CellOnSpawn and CellOnSpawn.offset >= SpawnFreeOffset - 10):
 		call("SpawnQ")
 	if(!isReady and !isShaded):
-#		CheckQuitOffset()
 		CheckShadeOffset()
 	if(isShaded):
 		CheckQuitOffset()
@@ -100,6 +99,7 @@ func StopCells() -> void:
 	emit_signal("StopCells")
 	if(get_child_count() == capacity):
 		isReady = true
+
 
 func StartCells() -> void:
 	print("Starting cells on a conv ", self)

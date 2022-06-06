@@ -18,6 +18,8 @@ var WasCellMoved := false	# recursive system works
 var isPaused := false		# new system
 var WasOutJustStopped := false	# very spec variable for looking at the next point movements (slight imitation of a bidirectional chain)
 
+var Chain = null	#
+
 
 func _ready() -> void:
 	# Arrow work
@@ -71,6 +73,7 @@ func SetSendingRecursive() -> void:
 		OutConvMain.isSending = true
 
 
+# Got a request from conv
 func IncRequestPackage() -> Node2D:
 	if(packages):
 		var new_text = $Counter.text as int
@@ -84,6 +87,9 @@ func IncRequestPackage() -> Node2D:
 		var _pack = packages[0]
 		$Packages.remove_child(packages[0])
 		packages.remove(0)
+		
+		if(packages.size() < capacity):		# trigger checks
+			isFulled = false				# trigger set
 		return _pack
 	return null
 
@@ -186,6 +192,8 @@ func TryStopConvOnShade(outc):
 
 # warning-ignore:unused_argument
 func _physics_process(delta: float) -> void:
+	if(OutConvMain and !OutConvMain.isMoving and packages):
+		OutConvMain.StartCells()
 	if(!WasUsed and !isPaused):
 		CellWork()
 	pass

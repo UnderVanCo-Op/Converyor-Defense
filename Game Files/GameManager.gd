@@ -10,11 +10,42 @@ var gui = null						# gui reference	(GUI)
 var Point = null					#  (point, for cancelling)
 var isStartConv := true				# if there was a start of a conveyor (conv switcher btw start/end)
 var isFocusedOnSmth := false		# if we are already interacting with smth	(focus)
+var ChainsList := []				#
 
-#signal Send
 
 var money := 250
 var resource := 100
+
+class Chain:
+	var StartP : StaticBody2D = null
+	var EndP : StaticBody2D = null
+	var points := []
+	var isMoving := false
+	var isSpawning := false
+	signal StopCells()			# signal is emitted when cells are need to be stopped
+	signal StartCells()			# signal is emitted when cells are need to be started
+	
+	
+	func _init(_startP : StaticBody2D, _isMov := false) -> void:
+		StartP = _startP
+		isMoving = _isMov
+		
+	
+	func StopCells() -> void:
+		print("Stopping cells on a chain ", self)
+		isMoving = false
+		isSpawning = false			# 
+		emit_signal("StopCells")
+		
+	
+	func StartCells() -> void:
+		print("Starting cells on a chain ", self)
+		isMoving = true
+		emit_signal("StartCells")
+		
+	
+	pass
+
 
 func _ready() -> void:
 	signalConnector()
