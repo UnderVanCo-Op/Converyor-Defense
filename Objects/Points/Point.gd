@@ -13,7 +13,7 @@ var capacity := 9 			# amount of available space for packages
 var isFulled := false		# shows if the amount of packages reached capacity
 var isBatteryP := false		# shows if point is a Battery point
 var isShadingCell := false	# shading
-var WasUsed := false		# recursive system works
+var WasUsed := false			# recursive system works
 var WasCellMoved := false	# recursive system works
 var isPaused := false		# new system
 
