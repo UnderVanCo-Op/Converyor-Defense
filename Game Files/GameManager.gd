@@ -57,7 +57,7 @@ func signalConnector() -> void:
 	var t = get_node_or_null("../Batteries")		# привязка к Точкам в батареях
 	if(t):
 		for battery in t.get_children():
-			battery.get_node("Point").connect("ConvBuilding", self, "s_ConvBuild")	# signal connection
+			battery.get_node("V2Point").connect("ConvBuilding", self, "s_ConvBuild")	# signal connection
 	else:
 		push_error("GM_ERROR: failed to get Batteries node!")
 	
@@ -72,7 +72,7 @@ func signalConnector() -> void:
 	t = get_node_or_null("../Factories")			# привязка к Точкам в факторках
 	if(t):
 		for ch in t.get_children():
-			ch.get_node("Point").connect("ConvBuilding", self, "s_ConvBuild")	# signal connection
+			ch.get_node("V2Point").connect("ConvBuilding", self, "s_ConvBuild")	# signal connection
 	else:
 		push_error("GM_ERROR: failed to get Points Nodes in Factories!")
 	
@@ -87,6 +87,7 @@ func s_Cancel() -> void:				# signal from GUI.gd (RMB)
 	if(isFocusedOnSmth):
 		if(!isStartConv):
 			print("\nCanceling conveyor")
+			Point = null
 			isStartConv = true
 			isFocusedOnSmth = false
 			convBuildRef.queue_free()
@@ -131,9 +132,9 @@ func ArmPoint(_point : StaticBody2D, _isStartConv : bool) -> void:
 
 
 # Method for dealing with signal from Point (click on Point)
-func s_ConvBuild(refToPoint : StaticBody2D, isUsed : bool, _Pntposition : Vector2) -> void:	# singal income from Point.gd
+func s_ConvBuild(refToPoint : StaticBody2D, isUsed : bool) -> void:	# singal income from Point.gd
 	
-	print("\nsignal received, pos: " + str(_Pntposition) + ", isUsed: " + str(isUsed) + ", Pointpath: " + str(refToPoint))
+	print("\nsignal received, pos: " + str(refToPoint.position) + ", isUsed: " + str(isUsed) + ", Pointpath: " + str(refToPoint))
 	
 	if(refToPoint):
 		pass
@@ -149,7 +150,7 @@ func s_ConvBuild(refToPoint : StaticBody2D, isUsed : bool, _Pntposition : Vector
 		get_parent().get_node("Conveyors").add_child(convBuildRef)
 		convBuildRef.position = Vector2.ZERO				# clearing pos
 		convBuildRef.curve.clear_points()					# clearing points just in case
-		convBuildRef.curve.add_point(_Pntposition)			# add start point
+		convBuildRef.curve.add_point(refToPoint.position)	# add start point
 		convBuildRef.Point = refToPoint						# ref to start point
 		
 		# Points
@@ -157,7 +158,7 @@ func s_ConvBuild(refToPoint : StaticBody2D, isUsed : bool, _Pntposition : Vector
 		
 		# General
 		isFocusedOnSmth = true
-		isStartConv = false					# carefull
+		isStartConv = false
 		
 	elif(!isStartConv and isFocusedOnSmth):					# END POINT
 		
@@ -168,20 +169,36 @@ func s_ConvBuild(refToPoint : StaticBody2D, isUsed : bool, _Pntposition : Vector
 		
 		print("End of new conveyor")
 		# Conveyor
-		convBuildRef.curve.add_point(_Pntposition)	#
-		convBuildRef.endPoint = refToPoint			# ref to end point
-		convBuildRef.isBuilding = false				#
-		convBuildRef.CountCapacity()				#
+		convBuildRef.curve.add_point(refToPoint.position)	#
+		convBuildRef.endPoint = refToPoint		# ref to end point
+		# convBuildRef.isBuilding = false		#
+		# convBuildRef.CountCapacity()			#
 		
+		# Chain
+		# возможные случаи:
+		# 1) обе точки не входят ни в какие цепи
+		# 2) старт входит в цепь, конец нет
+		# 3) конец входит в цепь, старт нет
+
+		ChainWork([Point, refToPoint])		     # set up points
+
 		# Points
-		ArmPoint(Point, true)				# Set up start point
-		ArmPoint(refToPoint, false)			# marking end point, must be before isStartConv setting
-		RequestSpawn(convBuildRef.capacity)	# requesting spawn from start point
+		# ArmPoint(Point, true)				# Set up start point
+		# ArmPoint(refToPoint, false)			# marking end point, must be before isStartConv setting
+		# RequestSpawn(convBuildRef.capacity)	# requesting spawn from start point
 		
 		isFocusedOnSmth = false
 		isStartConv = true
 		convBuildRef = null					# deleting reference as a precaution
 		Point = null						# also
+
+
+# 
+func ChainWork(_points : Array) -> void:
+	
+	pass
+
+
 
 
 # convBuildRef dependent

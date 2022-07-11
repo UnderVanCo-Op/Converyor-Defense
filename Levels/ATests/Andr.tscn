@@ -5,7 +5,7 @@
 [ext_resource path="res://UI/GUI.tscn" type="PackedScene" id=3]
 [ext_resource path="res://Objects/Battery/Battery.tscn" type="PackedScene" id=4]
 [ext_resource path="res://Objects/Factories/Factory1.tscn" type="PackedScene" id=5]
-[ext_resource path="res://Objects/Points/Point.tscn" type="PackedScene" id=6]
+[ext_resource path="res://Objects/Points/V2Point.tscn" type="PackedScene" id=6]
 
 [sub_resource type="Curve2D" id=1]
 resource_local_to_scene = true
@@ -47,8 +47,8 @@ rotation = 3.00571
 
 [node name="Points" type="Node2D" parent="."]
 
-[node name="PointCD" parent="Points" instance=ExtResource( 6 )]
-position = Vector2( 924, 920 )
+[node name="V2PointD" parent="Points" instance=ExtResource( 6 )]
+position = Vector2( 928, 872 )
 
-[node name="PointRU" parent="Points" instance=ExtResource( 6 )]
-position = Vector2( 1386, 258 )
+[node name="V2PointR" parent="Points" instance=ExtResource( 6 )]
+position = Vector2( 1600, 160 )

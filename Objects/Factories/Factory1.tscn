@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=2]
 
 [ext_resource path="res://Objects/Factories/Factory1.png" type="Texture" id=1]
-[ext_resource path="res://Objects/Points/Point.tscn" type="PackedScene" id=2]
+[ext_resource path="res://Objects/Points/V2Point.tscn" type="PackedScene" id=2]
 [ext_resource path="res://Objects/Factories/Factory1.gd" type="Script" id=3]
 [ext_resource path="res://UI/ObjectMenu.tscn" type="PackedScene" id=4]
 
@@ -30,8 +30,8 @@ collision_mask = 4
 position = Vector2( 214, 238 )
 shape = SubResource( 1 )
 
-[node name="Point" parent="." instance=ExtResource( 2 )]
-position = Vector2( -124, -208 )
+[node name="V2Point" parent="Area2D" instance=ExtResource( 2 )]
+position = Vector2( 78, -4 )
 
 [node name="ObjectMenu" parent="." instance=ExtResource( 4 )]
 anchor_right = 0.0
