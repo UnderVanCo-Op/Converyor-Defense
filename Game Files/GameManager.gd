@@ -1,9 +1,8 @@
 extends Node2D
-#This is GameManager.gd
+# This is GameManager.gd
 
 var cannon = preload("res://Objects/Cannons/Cannon.tscn")
 var conv = preload("res://Objects/Conveyors/Conveyor.tscn")
-var BadPoint = preload("res://Objects/Points/Point.tscn")		# is used for auto-complete :)
 
 var convBuildRef  = null 			# ref to new v of conveyour building	(conv)
 var cannonBuildRef = null			# ref to cannon in b-ing stage, mb unj-ly	(cannon)
@@ -11,30 +10,35 @@ var gui = null						# gui reference	(GUI)
 var Point = null					#  (point, for cancelling)
 var isStartConv := true				# if there was a start of a conveyor (conv switcher btw start/end)
 var isFocusedOnSmth := false		# if we are already interacting with smth	(focus)
-#var endsPlist := []
+
+#signal Send
 
 var money := 250
-var resource:=100
+var resource := 100
 
 func _ready() -> void:
-#	conv_list.clear()
 	signalConnector()
 	gui.call("updateMoney", money)				# calling to GUI.gd
 
-#func _physics_process(delta: float) -> void:
-#	for p in endsPlist:
-#		p.CheckQuitInChain()
-
 # Method is responsible for finding and connecting signals to THIS script
 func signalConnector() -> void:
-	var t = get_node_or_null("../Points")					# привязка к Точкам
-	if(t):
-		for ch in t.get_children():
-			ch.connect("ConvBuilding", self, "s_ConvBuild")	# signal connection
-	else:
-		push_error("GM_ERROR: failed to get Points Nodes in Points!")
 	
-	t = get_node_or_null("../Factories")					# привязка к Точкам 2 в факторках
+	var t = get_node_or_null("../Batteries")		# привязка к Точкам в батареях
+	if(t):
+		for battery in t.get_children():
+			battery.get_node("Point").connect("ConvBuilding", self, "s_ConvBuild")	# signal connection
+	else:
+		push_error("GM_ERROR: failed to get Batteries node!")
+	
+	t = get_node_or_null("../Points")				# привязка к Точкам (отдельным)
+	if(t):
+		for p in t.get_children():
+			p.connect("ConvBuilding", self, "s_ConvBuild")	# signal connection
+	else:
+		push_error("GM_ERROR: failed to get Points nodes in Points!")
+	
+	
+	t = get_node_or_null("../Factories")			# привязка к Точкам в факторках
 	if(t):
 		for ch in t.get_children():
 			ch.get_node("Point").connect("ConvBuilding", self, "s_ConvBuild")	# signal connection
@@ -52,9 +56,6 @@ func s_Cancel() -> void:				# signal from GUI.gd (RMB)
 	if(isFocusedOnSmth):
 		if(!isStartConv):
 			print("\nCanceling conveyor")
-#			conv_list.erase(convBuildRef)	# delete conv from list
-#			PrintConvList()					# print active conv-s
-#			DeArmPoint() 
 			isStartConv = true
 			isFocusedOnSmth = false
 			convBuildRef.queue_free()
@@ -77,17 +78,16 @@ func DeArmPoint() -> void:
 		if(!isStartConv):
 			Point.out_convs.erase(convBuildRef)		# delete new ref in the list
 			print("disarmed Point")
-			#print("Point out has been decreased to 1")
 			if(Point.inc_convs.size() == 0 and Point.inc_convs.size() == 0):
 				Point.isUsed = false
-				#print("Point also has been marked as not used")
 		else:
 			push_error("GM_DeArmPoint_ERROR: isStartConv is true, wtf?")
 
 
-# Marks point as Used, and also adds ref to conv, must be called after convBuildRef is set properly.
+# Marks point as Used and turns physics on, and also adds ref to conv, must be called after convBuildRef is set properly.
 func ArmPoint(_point : StaticBody2D, _isStartConv : bool) -> void:
-	if(!_point.isUsed):			# first use of this point
+	_point.set_physics_process(true)	# turn on the physics
+	if(!_point.isUsed):					# first use of this point
 		_point.isUsed = true
 	
 	if(_isStartConv):
@@ -144,15 +144,8 @@ func s_ConvBuild(refToPoint : StaticBody2D, isUsed : bool, _Pntposition : Vector
 		
 		# Points
 		ArmPoint(Point, true)				# Set up start point
-#		Point = refToPoint					# upd the point	(not necessarily now)	
 		ArmPoint(refToPoint, false)			# marking end point, must be before isStartConv setting
-#		Point.TryMoveCell()					# Set up connections in start point
 		RequestSpawn(convBuildRef.capacity)	# requesting spawn from start point
-		
-		# General
-#		if(endsPlist.has(Point) or !refToPoint.out_convs):	# if start point is in list and no outcoming convs in end point
-#			endsPlist.erase(Point)			# delete start point from list
-#			endsPlist.append(refToPoint)	# add point to list of end points of chains
 		
 		isFocusedOnSmth = false
 		isStartConv = true
@@ -162,7 +155,6 @@ func s_ConvBuild(refToPoint : StaticBody2D, isUsed : bool, _Pntposition : Vector
 
 # convBuildRef dependent
 func RequestSpawn(_count : int) -> void:
-#	Point = BadPoint.instance()
 	print("GM: req for spawning ", _count, " cells")
 	if(_count < 1):
 		push_error("GM_RequestS_ERROR: Can not send req with less than 1 cells to spawn!")
@@ -191,6 +183,6 @@ func change_money(_money) -> void:			# calling from THIS script and Enemy.gd
 	money += _money
 	gui.call("updateMoney", money)			# calling to GUI.gd
 
-func _change_resources(_resources)->void:	# calling from THIS script and Enemy.gd
-	resource+=_resources
-	gui.call("updateResources",resource)
+func _change_resources(_resources)-> void:	# calling from THIS script and Enemy.gd
+	resource += _resources
+	gui.call("updateResources", resource)

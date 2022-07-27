@@ -1,31 +1,61 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://Objects/Points/Connector.png" type="Texture" id=1]
 [ext_resource path="res://Objects/Points/ConnectorFree.png" type="Texture" id=2]
 [ext_resource path="res://Objects/Points/ConnectorPressed.png" type="Texture" id=3]
 [ext_resource path="res://Objects/Points/Point.gd" type="Script" id=4]
+[ext_resource path="res://Objects/Points/ArrowPlaceHolder.png" type="Texture" id=5]
+[ext_resource path="res://UI/Fonts/Manrope-Medium.ttf" type="DynamicFontData" id=6]
 
 [sub_resource type="RectangleShape2D" id=1]
-extents = Vector2( 130, 129 )
+extents = Vector2( 45, 45 )
+
+[sub_resource type="DynamicFont" id=2]
+size = 22
+extra_spacing_space = 1
+font_data = ExtResource( 6 )
+
+[sub_resource type="Theme" id=3]
+default_font = SubResource( 2 )
 
 [node name="Point" type="StaticBody2D" groups=["Points"]]
+position = Vector2( 0, -1 )
 collision_layer = 4
 collision_mask = 4
 script = ExtResource( 4 )
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2( 126, 125 )
+position = Vector2( 44, 44 )
 shape = SubResource( 1 )
 
 [node name="TextureButton" type="TextureButton" parent="."]
-anchor_right = 1.0
-anchor_bottom = 1.0
-rect_pivot_offset = Vector2( 126, 125 )
+margin_right = 251.0
+margin_bottom = 253.0
+rect_scale = Vector2( 0.35, 0.35 )
 texture_normal = ExtResource( 1 )
 texture_pressed = ExtResource( 3 )
 texture_hover = ExtResource( 2 )
 
 [node name="Position2D" type="Position2D" parent="."]
-position = Vector2( 126, 125 )
+position = Vector2( 44, 44 )
+
+[node name="Packages" type="Node2D" parent="."]
+
+[node name="Arrow" type="Sprite" parent="."]
+modulate = Color( 1, 1, 1, 0.698039 )
+position = Vector2( 44, 44 )
+scale = Vector2( 0.2, 0.2 )
+texture = ExtResource( 5 )
+offset = Vector2( 225, 1.52588e-05 )
+
+[node name="Counter" type="Label" parent="."]
+margin_left = 7.0
+margin_top = 55.0
+margin_right = 41.0
+margin_bottom = 86.0
+theme = SubResource( 3 )
+custom_colors/font_color = Color( 1, 0, 0, 1 )
+text = "0"
+valign = 2
 
 [connection signal="pressed" from="TextureButton" to="." method="_on_TextureButton_pressed"]

@@ -37,7 +37,6 @@ __meta__ = {
 
 [node name="ReloadTimer" type="Timer" parent="."]
 wait_time = 0.2
-autostart = true
 
 [node name="Body" type="Area2D" parent="."]
 collision_layer = 8

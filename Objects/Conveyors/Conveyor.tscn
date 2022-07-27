@@ -1,11 +1,11 @@
 [gd_scene load_steps=3 format=2]
 
-[ext_resource path="res://Objects/Conveyors/Conveyor.gd" type="Script" id=1]
+[ext_resource path="res://Objects/Conveyors/Conveyor2.gd" type="Script" id=1]
 
 [sub_resource type="Curve2D" id=1]
 resource_local_to_scene = true
 _data = {
-"points": PoolVector2Array( 0, 0, 0, 0, 403, 584, 0, 0, 0, 0, 913, 665, 0, 0, 0, 0, 762, 345, 0, 0, 0, 0, 459, 429 )
+"points": PoolVector2Array( 0, 0, 0, 0, 403, 584, 0, 0, 0, 0, 459, 429 )
 }
 
 [node name="Conveyor" type="Path2D"]

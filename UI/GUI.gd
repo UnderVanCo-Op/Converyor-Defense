@@ -18,7 +18,7 @@ func _input(event: InputEvent) -> void:
 		emit_signal("cancel_conv")
 
 func _ready() -> void:
-	var toggleDebug := false
+	var toggleDebug := true
 	if(toggleDebug):
 		OS.window_size = Vector2(1075,640)
 		OS.window_position = Vector2(0,1200)
